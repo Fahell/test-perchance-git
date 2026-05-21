@@ -1,107 +1,197 @@
-// ⚠️ IMPORTANTE: Use URL absoluta com versão (tag) para evitar cache do CDN
-// Atualize a tag (v1.0.0 -> v1.0.1 -> v1.0.2...) sempre que mudar o código
-import { getVar, root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.0.2/src/perchance-bridge.js';
+// src/modules/ui-test.js
+// Painel de testes interativo com todos os módulos
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/perchance-bridge.js';
+import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/ai-text-test.js';
+import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/image-test.js';
+import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/lists-test.js';
+import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/raycaster-test.js';
+import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/state-test.js';
+import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/canvas-test.js';
 
 export function initUITest(rendererData) {
-  try {
-    console.log('🎮 [UI-Test] Criando painel de testes...');
+  console.log('🎮 [UI-Test] Criando painel de testes expandido...');
+
+  // Captura valores do Perchance ANTES de qualquer delay
+  const capturedSeed = getVar('GAME_SEED', 'N/A');
+  const capturedRoot = !!root;
+  console.log('📸 [UI-Test] Valores capturados:', { seed: capturedSeed, root: capturedRoot });
+
+  // Cria painel flutuante
+  const panel = document.createElement('div');
+  panel.id = 'ui-test-panel';
+  panel.style.cssText = `
+    position: fixed; bottom: 20px; left: 20px; z-index: 9999;
+    background: rgba(0, 0, 0, 0.9); color: white; padding: 15px;
+    border-radius: 8px; font-family: monospace; font-size: 12px;
+    border: 2px solid #4ade80; box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+    max-width: 320px; max-height: 80vh; overflow-y: auto;
+  `;
+
+  panel.innerHTML = `
+    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.1.0</h3>
     
-    // Verifica se o body está disponível
-    if (!document.body) {
-      console.error('❌ [UI-Test] document.body não disponível. Tentando em 100ms...');
-      setTimeout(() => initUITest(rendererData), 100);
+    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+      <strong style="color:#4ade80;">🔌 Plugins</strong><br>
+      <button id="btn-ai-text" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🤖 AI Text</button>
+      <button id="btn-image" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🖼️ Image</button>
+    </div>
+    
+    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+      <strong style="color:#4ade80;">🎲 Perchance</strong><br>
+      <button id="btn-lists" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">📋 Listas</button>
+      <button id="btn-bridge" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🔗 Bridge</button>
+    </div>
+    
+    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+      <strong style="color:#4ade80;">🎨 Three.js</strong><br>
+      <button id="btn-3d" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🎲 Cor Cubo</button>
+      <button id="btn-raycaster" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🖱️ Raycaster</button>
+      <button id="btn-canvas" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🎨 Canvas</button>
+    </div>
+    
+    <div>
+      <strong style="color:#4ade80;">💾 Estado</strong><br>
+      <button id="btn-state-save" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">💾 Salvar</button>
+      <button id="btn-state-load" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">📂 Carregar</button>
+    </div>
+    
+    <div id="test-log" style="margin-top:10px; color:#aaa; font-size:11px; max-height:100px; overflow-y: auto; background:#0a0a0a; padding:8px; border-radius:4px;">Aguardando interação...</div>
+  `;
+
+  // Anexa ao body
+  document.body.appendChild(panel);
+  console.log('📎 [UI-Test] Painel anexado ao document.body');
+
+  // Verifica visibilidade
+  const rect = panel.getBoundingClientRect();
+  console.log(`📐 [UI-Test] Painel visível: ${rect.width}x${rect.height}px em (${rect.left}, ${rect.top})`);
+  console.log(`👁️ [UI-Test] Panel offsetParent:`, panel.offsetParent);
+
+  // Área de log
+  const logDiv = document.getElementById('test-log');
+  function log(message, color = '#aaa') {
+    logDiv.innerHTML = `<span style="color:${color}">${message}</span><br>` + logDiv.innerHTML;
+    // Mantém apenas as últimas 10 linhas
+    const lines = logDiv.innerHTML.split('<br>');
+    if (lines.length > 10) {
+      logDiv.innerHTML = lines.slice(0, 10).join('<br>');
+    }
+  }
+
+  // Inicializa módulos de teste
+  const aiTextTest = initAITextTest();
+  const imageTest = initImageTest();
+  const listsTest = initListsTest();
+  const stateTest = initStateTest();
+  const raycasterTest = initRaycasterTest(rendererData);
+  const canvasTest = initCanvasTest(rendererData);
+
+  // Event Listeners
+  
+  // AI Text
+  document.getElementById('btn-ai-text').onclick = async () => {
+    log('🤖 Testando AI Text...', '#4ade80');
+    if (!aiTextTest.available) {
+      log('⚠️ Plugin AI Text não disponível', '#ff6b6b');
       return;
     }
-
-    // 🛡️ CAPTURA os valores do Perchance no momento da inicialização
-    // Isso evita o erro 'numActualScriptLines' do Perchance em event handlers
-    const capturedSeed = getVar('GAME_SEED', 'N/A');
-    const capturedRootExists = !!root;
-    console.log(`📸 [UI-Test] Valores capturados: seed=${capturedSeed}, root=${capturedRootExists}`);
-
-    const panel = document.createElement('div');
-    panel.id = 'ui-test-panel';
-    // Estilização mais visível para debug
-    panel.style.cssText = `
-      position: fixed; bottom: 20px; left: 20px; z-index: 9999;
-      background: rgba(15, 23, 42, 0.95); color: #fff; padding: 15px;
-      border-radius: 8px; font-family: monospace; font-size: 14px;
-      border: 3px solid #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
-      max-width: 320px; min-width: 280px;
-    `;
-
-    panel.innerHTML = `
-      <h3 style="margin:0 0 12px 0; color:#22c55e; font-size:15px;">🧪 Painel de Testes</h3>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <button id="btn-test-perchance" style="padding:8px 12px; background:#3b82f6; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">🔗 Testar Bridge</button>
-        <button id="btn-test-3d" style="padding:8px 12px; background:#8b5cf6; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">🎲 Mudar Cor do Cubo</button>
-      </div>
-      <div id="test-log" style="margin-top:12px; padding:8px; background:rgba(0,0,0,0.3); border-radius:4px; color:#94a3b8; font-size:12px; min-height:20px;">⏳ Aguardando interação...</div>
-    `;
-
-    // Anexa ao body
-    document.body.appendChild(panel);
-    console.log('📎 [UI-Test] Painel anexado ao document.body');
-    
-    // Log de debug: posição e visibilidade
-    setTimeout(() => {
-      const rect = panel.getBoundingClientRect();
-      console.log(`📐 [UI-Test] Painel visível: ${rect.width}x${rect.height}px em (${rect.left}, ${rect.top})`);
-      console.log(`👁️ [UI-Test] Panel offsetParent: ${panel.offsetParent?.tagName || 'null'}`);
-    }, 200);
-
-    // Event Listeners com verificação de existência
-    const btnBridge = document.getElementById('btn-test-perchance');
-    const btn3d = document.getElementById('btn-test-3d');
-    const logDiv = document.getElementById('test-log');
-    
-    if (btnBridge) {
-      btnBridge.onclick = () => {
-        // Usa os valores capturados (evita erro do Perchance em event handlers)
-        if (logDiv) {
-          logDiv.textContent = `📡 Seed: ${capturedSeed} | Root: ${capturedRootExists}`;
-          logDiv.style.color = '#22c55e';
-        }
-        console.log('🔗 [UI-Test] Botão Bridge clicado');
-      };
-    } else {
-      console.error('❌ [UI-Test] btn-test-perchance não encontrado');
+    try {
+      const result = await aiTextTest.generateBasic('Escreva uma frase curta sobre um aventureiro corajoso.');
+      log(`✅ AI: "${result.generatedText.substring(0, 50)}..."`, '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
     }
+  };
 
-    if (btn3d) {
-      btn3d.onclick = () => {
-        console.log('🎲 [UI-Test] Botão 3D clicado. Verificando rendererData...');
-        console.log('   rendererData:', rendererData);
-        console.log('   rendererData.cube:', rendererData?.cube);
-        console.log('   rendererData.cube.material:', rendererData?.cube?.material);
-        console.log('   rendererData.cube.material.color:', rendererData?.cube?.material?.color);
-        
-        if (rendererData && rendererData.cube && rendererData.cube.material && rendererData.cube.material.color) {
-          const newColor = Math.random() * 0xffffff;
-          rendererData.cube.material.color.setHex(newColor);
-          if (logDiv) logDiv.textContent = `🎲 Cor alterada: #${newColor.toString(16).padStart(6, '0')}`;
-          console.log('🎲 [UI-Test] Cor do cubo alterada com sucesso!');
-        } else {
-          const error = !rendererData ? 'rendererData é undefined' :
-                       !rendererData.cube ? 'cube é undefined' :
-                       !rendererData.cube.material ? 'material é undefined' :
-                       'color é undefined';
-          if (logDiv) logDiv.textContent = `⚠️ Erro: ${error}`;
-          console.warn('⚠️ [UI-Test] Não foi possível mudar cor:', error);
-        }
-      };
-    } else {
-      console.error('❌ [UI-Test] btn-test-3d não encontrado');
+  // Image
+  document.getElementById('btn-image').onclick = async () => {
+    log('🖼️ Testando Image Plugin...', '#4ade80');
+    if (!imageTest.available) {
+      log('⚠️ Plugin Image não disponível', '#ff6b6b');
+      return;
     }
+    try {
+      const result = await imageTest.generateBasic('papercraft warrior with sword, fantasy style');
+      imageTest.createImageElement(result, panel);
+      log('✅ Imagem gerada e exibida!', '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
+  };
 
-    console.log('✅ [UI-Test] Painel de testes criado e visível.');
-    
-  } catch (error) {
-    console.error('❌ [UI-Test] Erro ao criar painel:', error);
-    // Cria um alerta visual de erro
-    const errorPanel = document.createElement('div');
-    errorPanel.style.cssText = 'position:fixed;bottom:20px;left:20px;z-index:9999;background:#ef4444;color:white;padding:15px;border-radius:8px;font-family:monospace;';
-    errorPanel.innerHTML = `<strong>❌ Erro UI:</strong><br>${error.message}`;
-    document.body.appendChild(errorPanel);
-  }
+  // Listas
+  document.getElementById('btn-lists').onclick = () => {
+    log('📋 Testando listas...', '#4ade80');
+    const item = listsTest.testSelectOne('itens');
+    const unique = listsTest.testSelectUnique('nomes_herois', 2);
+    log(`✅ Item: "${item}" | Heróis: ${unique.join(', ')}`, '#4ade80');
+  };
+
+  // Bridge
+  document.getElementById('btn-bridge').onclick = () => {
+    log(`📡 Seed: ${capturedSeed} | Root: ${capturedRoot}`, '#4ade80');
+  };
+
+  // Cor do Cubo
+  document.getElementById('btn-3d').onclick = () => {
+    log('🎲 Mudando cor do cubo...', '#4ade80');
+    if (rendererData && rendererData.cube && rendererData.cube.material) {
+      rendererData.cube.material.color.setHex(Math.random() * 0xffffff);
+      log('✅ Cor do cubo alterada!', '#4ade80');
+    } else {
+      log('⚠️ Cubo não disponível', '#ff6b6b');
+    }
+  };
+
+  // Raycaster
+  document.getElementById('btn-raycaster').onclick = () => {
+    log('🖱️ Raycaster: Clique nas esferas coloridas!', '#4ade80');
+    if (raycasterTest.available) {
+      log(`✅ ${raycasterTest.spheres.length} esferas adicionadas`, '#4ade80');
+    } else {
+      log('⚠️ Raycaster não disponível', '#ff6b6b');
+    }
+  };
+
+  // Canvas
+  document.getElementById('btn-canvas').onclick = () => {
+    log('🎨 Testando Canvas 2D...', '#4ade80');
+    canvasTest.drawing.clear();
+    canvasTest.drawing.drawGradient();
+    canvasTest.drawing.drawCircles(15);
+    canvasTest.drawing.drawText('RPG Paper Craft', 256, 256);
+    if (canvasTest.threeIntegration) {
+      canvasTest.threeIntegration.show();
+      canvasTest.threeIntegration.update();
+    }
+    log('✅ Canvas desenhado!', '#4ade80');
+  };
+
+  // State Save
+  document.getElementById('btn-state-save').onclick = () => {
+    log('💾 Salvando estado...', '#4ade80');
+    const state = stateTest.getDefaultState();
+    state.player.name = 'Herói Testador';
+    state.player.level = 5;
+    state.world.bioma = 'floresta';
+    const saved = stateTest.save(state);
+    if (saved) {
+      log('✅ Estado salvo!', '#4ade80');
+    } else {
+      log('❌ Erro ao salvar', '#ff6b6b');
+    }
+  };
+
+  // State Load
+  document.getElementById('btn-state-load').onclick = () => {
+    log('📂 Carregando estado...', '#4ade80');
+    const loaded = stateTest.load();
+    if (loaded) {
+      log(`✅ Carregado: ${loaded.player.name} Lv.${loaded.player.level}`, '#4ade80');
+    } else {
+      log('⚠️ Nenhum save encontrado', '#ff6b6b');
+    }
+  };
+
+  console.log('✅ [UI-Test] Painel de testes criado e visível.');
 }

@@ -1,0 +1,51 @@
+# ============================================
+# LIST PANEL - Cole isso no List Panel do Perchance
+# ============================================
+# Este arquivo contém as configurações, listas e imports de plugins
+# que DEVEM estar no List Panel (separado do HTML Panel).
+#
+# O HTML Panel (for-perchance.html) importa este conteúdo via root.
+# ============================================
+
+# Configurações globais
+GAME_SEED = 12345
+
+# Listas de teste
+biomas
+    tundra
+    floresta
+    montanha
+    planície
+    deserto
+
+eventos
+    nada acontece
+    encontro inesperado
+    tesouro encontrado
+    armadilha secreta
+    aliado misterioso
+
+itens
+    espada mágica
+    poção de cura
+    mapa antigo
+    amuleto protetor
+    pergaminho encantado
+
+nomes_herois
+    Aldric
+    Seraphina
+    Thorin
+    Elara
+    Kael
+
+adjetivos
+    corajoso
+    sábio
+    ágil
+    misterioso
+    lendário
+
+# Plugins do Perchance (acessíveis via root no JS)
+ai = {import:ai-text-plugin}
+image = {import:text-to-image-plugin}

@@ -1,151 +1,57 @@
 <!-- 
-  🎮 RPG Paper Craft - HTML Panel (Versão Modular com Testes)
+  HTML PANEL - Cole isso no HTML Panel do Perchance
   
-  INSTRUÇÕES:
-  1. Copie TODO este conteúdo para o HTML Panel do seu gerador no Perchance.
-  2. No List Panel, mantenha suas listas, variáveis e imports de plugins separados.
-  3. Atualize a URL do import abaixo para apontar para SEU repositório no GitHub.
+  ⚠️ IMPORTANTE: Este é apenas um fragmento HTML, NÃO um documento completo.
+  O Perchance injeta este conteúdo em uma página existente via innerHTML.
+  NÃO inclua <!DOCTYPE>, <html>, <head> ou <body> aqui.
   
-  REQUISITOS NO LIST PANEL (exemplo mínimo):
-  ```perchance
-  GAME_SEED = 12345
-  test_items
-      espada mágica
-      poção de cura
-      mapa antigo
-  biomas
-      tundra
-      floresta
-      montanha
-  art_styles
-      papercraft
-      pixel art
-      aquarela
-  imagem = {import:text-to-image-plugin}
-  ```
+  📋 LIST PANEL: Veja o arquivo for-perchance-list-panel.txt para o conteúdo
+  que deve ser colocado no List Panel (separado do HTML Panel).
 -->
 
-<!-- ⚠️ IMPORTANTE: O HTML Panel do Perchance é um FRAGMENTO, não um documento completo.
-     Não use <html>, <head>, <body> aqui - eles serão injetados dentro da página existente.
-     Estilos e scripts devem ser inline ou importados via CDN. -->
-
-<style>
-  /* Estilos scoped para o conteúdo do HTML Panel */
-  #loading-message {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(30, 30, 50, 0.95);
-    border: 2px solid #4ade80;
-    border-radius: 12px;
-    padding: 24px 40px;
-    text-align: center;
-    z-index: 2000;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    color: #e2e8f0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-  #loading-message small {
-    display: block;
-    margin-top: 8px;
-    color: #94a3b8;
-    font-size: 13px;
-  }
-  
-  #game-container { position: fixed; inset: 0; z-index: 1; }
-  
-  #three-test-container {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    width: 300px;
-    height: 200px;
-    border: 2px solid #0ea5e9;
-    border-radius: 8px;
-    z-index: 999;
-    background: #000;
-    display: none;
-  }
-  #three-test-container canvas { width: 100%; height: 100%; display: block; }
-  
-  #info-overlay {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: rgba(30, 30, 50, 0.9);
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    z-index: 100;
-    border: 1px solid #444;
-    max-width: 300px;
-    color: #e2e8f0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-  #info-overlay h3 { color: #4ade80; margin-bottom: 8px; font-size: 14px; }
-  #info-overlay ul { list-style: none; padding-left: 0; }
-  #info-overlay li { margin: 4px 0; display: flex; align-items: center; gap: 6px; }
-  #info-overlay li::before { content: "•"; color: #4ade80; font-weight: bold; }
-  
-  @media (max-width: 768px) {
-    #three-test-container { width: 200px; height: 150px; top: auto; bottom: 10px; }
-    #info-overlay { font-size: 12px; padding: 10px; }
-  }
-</style>
-
-<!-- Mensagem de Loading será criada via JavaScript (evita reaparecer em re-renderizações) -->
-
-<!-- Container principal (Three.js e outros elementos) -->
-<div id="game-container"></div>
-
-<!-- Overlay de informações -->
-<div id="info-overlay">
-  <h3>🧪 Painel de Testes</h3>
-  <ul>
-    <li>🎨 Three.js: Import via esm.sh</li>
-    <li>🧪 Perchance: Acesso a listas/vars via root</li>
-    <li>⏳ Async: Padrões await/async</li>
-    <li>🖼️ Imagem: Integração com plugin</li>
-  </ul>
-  <div style="margin-top:10px;padding-top:10px;border-top:1px solid #444;font-size:11px;color:#94a3b8">
-    <strong>Dica:</strong> Use o painel inferior para executar testes interativos.
-  </div>
+<!-- Container para o jogo -->
+<div id="game-container" style="width:100vw; height:100vh; overflow:hidden; position:relative; background:#1a1a2e;">
+  <!-- A mensagem de loading será criada dinamicamente pelo renderer.js -->
 </div>
 
-<!-- Script Principal (Módulo ES6) -->
+<!-- Import do módulo principal via CDN -->
 <script type="module">
-  /**
-   * CONFIGURAÇÃO IMPORTANTE:
-   * Substitua a URL abaixo pela do SEU repositório no GitHub.
-   * Formato: https://cdn.jsdelivr.net/gh/USUARIO/REPO@TAG/src/main.js
-   * 
-   * Use jsdelivr para servir os arquivos .js com MIME type correto.
-   * Atualize a TAG (v1.0.0 -> v1.0.1 -> v1.0.2...) após cada push.
-   */
-  
-  // ⚠️ ATUALIZE ESTA TAG PARA A VERSÃO MAIS RECENTE:
-  import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.0.2/src/main.js";
-  
-  // 🛡️ PROTEÇÃO CONTRA EXECUÇÃO DUPLA NO PERCHANCE
-  // O Perchance re-renderiza o preview, re-executando este script.
-  // Usamos sessionStorage para persistir entre re-renderizações.
-  const ALREADY_INITIALIZED = sessionStorage.getItem('rpg_initialized') === 'true';
-  
-  if (ALREADY_INITIALIZED) {
-    console.log('⏭️ Jogo já inicializado (sessionStorage). Ignorando re-execução.');
+  // 🛡️ Guard clause: Verifica se o jogo já foi inicializado
+  if (window.__RPG_INITIALIZED) {
+    console.warn('⏭️ Jogo já inicializado. Ignorando re-execução.');
   } else {
-    sessionStorage.setItem('rpg_initialized', 'true');
+    window.__RPG_INITIALIZED = true;
+    
     console.log('📄 HTML Panel injetado, chamando initGame()...');
+    
+    // Importa o ponto de entrada direto do GitHub via jsDelivr CDN
+    // ⚠️ SEMPRE use tags de versão (ex: @v1.1.0) para evitar cache do CDN
+    import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/main.js";
+    
+    // Chama imediatamente (o DOM já está pronto no contexto de fragmento injetado)
     initGame();
   }
-  
-  // Debug: botão para resetar (opcional, remova em produção)
-  window.resetGame = () => {
-    sessionStorage.removeItem('rpg_initialized');
-    location.reload();
-  };
-  
-  // Expor para debug (opcional)
-  window.__perchanceDebug = { initGame };
 </script>
+
+<!-- 
+  📝 NOTAS IMPORTANTES:
+  
+  1. O Perchance roda este HTML em um iframe com políticas de segurança (CSP).
+     Warnings de CSP são normais e não bloqueiam a execução.
+  
+  2. Para atualizar o código:
+     a) Faça commit e push no GitHub
+     b) Crie uma nova tag: git tag -a v1.1.0 -m "Descrição" && git push origin v1.1.0
+     c) Atualize TODAS as URLs nos arquivos para a nova tag
+     d) Limpe o cache do navegador (Ctrl+Shift+Del) ou use aba anônima
+  
+  3. O List Panel (for-perchance-list-panel.txt) deve conter:
+     - Imports de plugins (ai, image)
+     - Listas de dados (biomas, itens, etc.)
+     - Variáveis globais (GAME_SEED)
+  
+  4. Para acessar dados do List Panel no JavaScript:
+     import { root, getVar, getList } from './perchance-bridge.js';
+     const seed = getVar('GAME_SEED', 12345);
+     const bioma = getList('biomas', ['planície']).selectOne;
+-->

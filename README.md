@@ -1,169 +1,220 @@
-# 🎮 RPG Paper Craft - Projeto de Teste Modular para Perchance
+# 🎮 Teste Perchance + ES Modules + GitHub
 
-Este é um projeto de teste para validar a arquitetura modular de um RPG 3D no navegador usando:
-- **Perchance** (HTML Panel + List Panel)
-- **Three.js** (import via CDN)
-- **ES Modules** (import/export nativo)
-- **jsDelivr** (CDN para servir arquivos do GitHub)
+## 📋 Visão Geral
 
-## 📋 Estrutura de Arquivos
+Este projeto é um **ambiente de teste modularizado** para validar a arquitetura de desenvolvimento no Perchance usando ES Modules hospedados no GitHub via jsDelivr CDN.
+
+**Versão Atual:** `v1.1.0` (Testes Expandidos)
+
+---
+
+## 🏗️ Estrutura do Projeto
 
 ```
 test-perchance-git/
+├── for-perchance.html              # HTML Panel do Perchance (COPIAR)
+├── for-perchance-list-panel.txt    # List Panel do Perchance (COPIAR)
 ├── src/
-│   ├── main.js              # Entry point (exporta initGame)
-│   ├── perchance-bridge.js  # Ponte segura para root/listas do Perchance
+│   ├── main.js                     # Entry point
+│   ├── perchance-bridge.js         # Ponte segura para root/listas
 │   └── modules/
-│       ├── renderer.js      # Three.js: cena, câmera, loop
-│       ├── logic.js         # Lógica do jogo (dados do Perchance)
-│       └── ui-test.js       # Painel de testes interativo
-├── for-perchance.html       # COPIE PARA O HTML PANEL DO PERCHANCE
-├── test-local.html          # TESTE LOCAL NO NAVEGADOR
+│       ├── renderer.js             # Three.js setup
+│       ├── logic.js                # Lógica do jogo
+│       ├── ui-test.js              # Painel de testes interativo
+│       ├── ai-text-test.js         # Teste: Plugin AI Text
+│       ├── image-test.js           # Teste: Plugin Image
+│       ├── lists-test.js           # Teste: Listas avançadas
+│       ├── raycaster-test.js       # Teste: Clique em objetos 3D
+│       ├── state-test.js           # Teste: Persistência localStorage
+│       └── canvas-test.js          # Teste: Canvas 2D + Three.js
+├── test-local.html                 # Teste local (com mock do root)
 └── README.md
 ```
 
+---
+
 ## 🚀 Como Usar
 
-### 1. Desenvolvimento Local
-```bash
-# Abra test-local.html no navegador (duplo clique ou Live Server)
-# Teste os módulos sem precisar do Perchance
+### 1. No Perchance
+
+#### HTML Panel
+Cole o conteúdo de `for-perchance.html` no HTML Panel.
+
+#### List Panel
+Cole o conteúdo de `for-perchance-list-panel.txt` no List Panel:
+
+```perchance
+GAME_SEED = 12345
+
+biomas
+    tundra
+    floresta
+    montanha
+    planície
+    deserto
+
+eventos
+    nada acontece
+    encontro inesperado
+    tesouro encontrado
+
+itens
+    espada mágica
+    poção de cura
+    mapa antigo
+
+nomes_herois
+    Aldric
+    Seraphina
+    Thorin
+
+adjetivos
+    corajoso
+    sábio
+    ágil
+
+ai = {import:ai-text-plugin}
+image = {import:text-to-image-plugin}
 ```
 
-### 2. Deploy no Perchance
+### 2. No GitHub
 
-#### Passo 1: Commit e Push
+Faça push do projeto para um repositório público.
+
+### 3. Atualize as URLs
+
+Em todos os arquivos `.js` e no `for-perchance.html`, substitua:
+- `Fahell` → seu usuário do GitHub
+- `test-perchance-git` → nome do seu repositório
+- `@v1.1.0` → tag da versão (ex: `@v1.2.0`)
+
+---
+
+## 🧪 Testes Incluídos (v1.1.0)
+
+### 🔌 Plugins do Perchance
+
+| Teste | Descrição | Como Testar |
+|-------|-----------|-------------|
+| **🤖 AI Text** | Geração de texto via IA (streaming, startWith, stopSequences) | Clique em "🤖 AI Text" no painel |
+| **🖼️ Image** | Geração de imagens via IA (prompt, seed, negativePrompt) | Clique em "🖼️ Image" no painel |
+
+### 🎲 Funcionalidades Perchance
+
+| Teste | Descrição | Como Testar |
+|-------|-----------|-------------|
+| **📋 Listas** | `selectOne`, `selectUnique`, `selectMany`, `pluralForm`, `titleCase`, `joinItems` | Clique em "📋 Listas" no painel |
+| **🔗 Bridge** | Acesso a `root`, `GAME_SEED`, listas via `perchance-bridge.js` | Clique em "🔗 Bridge" no painel |
+
+### 🎨 Three.js
+
+| Teste | Descrição | Como Testar |
+|-------|-----------|-------------|
+| **🎲 Cor Cubo** | Muda cor do cubo 3D girando | Clique em "🎲 Cor Cubo" no painel |
+| **🖱️ Raycaster** | Clique em esferas coloridas para interagir | Clique em "🖱️ Raycaster" e depois nas esferas |
+| **🎨 Canvas** | Canvas 2D com gradientes, círculos, texto e integração com Three.js | Clique em "🎨 Canvas" no painel |
+
+### 💾 Persistência
+
+| Teste | Descrição | Como Testar |
+|-------|-----------|-------------|
+| **💾 Salvar** | Salva estado do jogo no localStorage | Clique em "💾 Salvar" no painel |
+| **📂 Carregar** | Carrega estado salvo do localStorage | Clique em "📂 Carregar" no painel |
+
+---
+
+## 🔧 Arquitetura
+
+### Por que Tags de Versão?
+
+Usamos **tags semânticas** (`@v1.1.0`) em vez de `@main` ou hashes de commit:
+
+| Abordagem | Prós | Contras |
+|-----------|------|---------|
+| `@main` | Sempre pega a última versão | Cache agressivo (12h+), difícil debugar |
+| `@commit-hash` | Imutável, sem cache | Hash longo, difícil gerenciar |
+| `@v1.1.0` | ✅ Previsível, legível, cache controlado | Requer criar tag a cada versão |
+
+### Fluxo de Desenvolvimento
+
 ```bash
-cd C:\Users\Phadawan\Documents\MEGA\test-perchance-git
+# 1. Faça suas mudanças
 git add .
-git commit -m "feat: descrição da mudança"
-git push
+git commit -m "feat: nova funcionalidade"
+
+# 2. Crie uma tag
+git tag -a v1.1.0 -m "Versão 1.1.0 - Testes expandidos"
+
+# 3. Push do código e da tag
+git push && git push origin v1.1.0
+
+# 4. Atualize TODAS as URLs nos arquivos para @v1.1.0
+# 5. Limpe o cache do navegador (Ctrl+Shift+Del)
+# 6. Teste no Perchance
 ```
 
-#### Passo 2: Criar Tag de Versão
-```bash
-# Crie uma nova tag (incremente: v1.0.0 -> v1.0.1 -> v1.0.2...)
-git tag -a v1.0.0 -m "Versão 1.0.0 - Testes iniciais"
-git push origin v1.0.0
-```
-
-#### Passo 3: Atualizar URLs
-Edite os arquivos abaixo e substitua `@v1.0.0` pela nova tag:
-- `for-perchance.html` (linha ~70)
-- `src/main.js` (linhas ~3, ~5, ~35)
-- `src/modules/logic.js` (linha ~2)
-- `src/modules/ui-test.js` (linha ~2)
-- `src/modules/renderer.js` (se houver imports de bridge)
-
-#### Passo 4: Commit e Push das URLs Atualizadas
-```bash
-git add .
-git commit -m "chore: bump version to v1.0.0"
-git push
-```
-
-#### Passo 5: Cole no Perchance
-1. Copie o conteúdo de `for-perchance.html`
-2. Cole no **HTML Panel** do seu gerador no Perchance
-3. Certifique-se de que o **List Panel** tem as listas básicas:
-   ```perchance
-   GAME_SEED = 12345
-   biomas
-       tundra
-       floresta
-       montanha
-   eventos
-       nada acontece
-       encontro inesperado
-       tesouro encontrado
-   ```
+---
 
 ## 🐛 Troubleshooting
 
-### Problema: "The requested module does not provide an export named 'getVar'"
+### "Mensagem de loading não some"
+- Verifique se o `renderer.js` está sendo carregado (console deve mostrar `🎨 [Renderer] Three.js inicializado com sucesso!`)
+- Limpe o cache do navegador
 
-**Causa**: Cache do jsDelivr servindo versão antiga.
+### "Painel de testes não aparece"
+- Verifique se o `ui-test.js` está sendo carregado (console deve mostrar `✅ [UI-Test] Painel de testes criado e visível.`)
+- Verifique o z-index do painel (deve ser 9999)
 
-**Solução**:
-1. Verifique se você criou a tag no Git: `git tag`
-2. Confirme que o push foi feito: `git push origin --tags`
-3. Limpe o cache do navegador (Ctrl+Shift+Del)
-4. Use aba anônima para testar
+### "Erro: does not provide an export named 'getVar'"
+- O jsDelivr está servindo uma versão antiga em cache
+- Solução: Use tags de versão (`@v1.1.0`) em TODOS os imports
 
-### Problema: "Carregando módulos..." nunca some
+### "Cubo não muda de cor"
+- Verifique se o material é `MeshStandardMaterial` (não `MeshNormalMaterial`)
+- Verifique no console: `rendererData.cube.material.color` deve existir
 
-**Causa**: Módulo `ui-test.js` não carregou ou teve erro.
+### "Plugin AI/Image não disponível"
+- Certifique-se de que o List Panel tem:
+  ```perchance
+  ai = {import:ai-text-plugin}
+  image = {import:text-to-image-plugin}
+  ```
+- Alguns plugins exigem conta logada no Perchance
 
-**Solução**:
-1. Abra o console (F12)
-2. Procure por erros vermelhos
-3. Verifique se a URL do import está correta
-4. Teste o import manual no console:
-   ```javascript
-   import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.0.0/src/modules/ui-test.js')
-     .then(m => console.log('✅', Object.keys(m)))
-     .catch(e => console.error('❌', e));
-   ```
+### "localStorage não disponível"
+- O Perchance roda em iframe sandboxed, que pode bloquear localStorage
+- Use `sessionStorage` como fallback ou aceite que o save/load não funcionará
 
-### Problema: Painel de testes não aparece
+### "Cache do jsDelivr não atualiza"
+- **Nunca** use `@main` ou branches em produção
+- Sempre use tags (`@v1.1.0`) ou hashes de commit
+- Limpe o cache do navegador: `Ctrl+Shift+Del`
 
-**Causa**: Z-index baixo ou elemento não anexado ao DOM.
+---
 
-**Solução**:
-1. Abra o console (F12)
-2. Execute: `document.getElementById('ui-test-panel')`
-3. Se retornar `null`, o painel não foi criado
-4. Verifique os logs de erro no console
+## 📚 Recursos
 
-### Problema: "Cannot read properties of undefined (reading 'setHex')"
+- [Documentação Perchance](https://perchance.org/tutorial)
+- [Three.js Documentation](https://threejs.org/docs/)
+- [jsDelivr CDN](https://www.jsdelivr.com/)
+- [ES Modules Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
 
-**Causa**: O `rendererData.cube` ou `rendererData.cube.material` está undefined.
+---
 
-**Solução**:
-1. Clique no botão "Mudar Cor do Cubo"
-2. Veja os logs detalhados no console - eles mostrarão exatamente qual propriedade está undefined
-3. Verifique se o `initRenderer` está retornando o objeto correto:
-   ```javascript
-   console.log(window.RPG) // Deve conter { renderer, world, seed }
-   ```
+## 🎯 Próximos Passos
 
-### Problema: Erro "numActualScriptLines" do Perchance
+Após validar esta arquitetura de teste, você pode:
 
-**Causa**: O Perchance tenta analisar scripts inline para encontrar bugs, mas falha com código complexo.
+1. **Migrar seu RPG real** (`MAT/scenario`) para esta estrutura modular
+2. **Adicionar módulos específicos**:
+   - `world-generator.js` → Geração procedural de mundo
+   - `fog-of-war.js` → Efeito de papel rasgado com CanvasTexture
+   - `pathfinder.js` → A* para navegação de NPCs
+   - `character-builder.js` → Geração de personagens via plugin de imagem
+3. **Criar script de deploy** para automatizar git push + versionamento
 
-**Solução**: Este erro é do Perchance, não do seu código. Ele não afeta a execução. Os valores do Perchance são capturados no momento da inicialização (veja `capturedSeed` no `ui-test.js`) para evitar acessar `root` em event handlers.
+---
 
-### Problema: Warnings de "skeleton.js" ou "IntegralAS"
+## 📝 Licença
 
-**Causa**: Scripts de anúncios do Perchance.
-
-**Solução**: Ignore. Não afetam seu código.
-
-## 📚 Aprendizados sobre o Perchance
-
-1. **HTML Panel é um fragmento**: Não use `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`
-2. **DOM já está pronto**: Não use `DOMContentLoaded`, chame `initGame()` diretamente
-3. **Execução duplicada**: O Perchance pode re-renderizar, use `sessionStorage` para proteger
-4. **Plugins do Perchance**: Só funcionam no List Panel (`{import:text-to-image-plugin}`)
-5. **Acesso a listas**: Use `window.root.nomeDaLista` ou o módulo `perchance-bridge.js`
-
-## 🔗 Links Úteis
-
-- [Documentação Perchance](https://perchance.org/docs)
-- [jsDelivr GitHub](https://www.jsdelivr.com/github)
-- [Three.js Docs](https://threejs.org/docs/)
-- [ES Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
-
-## 📝 Versionamento
-
-Este projeto usa **tags semânticas** (`v1.0.0`, `v1.0.1`, etc.) em vez de hashes de commit porque:
-- Tags são mais legíveis e fáceis de manter
-- jsDelivr cacheia tags de forma previsível
-- Padrão da indústria (semver)
-
-### Histórico de Versões
-
-- **v1.0.2** - Correção crítica: material do cubo alterado de MeshNormalMaterial para MeshStandardMaterial (permite mudar cor). Todos os imports usam URLs absolutas com tag para evitar cache.
-- **v1.0.1** - Correções de debug: logs detalhados para erro do cubo, consistência de versões (v1.0.0 em todos os imports)
-- **v1.0.0** - Estrutura inicial com testes de Three.js, Perchance Bridge e UI interativa
-- **v0.x.x** - Versões anteriores com problemas de cache (hash de commit)
+Este é um projeto de teste/demonstração. Use livremente como referência para seus próprios projetos no Perchance.
