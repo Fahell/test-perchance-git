@@ -24,9 +24,9 @@
     
     console.log('📄 HTML Panel injetado, chamando initGame()...');
     
-    // Importa o ponto de entrada direto do GitHub via jsDelivr CDN
-    // ⚠️ SEMPRE use tags de versão (ex: @v1.1.0) para evitar cache do CDN
-    import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/main.js";
+    // ⚠️ IMPORT DINÂMICO (necessário dentro de blocos if/else)
+    // Import estático não pode ser usado dentro de condicionais em módulos ES6
+    const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/main.js");
     
     // Chama imediatamente (o DOM já está pronto no contexto de fragmento injetado)
     initGame();

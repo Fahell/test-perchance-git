@@ -47,35 +47,40 @@ Cole o conteúdo de `for-perchance-list-panel.txt` no List Panel:
 GAME_SEED = 12345
 
 biomas
-    tundra
-    floresta
-    montanha
-    planície
-    deserto
+  tundra
+  floresta
+  montanha
+  planície
+  deserto
 
 eventos
-    nada acontece
-    encontro inesperado
-    tesouro encontrado
+  nada acontece
+  encontro inesperado
+  tesouro encontrado
 
 itens
-    espada mágica
-    poção de cura
-    mapa antigo
+  espada mágica
+  poção de cura
+  mapa antigo
 
 nomes_herois
-    Aldric
-    Seraphina
-    Thorin
+  Aldric
+  Seraphina
+  Thorin
 
 adjetivos
-    corajoso
-    sábio
-    ágil
+  corajoso
+  sábio
+  ágil
 
 ai = {import:ai-text-plugin}
 image = {import:text-to-image-plugin}
 ```
+
+**⚠️ IMPORTANTE sobre indentação:**
+- O Perchance usa **2 ESPAÇOS** para indentação de listas
+- NÃO use 4 espaços, tabs ou outros valores
+- A sintaxe correta é: `item` (no topo) e `  subitem` (2 espaços)
 
 ### 2. No GitHub
 
@@ -180,6 +185,11 @@ git push && git push origin v1.1.0
   image = {import:text-to-image-plugin}
   ```
 - Alguns plugins exigem conta logada no Perchance
+
+### "Unexpected token '{'" ou "SyntaxError"
+- Este erro ocorre ao usar `import` estático dentro de blocos `if/else`
+- **Solução**: Use `await import()` (import dinâmico) dentro de condicionais
+- O código correto está no `for-perchance.html` atualizado
 
 ### "localStorage não disponível"
 - O Perchance roda em iframe sandboxed, que pode bloquear localStorage
