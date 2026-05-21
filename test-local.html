@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Local - Perchance Modules</title>
+  <style>
+    body {
+      margin: 0; padding: 20px;
+      background: #1a1a2e; color: #eee;
+      font-family: system-ui, sans-serif;
+    }
+    #game-container {
+      width: 100%; height: 300px;
+      background: linear-gradient(135deg, #16213e, #0f3460);
+      border: 2px dashed #4a4a6a;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 20px 0;
+    }
+    .info {
+      background: #2a2a4a; padding: 15px;
+      border-radius: 6px; margin: 10px 0;
+    }
+    code {
+      background: #0f0f2a; padding: 2px 6px;
+      border-radius: 3px; color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Teste Local de Módulos Perchance</h1>
+  
+  <div class="info">
+    <strong>Este arquivo simula o ambiente do Perchance para testes locais.</strong><br>
+    • Abre o Console do Navegador (F12) para ver os logs.<br>
+    • O objeto <code>window.root</code> é mockado abaixo.<br>
+    • O script importa <code>./src/main.js</code> via caminho relativo.
+  </div>
+
+  <div id="game-container">🎮 Área do Jogo</div>
+  
+  <div class="info">
+    <strong>Controles de Teste:</strong><br>
+    <button onclick="RPG.game.logic.nextTurn()">➡️ Próximo Turno</button>
+    <button onclick="RPG.game.logic.addItem('Poção de Vida')">🧪 Adicionar Item</button>
+    <button onclick="console.log(RPG.game.logic.getState())">📋 Log Estado</button>
+  </div>
+
+  <script>
+    // ============================================
+    // MOCK DO AMBIENTE PERCHANCE (apenas para teste local)
+    // ============================================
+    // No Perchance real, este objeto é injetado automaticamente.
+    window.root = {
+      GAME_SEED: 42,
+      
+      // Mock de uma lista do List Panel
+      biomas: {
+        selectOne: 'floresta encantada',
+        selectMany: (n) => ['floresta', 'rio', 'montanha'].slice(0, n),
+        joinItems: (sep) => ['floresta', 'rio', 'montanha'].join(sep)
+      },
+      
+      eventos: {
+        selectOne: 'você encontra um baú brilhante!',
+        selectMany: (n) => ['nada', 'inimigo', 'aliado'].slice(0, n),
+        joinItems: (sep) => ['nada', 'inimigo', 'aliado'].join(sep)
+      },
+      
+      // Mock do plugin de imagem (se importado no List Panel)
+      image: async (prompt, opts) => {
+        console.log(`🖼️ [MOCK] image() chamado: "${prompt}"`, opts);
+        return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="%234a4a6a" width="200" height="200"/><text x="50%" y="50%" fill="white" text-anchor="middle" dominant-baseline="middle">IMG MOCK</text></svg>';
+      }
+    };
+    
+    console.log('🔧 Mock do Perchance injetado em window.root');
+  </script>
+
+  <!-- 
+    IMPORTANTE: 
+    - Em testes locais, usamos caminho relativo: ./src/main.js
+    - No Perchance, você usará URL absoluta do jsdelivr:
+      https://cdn.jsdelivr.net/gh/SEU_USUARIO/SEU_REPO@main/src/main.js?v=1
+  -->
+  <script type="module">
+    import { initGame } from './src/main.js';
+    
+    // Inicializa o jogo após o DOM carregar
+    document.addEventListener('DOMContentLoaded', () => {
+      initGame();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!-- 
+  for-perchance.html
+  ========================================
+  COPIE TODO O CONTEÚDO DESTE ARQUIVO PARA O HTML PANEL DO PERCHANCE.
+  
+  INSTRUÇÕES:
+  1. Substitua a URL no <script type="module"> pela do SEU repositório GitHub.
+  2. Mantenha suas listas, plugins e variáveis no List Panel (separado).
+  3. Use ?v=1, ?v=2, etc. para forçar atualização de cache após deploy.
+  
+  EXEMPLO DE URL PARA SUBSTITUIR:
+  https://cdn.jsdelivr.net/gh/seu-usuario/seu-repo@main/src/main.js?v=1
+-->
+
+<!-- Container para o jogo (use ID que seus módulos esperem) -->
+<div id="game-container" style="width:100%; min-height:400px; background:#1a1a2e; border-radius:8px; position:relative; overflow:hidden;">
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#aaa; font-family:monospace;">
+    🎮 Carregando módulos...
+  </div>
+</div>
+
+<!-- Botões de exemplo (opcional, para interação) -->
+<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+  <button onclick="window.RPG?.game?.logic?.nextTurn()">➡️ Próximo Turno</button>
+  <button onclick="window.RPG?.game?.logic?.addItem('Item Aleatório')">🎒 Adicionar Item</button>
+  <button onclick="console.log('Estado:', window.RPG?.game?.logic?.getState())">📋 Debug</button>
+  <button onclick="location.reload()">🔄 Recarregar</button>
+</div>
+
+<!-- 
+  SCRIPT PRINCIPAL: Importa o módulo entry-point via CDN.
+  - Use type="module" para habilitar imports ES6.
+  - A URL deve apontar para o arquivo main.js no seu repositório.
+  - O parâmetro ?v= força cache busting ao atualizar o código.
+-->
+<script type="module">
+  // ⚠️ SUBSTITUA ESTA URL PELA DO SEU REPOSITÓRIO REAL:
+  import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/SEU_REPO@main/src/main.js?v=1";
+  
+  // Inicializa o jogo (o módulo também pode auto-iniciar se detectar root.GAME_SEED)
+  // Aguarda o DOM estar pronto para garantir que #game-container existe
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initGame());
+  } else {
+    initGame();
+  }
+</script>
+
+<!-- 
+  ESTILOS GLOBAIS (opcional, para o jogo)
+  Podem ser movidos para um arquivo CSS externo se preferir.
+-->
+<style>
+  #game-container {
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #eee;
+  }
+  #game-container button {
+    background: #4a4a6a; color: white; border: none;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  #game-container button:hover { background: #5a5a7a; }
+  #debug-panel {
+    position: fixed; top: 10px; right: 10px;
+    background: rgba(0,0,0,0.7); color: #0f0;
+    padding: 10px; border-radius: 4px;
+    font-family: monospace; font-size: 12px;
+    z-index: 1000; pointer-events: none;
+  }
+</style>
