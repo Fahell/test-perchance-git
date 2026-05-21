@@ -118,14 +118,14 @@
   /**
    * CONFIGURAÇÃO IMPORTANTE:
    * Substitua a URL abaixo pela do SEU repositório no GitHub.
-   * Formato: https://cdn.jsdelivr.net/gh/USUARIO/REPO@BRANCH/src/main.js?v=VERSAO
+   * Formato: https://cdn.jsdelivr.net/gh/USUARIO/REPO@TAG/src/main.js
    * 
    * Use jsdelivr para servir os arquivos .js com MIME type correto.
-   * Incremente ?v=X após cada push para forçar cache refresh.
+   * Atualize a TAG (v1.0.0 -> v1.0.1 -> v1.0.2...) após cada push.
    */
   
-  // ⚠️ ATUALIZE ESTA URL PARA O SEU REPO:
-  import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@f8673dc6a56a7c06d83469b9dc18353871254317/src/main.js";
+  // ⚠️ ATUALIZE ESTA TAG PARA A VERSÃO MAIS RECENTE:
+  import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.0.0/src/main.js";
   
   // 🛡️ PROTEÇÃO CONTRA EXECUÇÃO DUPLA NO PERCHANCE
   // O Perchance re-renderiza o preview, re-executando este script.

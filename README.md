@@ -1,347 +1,142 @@
-# 🎮 RPG Paper Craft - Projeto Modular para Perchance
+# 🎮 RPG Paper Craft - Projeto de Teste Modular para Perchance
 
-> Projeto de teste para modularização de código JavaScript no Perchance.org usando ES Modules + CDN (jsDelivr) + GitHub.
+Este é um projeto de teste para validar a arquitetura modular de um RPG 3D no navegador usando:
+- **Perchance** (HTML Panel + List Panel)
+- **Three.js** (import via CDN)
+- **ES Modules** (import/export nativo)
+- **jsDelivr** (CDN para servir arquivos do GitHub)
 
----
-
-## 🚀 Visão Geral
-
-Este projeto demonstra como:
-- ✅ Separar código JavaScript em módulos reutilizáveis
-- ✅ Importar bibliotecas externas (Three.js) via CDN com `type="module"`
-- ✅ Acessar dados do Perchance (listas, variáveis, plugins) de forma segura via `root`
-- ✅ Manter o HTML Panel limpo (~50 linhas) enquanto o código vive no GitHub
-- ✅ Testar funcionalidades assíncronas e integração com plugins
-
----
-
-## 📁 Estrutura de Arquivos
+## 📋 Estrutura de Arquivos
 
 ```
 test-perchance-git/
-├── 📄 README.md                    ← Você está aqui!
-├── 📄 for-perchance.html           ← COPIE PARA O HTML PANEL DO PERCHANCE
-├── 📄 test-local.html              ← TESTE LOCAL NO NAVEGADOR (opcional)
-├── 📁 src/
-│   ├── 📄 main.js                  ← Entry point (exporta initGame)
-│   ├── 📄 perchance-bridge.js      ← Ponte segura para root/listas/plugins
-│   └── 📁 modules/
-│       ├── 📄 three-test.js        ← Teste: Import Three.js + cena 3D
-│       ├── 📄 perchance-features-test.js ← Teste: Listas, seeds, plugins
-│       └── 📄 ui-test.js           ← Painel interativo com botões de teste
-└── 📄 .gitignore                   ← Arquivos para ignorar no Git
+├── src/
+│   ├── main.js              # Entry point (exporta initGame)
+│   ├── perchance-bridge.js  # Ponte segura para root/listas do Perchance
+│   └── modules/
+│       ├── renderer.js      # Three.js: cena, câmera, loop
+│       ├── logic.js         # Lógica do jogo (dados do Perchance)
+│       └── ui-test.js       # Painel de testes interativo
+├── for-perchance.html       # COPIE PARA O HTML PANEL DO PERCHANCE
+├── test-local.html          # TESTE LOCAL NO NAVEGADOR
+└── README.md
 ```
 
----
+## 🚀 Como Usar
 
-## 🛠️ Como Usar
+### 1. Desenvolvimento Local
+```bash
+# Abra test-local.html no navegador (duplo clique ou Live Server)
+# Teste os módulos sem precisar do Perchance
+```
 
-### Passo 1: Configurar no GitHub
-1. Crie um repositório público no GitHub: `seu-usuario/test-perchance-git`
-2. Faça push deste projeto:
-   ```bash
-   cd C:\Users\Phadawan\Documents\MEGA\test-perchance-git
-   git init
-   git add .
-   git commit -m "feat: initial modular test project"
-   git remote add origin https://github.com/SEU_USUARIO/test-perchance-git.git
-   git branch -M main
-   git push -u origin main
+### 2. Deploy no Perchance
+
+#### Passo 1: Commit e Push
+```bash
+cd C:\Users\Phadawan\Documents\MEGA\test-perchance-git
+git add .
+git commit -m "feat: descrição da mudança"
+git push
+```
+
+#### Passo 2: Criar Tag de Versão
+```bash
+# Crie uma nova tag (incremente: v1.0.0 -> v1.0.1 -> v1.0.2...)
+git tag -a v1.0.0 -m "Versão 1.0.0 - Testes iniciais"
+git push origin v1.0.0
+```
+
+#### Passo 3: Atualizar URLs
+Edite os arquivos abaixo e substitua `@v1.0.0` pela nova tag:
+- `for-perchance.html` (linha ~70)
+- `src/main.js` (linhas ~3, ~5, ~35)
+- `src/modules/logic.js` (linha ~2)
+- `src/modules/ui-test.js` (linha ~2)
+
+#### Passo 4: Commit e Push das URLs Atualizadas
+```bash
+git add .
+git commit -m "chore: bump version to v1.0.0"
+git push
+```
+
+#### Passo 5: Cole no Perchance
+1. Copie o conteúdo de `for-perchance.html`
+2. Cole no **HTML Panel** do seu gerador no Perchance
+3. Certifique-se de que o **List Panel** tem as listas básicas:
+   ```perchance
+   GAME_SEED = 12345
+   biomas
+       tundra
+       floresta
+       montanha
+   eventos
+       nada acontece
+       encontro inesperado
+       tesouro encontrado
    ```
-
-### Passo 2: Atualizar a URL no Perchance
-No arquivo `for-perchance.html`, edite a linha de import:
-```html
-<!-- DE (exemplo): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=11";
-
-<!-- PARA (seus dados): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/main.js?v=12";
-```
-
-> 🔑 **Dica de Cache para IMPORTS DINÂMICOS**: Se você usa `await import('./modulo.js')` dentro do código, também precisa adicionar `?v=X` na string de importação! Exemplo:
-> ```javascript
-> // Em main.js:
-> const module = await import('./modules/ui-test.js?v=12'); // ⚠️ Adicione ?v=X aqui também!
-> ```
-> Isso evita que o CDN sirva uma versão antiga do módulo importado dinamicamente.
->
-> ⚠️ **IMPORTANTE: Imports Relativos vs Absolutos com Cache**
-> Quando um módulo importa outro módulo (ex: `ui-test.js` importando `perchance-bridge.js`), use **URL absoluta com versão** para evitar cache do CDN:
-> ```javascript
-> // ❌ RUIM (pode carregar versão antiga do bridge):
-> import { getVar } from '../perchance-bridge.js';
-> 
-> // ✅ BOM (força versão nova):
-> import { getVar } from 'https://cdn.jsdelivr.net/gh/SEU_USUARIO/REPO@main/src/perchance-bridge.js?v=12';
-> ```
-> Sempre atualize `?v=X` em TODOS os arquivos que importam `perchance-bridge.js` quando fizer deploy.
-
-### Passo 3: Copiar para o Perchance
-1. Abra seu gerador no [Perchance.org](https://perchance.org)
-2. No **HTML Panel**, cole TODO o conteúdo de `for-perchance.html`
-3. No **List Panel**, adicione as configurações mínimas (veja abaixo)
-4. Clique em "Preview" para testar
-
-### Passo 4: Configurar o List Panel (Mínimo Necessário)
-```perchance
-# Variáveis
-GAME_SEED = 12345
-
-# Listas de teste
-test_items
-    espada mágica
-    poção de cura
-    mapa antigo
-    amuleto raro
-
-art_styles
-    papercraft
-    pixel art
-    aquarela
-    óleo sobre tela
-
-# Plugin de imagem (opcional, para teste completo)
-imagem = {import:text-to-image-plugin}
-```
-
----
-
-## 🧪 Módulos de Teste Incluídos
-
-### 🎨 `three-test.js` - Three.js via CDN
-- Importa Three.js de `https://esm.sh/three`
-- Cria cena, câmera e renderizador
-- Renderiza cubo animado em wireframe
-- Handle de resize automático
-
-**Como testar**: Clique no botão "🎨 Testar Three.js" no painel inferior.
-
-### 🧪 `perchance-features-test.js` - Recursos do Perchance
-- Acessa `GAME_SEED` via `root`
-- Lê listas com fallback seguro (`getList()`)
-- Verifica disponibilidade do plugin de imagem
-- Demonstra padrões async/await
-
-**Como testar**: Clique em "🧪 Testar Perchance" → "⏳ Testar Async".
-
-### 🖼️ `perchance-features-test.js` - Plugin de Imagem (Mock/Real)
-- Função `buildImagePrompt()`: Gera prompts dinâmicos a partir de listas
-- Função `safeImageCall()`: Chama o plugin com tratamento de erro
-- Mostra URL da imagem gerada na UI
-
-**Pré-requisito**: Ter `{import:text-to-image-plugin}` no List Panel.
-
-### 🖥️ `ui-test.js` - Painel Interativo
-- Dashboard flutuante com botões de teste
-- Log em tempo real das execuções
-- Área de resultados formatada
-- Botão de reset para limpar estado
-
----
-
-## 🔗 Acessando Dados do Perchance nos Módulos
-
-Nunca use `import { animal } from ...` para listas do Perchance. Use sempre a bridge:
-
-```javascript
-// Em qualquer módulo .js:
-import { root, getList, getVar } from '../perchance-bridge.js';
-
-// ✅ Correto: Acessar variável
-const seed = getVar('GAME_SEED', 12345);
-
-// ✅ Correto: Acessar lista com fallback
-const items = getList('test_items', ['default']);
-const item = items.selectOne;
-
-// ✅ Correto: Usar plugin de imagem
-if (typeof root.image === 'function') {
-  const img = await root.image("prompt", { seed, resolution: "512x512" });
-}
-```
-
----
-
-## ⚠️ Solução de Problemas (Troubleshooting)
-
-### ❌ Preview fica em "Carregando..."
-1. Abra o Console do Navegador (F12 → Console)
-2. Verifique se há erros de import (URL incorreta, 404)
-3. Confirme que a URL usa `cdn.jsdelivr.net` (não `raw.githubusercontent.com`)
-4. Tente incrementar `?v=` na URL do import
-
-### ❌ Three.js não renderiza
-1. Verifique se o container `#three-test-container` existe no DOM
-2. Confirme que `initThreeTest(container)` recebeu um elemento válido
-3. Cheque se há erros de CORS no Console (jsDelivr deve funcionar)
-
-### ❌ Listas do Perchance retornam undefined
-1. Confirme que a lista existe no **List Panel** (não no HTML Panel)
-2. Use `getList('nome', ['fallback'])` para evitar crashes
-3. Verifique se `root` está disponível: `console.log(!!window.root)`
-
-### ❌ Plugin de imagem não gera nada
-1. O plugin exibe anúncios para usuários não logados (normal)
-2. Pode haver limite de requisições por minuto
-3. Verifique se o prompt não está vazio ou muito longo
-
----
-
-## 📚 Recursos e Documentação
-
-- [Perchance Tutorial](https://perchance.org/tutorial)
-- [Perchance JavaScript Docs](https://perchance.org/docs/javascript)
-- [Plugin: Text-to-Image](https://perchance.org/learn-perchance-plugins-text-to-image)
-- [jsDelivr GitHub CDN](https://www.jsdelivr.com/package/docs/gh)
-- [esm.sh - CDN para ES Modules](https://esm.sh/)
-- [Three.js Documentation](https://threejs.org/docs/)
-
----
-
-## 🐛 Troubleshooting: "Carregando módulos..." preso
-
-**Problema**: O preview mostra "🎮 Carregando módulos..." eternamente, mas o console mostra logs de sucesso.
-
-**Causa**: O HTML Panel do Perchance é injetado como fragmento via `innerHTML`, não como documento completo. Ter `<html>`, `<head>`, `<body>` ou usar `DOMContentLoaded` não funciona como esperado.
-
-**Solução aplicada**:
-1. ✅ `for-perchance.html` agora é apenas um fragmento (sem tags de documento)
-2. ✅ Guard clause usa apenas `window.GAME_INITIALIZED` (não `sessionStorage`)
-3. ✅ `initGame()` é chamado imediatamente (sem esperar `DOMContentLoaded`)
-4. ✅ `renderer.js` remove o loading ANTES de criar o canvas
-
-**Se o problema persistir**:
-- Limpe o cache do navegador (Ctrl+Shift+Del)
-- Use aba anônima para teste
-- Incremente `?v=` na URL do import
-- Verifique se `biomas` e outras listas existem no List Panel
-
----
 
 ## 🐛 Troubleshooting
 
-### Problema: Preview fica preso em "Carregando módulos..."
+### Problema: "The requested module does not provide an export named 'getVar'"
 
-**Causa**: O Perchance re-renderiza o preview do HTML Panel, o que causa execução duplicada do script. A flag `window` é perdida entre re-renderizações.
+**Causa**: Cache do jsDelivr servindo versão antiga.
 
-**Solução** (aplicada na v9):
-1. **`sessionStorage` para persistência**: Usa `sessionStorage.getItem('rpg_initialized')` que persiste entre re-renderizações do iframe do Perchance.
-2. **Loading via JavaScript**: A mensagem de loading NÃO está mais no HTML estático (é criada/removida via JS).
-3. **Detecção de canvas duplicado**: O renderer verifica se já existe um `<canvas data-threejs="true">` antes de criar um novo.
-4. **Guard clause duplo**: Verifica tanto `sessionStorage` quanto `window.GAME_INITIALIZED`.
+**Solução**:
+1. Verifique se você criou a tag no Git: `git tag`
+2. Confirme que o push foi feito: `git push origin --tags`
+3. Limpe o cache do navegador (Ctrl+Shift+Del)
+4. Use aba anônima para testar
 
-**Como testar**:
-```javascript
-// No console do navegador (F12)
-window.resetGame(); // Reseta o sessionStorage e recarrega a página
-```
+### Problema: "Carregando módulos..." nunca some
 
-### Problema: Logs aparecem duplicados no console
+**Causa**: Módulo `ui-test.js` não carregou ou teve erro.
 
-**Causa**: O Perchance executa o HTML Panel duas vezes durante o carregamento inicial.
+**Solução**:
+1. Abra o console (F12)
+2. Procure por erros vermelhos
+3. Verifique se a URL do import está correta
+4. Teste o import manual no console:
+   ```javascript
+   import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.0.0/src/modules/ui-test.js')
+     .then(m => console.log('✅', Object.keys(m)))
+     .catch(e => console.error('❌', e));
+   ```
 
-**Solução**: Isso é normal e esperado. O `sessionStorage` impede a re-execução real do código. Você verá:
-```
-📄 HTML Panel injetado, chamando initGame()...
-⏭️ Jogo já inicializado (sessionStorage). Ignorando re-execução.
-```
+### Problema: Painel de testes não aparece
 
-### Problema: Painel de testes não aparece (tela em branco com apenas HUD)
+**Causa**: Z-index baixo ou elemento não anexado ao DOM.
 
-**Sintoma**: Console mostra logs de sucesso, mas a tela está em branco exceto pelo HUD de FPS e pelo balão de informações estático.
+**Solução**:
+1. Abra o console (F12)
+2. Execute: `document.getElementById('ui-test-panel')`
+3. Se retornar `null`, o painel não foi criado
+4. Verifique os logs de erro no console
 
-**Causas possíveis**:
-1. **Import dinâmico falhou**: O módulo `ui-test.js` não foi carregado via CDN (URL incorreta, arquivo não existe no GitHub, erro de CORS).
-2. **Erro silencioso em `initUITest`**: A função lançou um erro antes de criar o painel.
-3. **Painel fora da viewport ou escondido**: `z-index` conflitante ou posicionamento incorreto.
+## 📚 Aprendizados sobre o Perchance
 
-**Solução aplicada (v10)**:
-1. ✅ `main.js` agora tem `try/catch` específico para o import dinâmico com logs detalhados.
-2. ✅ `ui-test.js` tem `try/catch` interno e verifica se `document.body` está disponível.
-3. ✅ Painel agora tem `z-index: 9999`, borda verde brilhante e sombra para máxima visibilidade.
-4. ✅ Logs de debug mostram posição do painel e se os botões foram encontrados.
-5. ✅ Alertas visuais (caixas vermelhas) aparecem se houver erro, com mensagem no console.
+1. **HTML Panel é um fragmento**: Não use `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`
+2. **DOM já está pronto**: Não use `DOMContentLoaded`, chame `initGame()` diretamente
+3. **Execução duplicada**: O Perchance pode re-renderizar, use `sessionStorage` para proteger
+4. **Plugins do Perchance**: Só funcionam no List Panel (`{import:text-to-image-plugin}`)
+5. **Acesso a listas**: Use `window.root.nomeDaLista` ou o módulo `perchance-bridge.js`
 
-**Como diagnosticar**:
-```javascript
-// No console do navegador (F12), procure por:
-// ✅ Logs esperados:
-//   🎮 [UI-Test] Criando painel de testes...
-//   📎 [UI-Test] Painel anexado ao document.body
-//   📐 [UI-Test] Painel visível: 320xXXXpx em (20, YYY)
+## 🔗 Links Úteis
 
-// ❌ Se aparecer:
-//   ❌ [Main] Falha ao importar ui-test.js: ...
-//   → Verifique se o arquivo existe em: https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/modules/ui-test.js
+- [Documentação Perchance](https://perchance.org/docs)
+- [jsDelivr GitHub](https://www.jsdelivr.com/github)
+- [Three.js Docs](https://threejs.org/docs/)
+- [ES Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
 
-// ❌ Se aparecer:
-//   ❌ [UI-Test] btn-test-perchance não encontrado
-//   → O innerHTML pode ter falhado; verifique erros de sintaxe no template string
-```
+## 📝 Versionamento
 
-**Passos para corrigir**:
-1. Verifique se `src/modules/ui-test.js` existe no seu repositório no GitHub.
-2. Confirme que a URL no import usa `cdn.jsdelivr.net` (não `raw.githubusercontent.com`).
-3. Incremente `?v=` na URL do import em `for-perchance.html`.
-4. Limpe o cache do navegador (Ctrl+Shift+Del) ou use aba anônima.
-5. Recarregue o preview e verifique o console para logs de erro específicos.
+Este projeto usa **tags semânticas** (`v1.0.0`, `v1.0.1`, etc.) em vez de hashes de commit porque:
+- Tags são mais legíveis e fáceis de manter
+- jsDelivr cacheia tags de forma previsível
+- Padrão da indústria (semver)
 
----
+### Histórico de Versões
 
-## 🔄 Fluxo de Desenvolvimento Recomendado
-
-```bash
-# 1. Desenvolva localmente
-code C:\Users\Phadawan\Documents\MEGA\test-perchance-git
-
-# 2. Teste local com test-local.html (opcional)
-
-# 3. Commit e push
-git add .
-git commit -m "feat: add new test module"
-git push
-
-# 4. Atualize versão no Perchance
-# Opção A (Desenvolvimento): Use ?v=X para cache busting
-# Edite for-perchance.html: ?v=3 → ?v=4
-#
-# Opção B (Produção/Teste): Use commit hash para garantir versão exata
-# Obtenha o hash: git rev-parse HEAD
-# Substitua @main por @<hash> em todas as URLs do CDN
-# Exemplo: @f8673dc6a56a7c06d83469b9dc18353871254317
-# Vantagem: Ignora completamente o cache do jsDelivr
-
-# 5. Teste no preview do Perchance
-
-# 6. Repita!
-```
-
----
-
-## 🎯 Próximos Passos (Ideias)
-
-- [ ] Adicionar módulo `input-handler.js` para controles de teclado/mouse
-- [ ] Criar `world-generator.js` com SimplexNoise para terreno procedural
-- [ ] Integrar `fog-of-war.js` com CanvasTexture para efeito de papel rasgado
-- [ ] Adicionar `character-builder.js` para NPCs gerados via IA
-- [ ] Criar script de deploy automático (atualiza `?v=` automaticamente)
-
----
-
-## 🤝 Contribuindo
-
-Este é um projeto de teste pessoal. Para sugerir melhorias:
-1. Fork este repositório
-2. Crie uma branch: `git checkout -b feature/minha-sugestao`
-3. Commit: `git commit -m 'feat: minha melhoria'`
-4. Push: `git push origin feature/minha-sugestao`
-5. Abra um Pull Request no GitHub
-
----
-
-## 📄 Licença
-
-MIT License - Sinta-se à vontade para usar, modificar e distribuir.
-
-Feito com ❤️ para a comunidade Perchance.
+- **v1.0.0** - Estrutura inicial com testes de Three.js, Perchance Bridge e UI interativa
+- **v0.x.x** - Versões anteriores com problemas de cache (hash de commit)
