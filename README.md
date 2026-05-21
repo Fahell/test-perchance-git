@@ -303,7 +303,14 @@ git commit -m "feat: add new test module"
 git push
 
 # 4. Atualize versão no Perchance
+# Opção A (Desenvolvimento): Use ?v=X para cache busting
 # Edite for-perchance.html: ?v=3 → ?v=4
+#
+# Opção B (Produção/Teste): Use commit hash para garantir versão exata
+# Obtenha o hash: git rev-parse HEAD
+# Substitua @main por @<hash> em todas as URLs do CDN
+# Exemplo: @f8673dc6a56a7c06d83469b9dc18353871254317
+# Vantagem: Ignora completamente o cache do jsDelivr
 
 # 5. Teste no preview do Perchance
 

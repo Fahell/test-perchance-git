@@ -1,8 +1,8 @@
 // ⚠️ IMPORTANTE: Use URL absoluta com versão para evitar cache do CDN
 // Atualize o ?v=X sempre que mudar perchance-bridge.js
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/perchance-bridge.js?v=12';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@f8673dc6a56a7c06d83469b9dc18353871254317/src/perchance-bridge.js';
 import { initRenderer } from './modules/renderer.js';
-import { initLogic } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/modules/logic.js?v=12';
+import { initLogic } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@f8673dc6a56a7c06d83469b9dc18353871254317/src/modules/logic.js';
 
 export async function initGame() {
   console.log('🔍 [Main] initGame() chamado. Verificando estado...');
@@ -31,7 +31,7 @@ export async function initGame() {
     // 3. Inicializa UI de Teste (Carregamento dinâmico com tratamento de erro)
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
     try {
-      const uiModule = await import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/modules/ui-test.js?v=12');
+      const uiModule = await import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@f8673dc6a56a7c06d83469b9dc18353871254317/src/modules/ui-test.js');
       console.log('📦 [Main] ui-test.js carregado. exports:', Object.keys(uiModule));
       
       if (typeof uiModule.initUITest === 'function') {
