@@ -53,18 +53,29 @@ test-perchance-git/
 No arquivo `for-perchance.html`, edite a linha de import:
 ```html
 <!-- DE (exemplo): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=10";
+import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=11";
 
 <!-- PARA (seus dados): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/main.js?v=11";
+import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/main.js?v=12";
 ```
 
 > 🔑 **Dica de Cache para IMPORTS DINÂMICOS**: Se você usa `await import('./modulo.js')` dentro do código, também precisa adicionar `?v=X` na string de importação! Exemplo:
 > ```javascript
 > // Em main.js:
-> const module = await import('./modules/ui-test.js?v=11'); // ⚠️ Adicione ?v=X aqui também!
+> const module = await import('./modules/ui-test.js?v=12'); // ⚠️ Adicione ?v=X aqui também!
 > ```
 > Isso evita que o CDN sirva uma versão antiga do módulo importado dinamicamente.
+>
+> ⚠️ **IMPORTANTE: Imports Relativos vs Absolutos com Cache**
+> Quando um módulo importa outro módulo (ex: `ui-test.js` importando `perchance-bridge.js`), use **URL absoluta com versão** para evitar cache do CDN:
+> ```javascript
+> // ❌ RUIM (pode carregar versão antiga do bridge):
+> import { getVar } from '../perchance-bridge.js';
+> 
+> // ✅ BOM (força versão nova):
+> import { getVar } from 'https://cdn.jsdelivr.net/gh/SEU_USUARIO/REPO@main/src/perchance-bridge.js?v=12';
+> ```
+> Sempre atualize `?v=X` em TODOS os arquivos que importam `perchance-bridge.js` quando fizer deploy.
 
 ### Passo 3: Copiar para o Perchance
 1. Abra seu gerador no [Perchance.org](https://perchance.org)

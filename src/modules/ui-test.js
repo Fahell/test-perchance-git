@@ -1,4 +1,6 @@
-import { getVar, root } from '../perchance-bridge.js';
+// ⚠️ IMPORTANTE: Use URL absoluta com versão para evitar cache do CDN
+// Atualize o ?v=X sempre que mudar perchance-bridge.js
+import { getVar, root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/perchance-bridge.js?v=12';
 
 export function initUITest(rendererData) {
   try {

@@ -4,7 +4,9 @@
  * Demonstra interação com o perchance-bridge e outros módulos.
  */
 
-import { root, getList } from '../perchance-bridge.js';
+// ⚠️ IMPORTANTE: Use URL absoluta com versão para evitar cache do CDN
+// Atualize o ?v=X sempre que mudar perchance-bridge.js
+import { root, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/perchance-bridge.js?v=12';
 
 // Estado do jogo (privado)
 const gameState = {
