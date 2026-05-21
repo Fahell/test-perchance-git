@@ -69,6 +69,29 @@ Sempre que fizer alterações e push no GitHub:
 - **Acesso ao Perchance**: Sempre use `perchance-bridge.js` para acessar `root`. Nunca importe `window` diretamente.
 - **Plugins**: `{import:...}` só funciona no List Panel. Acesse via `root.nomeDoPlugin`.
 
+## 🔧 Troubleshooting: "Carregando módulos..." não some?
+
+**Sintoma**: Console mostra logs de sucesso ✅, mas o preview fica preso na mensagem de loading.
+
+**Causa**: O `renderer.js` não estava removendo o elemento de loading do DOM.
+
+**Solução aplicada**:
+1. No `for-perchance.html`, a mensagem de loading agora tem `id="loading-message"`.
+2. No `renderer.js`, adicionamos código para remover esse elemento ao inicializar:
+   ```js
+   const loadingMsg = document.getElementById('loading-message') 
+     || Array.from(container.children).find(child => 
+       child.textContent?.includes('Carregando')
+     );
+   if (loadingMsg) loadingMsg.remove();
+   ```
+
+**Se ainda acontecer**:
+1. Verifique se o `#game-container` existe no HTML Panel.
+2. Confirme que `initRenderer('#game-container')` está sendo chamado.
+3. Abra o console e veja se há warnings como "Container não encontrado".
+4. Limpe o cache do navegador ou incremente `?v=` na URL do import.
+
 ---
 
 *Projeto criado para teste de modularização no Perchance.org*

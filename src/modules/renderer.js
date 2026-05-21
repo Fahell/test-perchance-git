@@ -25,6 +25,23 @@ export function initRenderer(target) {
     return api;
   }
 
+  // ✅ REMOVE a mensagem de loading (prioriza por ID, fallback por busca de texto)
+  const loadingMsg = document.getElementById('loading-message') 
+    || Array.from(container.children).find(child => 
+      child.textContent?.includes('Carregando') || child.textContent?.includes('🎮')
+    );
+  if (loadingMsg) {
+    loadingMsg.remove();
+    console.log('🗑️ Mensagem de loading removida');
+  }
+
+  // ✅ Opcional: mostra indicador de "pronto" por 1 segundo
+  const readyMsg = document.createElement('div');
+  readyMsg.style.cssText = 'position:absolute; top:10px; left:50%; transform:translateX(-50%); color:#4ade80; font-family:monospace; font-size:14px; z-index:999;';
+  readyMsg.textContent = '✅ Pronto!';
+  container.appendChild(readyMsg);
+  setTimeout(() => readyMsg.remove(), 1000);
+
   // Exemplo: cria um elemento visual simples para teste
   const debugPanel = document.createElement('div');
   debugPanel.id = 'debug-panel';
