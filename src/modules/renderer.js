@@ -1,111 +1,50 @@
-/**
- * modules/renderer.js
- * Exemplo de módulo de renderização/UI.
- * Pode ser adaptado para Three.js, Canvas, ou manipulação de DOM.
- */
+import * as THREE from 'https://esm.sh/three@0.160.0';
 
-import { root } from '../perchance-bridge.js';
+export function initRenderer(container) {
+  console.log('🎨 [Renderer] Inicializando Three.js...');
 
-// Estado interno do módulo (privado)
-let container = null;
-let frameCount = 0;
+  // 🗑️ Remove mensagem de loading
+  const loadingEl = document.getElementById('loading-message');
+  if (loadingEl) {
+    loadingEl.remove();
+    console.log('🗑️ [Renderer] Mensagem de loading removida.');
+  }
 
-/**
- * Inicializa o renderer e anexa ao elemento DOM especificado.
- * @param {HTMLElement|string} target - Seletor CSS ou elemento DOM
- * @returns {Object} API pública do renderer
- */
-export function initRenderer(target) {
-  container = typeof target === 'string' 
-    ? document.querySelector(target) 
-    : target;
+  // 🖼️ Setup Three.js
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x202025);
+
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 5;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
   
-  if (!container) {
-    console.warn('⚠️ Container não encontrado. Renderer em modo headless.');
-    return api;
-  }
+  // ⚠️ Configuração crítica para z-index e posicionamento
+  renderer.domElement.style.position = 'fixed';
+  renderer.domElement.style.top = '0';
+  renderer.domElement.style.left = '0';
+  renderer.domElement.style.zIndex = '10'; 
+  renderer.domElement.style.pointerEvents = 'auto';
 
-  // ✅ REMOVE a mensagem de loading (prioriza por ID, fallback por busca de texto)
-  const loadingMsg = document.getElementById('loading-message') 
-    || Array.from(container.children).find(child => 
-      child.textContent?.includes('Carregando') || child.textContent?.includes('🎮')
-    );
-  if (loadingMsg) {
-    loadingMsg.remove();
-    console.log('🗑️ Mensagem de loading removida');
-  }
+  // Anexa ao body para evitar overflow:hidden do container
+  document.body.appendChild(renderer.domElement);
 
-  // ✅ Opcional: mostra indicador de "pronto" por 1 segundo
-  const readyMsg = document.createElement('div');
-  readyMsg.style.cssText = 'position:absolute; top:10px; left:50%; transform:translateX(-50%); color:#4ade80; font-family:monospace; font-size:14px; z-index:999;';
-  readyMsg.textContent = '✅ Pronto!';
-  container.appendChild(readyMsg);
-  setTimeout(() => readyMsg.remove(), 1000);
+  // Cubo de teste girando
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  const material = new THREE.MeshNormalMaterial();
+  const cube = new THREE.Mesh(geometry, material);
+  scene.add(cube);
 
-  // Exemplo: cria um elemento visual simples para teste
-  const debugPanel = document.createElement('div');
-  debugPanel.id = 'debug-panel';
-  debugPanel.style.cssText = `
-    position: fixed; top: 10px; right: 10px;
-    background: rgba(0,0,0,0.7); color: #0f0;
-    padding: 10px; border-radius: 4px;
-    font-family: monospace; font-size: 12px;
-    z-index: 1000; pointer-events: none;
-  `;
-  document.body.appendChild(debugPanel);
-
-  // Loop de renderização simplificado
-  const renderLoop = () => {
-    frameCount++;
-    if (debugPanel.parentElement) {
-      debugPanel.innerHTML = `
-        🎮 RPG Test<br>
-        Frame: ${frameCount}<br>
-        Seed: ${root.GAME_SEED || 'N/A'}<br>
-        FPS: ${Math.round(1000/16)}
-      `;
-    }
-    requestAnimationFrame(renderLoop);
+  // Loop de animação
+  const animate = () => {
+    requestAnimationFrame(animate);
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+    renderer.render(scene, camera);
   };
-  renderLoop();
+  animate();
 
-  console.log('🎨 renderer.js inicializado');
-  return api;
+  console.log('🎨 [Renderer] Three.js inicializado com sucesso!');
+  return { scene, camera, renderer, cube };
 }
-
-// API pública do módulo
-const api = {
-  /**
-   * Atualiza o texto do debug panel.
-   * @param {string} message 
-   */
-  debug: (message) => {
-    const panel = document.getElementById('debug-panel');
-    if (panel) panel.textContent = message;
-  },
-  
-  /**
-   * Cria um elemento canvas para fog-of-war ou outros efeitos.
-   * @param {number} width 
-   * @param {number} height 
-   * @returns {HTMLCanvasElement}
-   */
-  createCanvas: (width, height) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style.cssText = 'position:absolute; top:0; left:0; pointer-events:none;';
-    return canvas;
-  },
-  
-  /**
-   * Limpa recursos e para o loop de renderização.
-   */
-  destroy: () => {
-    const panel = document.getElementById('debug-panel');
-    if (panel?.parentElement) panel.remove();
-    console.log('🧹 renderer.js destruído');
-  }
-};
-
-export default api;
