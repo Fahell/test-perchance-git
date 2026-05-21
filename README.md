@@ -203,6 +203,36 @@ if (typeof root.image === 'function') {
 
 ---
 
+## 🐛 Troubleshooting
+
+### Problema: Preview fica preso em "Carregando módulos..."
+
+**Causa**: O Perchance re-renderiza o preview do HTML Panel, o que causa execução duplicada do script. A flag `window` é perdida entre re-renderizações.
+
+**Solução** (aplicada na v9):
+1. **`sessionStorage` para persistência**: Usa `sessionStorage.getItem('rpg_initialized')` que persiste entre re-renderizações do iframe do Perchance.
+2. **Loading via JavaScript**: A mensagem de loading NÃO está mais no HTML estático (é criada/removida via JS).
+3. **Detecção de canvas duplicado**: O renderer verifica se já existe um `<canvas data-threejs="true">` antes de criar um novo.
+4. **Guard clause duplo**: Verifica tanto `sessionStorage` quanto `window.GAME_INITIALIZED`.
+
+**Como testar**:
+```javascript
+// No console do navegador (F12)
+window.resetGame(); // Reseta o sessionStorage e recarrega a página
+```
+
+### Problema: Logs aparecem duplicados no console
+
+**Causa**: O Perchance executa o HTML Panel duas vezes durante o carregamento inicial.
+
+**Solução**: Isso é normal e esperado. O `sessionStorage` impede a re-execução real do código. Você verá:
+```
+📄 HTML Panel injetado, chamando initGame()...
+⏭️ Jogo já inicializado (sessionStorage). Ignorando re-execução.
+```
+
+---
+
 ## 🔄 Fluxo de Desenvolvimento Recomendado
 
 ```bash

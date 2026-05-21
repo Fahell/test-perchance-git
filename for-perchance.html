@@ -94,11 +94,7 @@
   }
 </style>
 
-<!-- Mensagem de Loading (removida após inicialização) -->
-<div id="loading-message">
-  🎮 Carregando módulos...
-  <small>Aguarde enquanto inicializamos o jogo modular</small>
-</div>
+<!-- Mensagem de Loading será criada via JavaScript (evita reaparecer em re-renderizações) -->
 
 <!-- Container principal (Three.js e outros elementos) -->
 <div id="game-container"></div>
@@ -129,18 +125,26 @@
    */
   
   // ⚠️ ATUALIZE ESTA URL PARA O SEU REPO:
-  import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=8";
+  import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=9";
   
   // 🛡️ PROTEÇÃO CONTRA EXECUÇÃO DUPLA NO PERCHANCE
-  // O HTML Panel é injetado via innerHTML, então DOMContentLoaded não dispara.
-  // Chamamos initGame() imediatamente, com guard clause interno.
-  if (window.__RPG_INITIALIZED) {
-    console.log('⏭️ Jogo já inicializado (window flag). Ignorando.');
+  // O Perchance re-renderiza o preview, re-executando este script.
+  // Usamos sessionStorage para persistir entre re-renderizações.
+  const ALREADY_INITIALIZED = sessionStorage.getItem('rpg_initialized') === 'true';
+  
+  if (ALREADY_INITIALIZED) {
+    console.log('⏭️ Jogo já inicializado (sessionStorage). Ignorando re-execução.');
   } else {
-    window.__RPG_INITIALIZED = true;
+    sessionStorage.setItem('rpg_initialized', 'true');
     console.log('📄 HTML Panel injetado, chamando initGame()...');
     initGame();
   }
+  
+  // Debug: botão para resetar (opcional, remova em produção)
+  window.resetGame = () => {
+    sessionStorage.removeItem('rpg_initialized');
+    location.reload();
+  };
   
   // Expor para debug (opcional)
   window.__perchanceDebug = { initGame };

@@ -3,12 +3,35 @@ import * as THREE from 'https://esm.sh/three@0.160.0';
 export function initRenderer(container) {
   console.log('🎨 [Renderer] Inicializando Three.js...');
 
-  // 🗑️ Remove mensagem de loading (múltiplas tentativas robustas)
-  const loadingEl = document.getElementById('loading-message');
-  if (loadingEl) {
-    loadingEl.remove();
-    console.log('🗑️ [Renderer] Mensagem de loading removida (por ID).');
+  // 🛡️ Verifica se já existe um canvas Three.js (evita criar duplicado em re-execuções)
+  const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
+  if (existingCanvas) {
+    console.log('⚠️ [Renderer] Canvas Three.js já existe. Reutilizando...');
+    // Retorna um objeto vazio mas funcional
+    return { scene: null, camera: null, renderer: null, cube: null };
   }
+
+  // 🎨 Cria mensagem de loading via JS (evita reaparecer em re-renderizações)
+  const loadingEl = document.createElement('div');
+  loadingEl.id = 'loading-message';
+  loadingEl.style.cssText = `
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(30, 30, 50, 0.95); border: 2px solid #4ade80;
+    border-radius: 12px; padding: 24px 40px; text-align: center;
+    z-index: 2000; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  `;
+  loadingEl.innerHTML = '🎮 Carregando módulos...<br><small style="display:block;margin-top:8px;color:#94a3b8;font-size:13px">Aguarde enquanto inicializamos o jogo modular</small>';
+  document.body.appendChild(loadingEl);
+
+  // 🗑️ Remove mensagem de loading após 100ms (dá tempo de ver, mas não atrapalha)
+  setTimeout(() => {
+    const existingLoading = document.getElementById('loading-message');
+    if (existingLoading) {
+      existingLoading.remove();
+      console.log('🗑️ [Renderer] Mensagem de loading removida (por ID).');
+    }
+  }, 100);
   
   // Fallback: remove qualquer elemento com texto "Carregando"
   document.querySelectorAll('div').forEach(el => {
@@ -42,6 +65,9 @@ export function initRenderer(container) {
   renderer.domElement.style.left = '0';
   renderer.domElement.style.zIndex = '10'; 
   renderer.domElement.style.pointerEvents = 'auto';
+  
+  // 🔖 Marca o canvas para identificação em re-execuções
+  renderer.domElement.setAttribute('data-threejs', 'true');
 
   // Anexa ao body para evitar overflow:hidden do container
   document.body.appendChild(renderer.domElement);
