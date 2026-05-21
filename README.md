@@ -183,6 +183,26 @@ if (typeof root.image === 'function') {
 
 ---
 
+## 🐛 Troubleshooting: "Carregando módulos..." preso
+
+**Problema**: O preview mostra "🎮 Carregando módulos..." eternamente, mas o console mostra logs de sucesso.
+
+**Causa**: O HTML Panel do Perchance é injetado como fragmento via `innerHTML`, não como documento completo. Ter `<html>`, `<head>`, `<body>` ou usar `DOMContentLoaded` não funciona como esperado.
+
+**Solução aplicada**:
+1. ✅ `for-perchance.html` agora é apenas um fragmento (sem tags de documento)
+2. ✅ Guard clause usa apenas `window.GAME_INITIALIZED` (não `sessionStorage`)
+3. ✅ `initGame()` é chamado imediatamente (sem esperar `DOMContentLoaded`)
+4. ✅ `renderer.js` remove o loading ANTES de criar o canvas
+
+**Se o problema persistir**:
+- Limpe o cache do navegador (Ctrl+Shift+Del)
+- Use aba anônima para teste
+- Incremente `?v=` na URL do import
+- Verifique se `biomas` e outras listas existem no List Panel
+
+---
+
 ## 🔄 Fluxo de Desenvolvimento Recomendado
 
 ```bash

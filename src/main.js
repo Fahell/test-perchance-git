@@ -5,18 +5,17 @@ import { initLogic } from './modules/logic.js';
 export async function initGame() {
   console.log('🔍 [Main] initGame() chamado. Verificando estado...');
   
-  // 🛡️ Guard clause duplo: sessionStorage (sobrevive a reloads) + window (rápido)
-  const alreadyInit = sessionStorage.getItem('RPG_INITIALIZED') === 'done';
-  if (alreadyInit || window.GAME_INITIALIZED) {
-    console.warn('⚠️ [Main] Jogo já inicializado. Ignorando execução duplicada.');
+  // 🛡️ Guard clause: evita execução duplicada no Perchance
+  // O HTML Panel é injetado via innerHTML, então usamos apenas window flag
+  if (window.GAME_INITIALIZED) {
+    console.warn('⚠️ [Main] Jogo já inicializado (window flag). Ignorando.');
     return;
   }
   
-  // Marca AMBOS os flags
+  // Marca como inicializado
   window.GAME_INITIALIZED = true;
-  sessionStorage.setItem('RPG_INITIALIZED', 'done');
   
-  console.log('🚀 [Main] Iniciando jogo modularizado (primeira execução)...');
+  console.log('🚀 [Main] Iniciando jogo modularizado...');
 
   try {
     // 1. Inicializa Renderizador (Three.js)
