@@ -53,13 +53,18 @@ test-perchance-git/
 No arquivo `for-perchance.html`, edite a linha de import:
 ```html
 <!-- DE (exemplo): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=9";
+import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=10";
 
 <!-- PARA (seus dados): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/main.js?v=10";
+import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/main.js?v=11";
 ```
 
-> 🔑 **Dica de Cache**: Sempre incremente `?v=X` após cada push (`?v=2`, `?v=3`) para garantir que os jogadores recebam a versão mais recente.
+> 🔑 **Dica de Cache para IMPORTS DINÂMICOS**: Se você usa `await import('./modulo.js')` dentro do código, também precisa adicionar `?v=X` na string de importação! Exemplo:
+> ```javascript
+> // Em main.js:
+> const module = await import('./modules/ui-test.js?v=11'); // ⚠️ Adicione ?v=X aqui também!
+> ```
+> Isso evita que o CDN sirva uma versão antiga do módulo importado dinamicamente.
 
 ### Passo 3: Copiar para o Perchance
 1. Abra seu gerador no [Perchance.org](https://perchance.org)

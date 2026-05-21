@@ -29,7 +29,7 @@ export async function initGame() {
     // 3. Inicializa UI de Teste (Carregamento dinâmico com tratamento de erro)
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
     try {
-      const uiModule = await import('./modules/ui-test.js');
+      const uiModule = await import('./modules/ui-test.js?v=11');
       console.log('📦 [Main] ui-test.js carregado. exports:', Object.keys(uiModule));
       
       if (typeof uiModule.initUITest === 'function') {
