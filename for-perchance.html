@@ -1,73 +1,188 @@
 <!-- 
-  for-perchance.html
-  ========================================
-  COPIE TODO O CONTEÚDO DESTE ARQUIVO PARA O HTML PANEL DO PERCHANCE.
+  🎮 RPG Paper Craft - HTML Panel (Versão Modular com Testes)
   
   INSTRUÇÕES:
-  1. Substitua a URL no <script type="module"> pela do SEU repositório GitHub.
-  2. Mantenha suas listas, plugins e variáveis no List Panel (separado).
-  3. Use ?v=1, ?v=2, etc. para forçar atualização de cache após deploy.
+  1. Copie TODO este conteúdo para o HTML Panel do seu gerador no Perchance.
+  2. No List Panel, mantenha suas listas, variáveis e imports de plugins separados.
+  3. Atualize a URL do import abaixo para apontar para SEU repositório no GitHub.
   
-  EXEMPLO DE URL PARA SUBSTITUIR:
-  https://cdn.jsdelivr.net/gh/seu-usuario/seu-repo@main/src/main.js?v=1
+  REQUISITOS NO LIST PANEL (exemplo mínimo):
+  ```perchance
+  GAME_SEED = 12345
+  test_items
+      espada mágica
+      poção de cura
+      mapa antigo
+  art_styles
+      papercraft
+      pixel art
+      aquarela
+  imagem = {import:text-to-image-plugin}
+  ```
 -->
 
-<!-- Container para o jogo (use ID que seus módulos esperem) -->
-<div id="game-container" style="width:100%; min-height:400px; background:#1a1a2e; border-radius:8px; position:relative; overflow:hidden;">
-  <!-- Mensagem de loading com ID para remoção fácil -->
-  <div id="loading-message" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#aaa; font-family:monospace; text-align:center;">
-    🎮 Carregando módulos...<br>
-    <small style="color:#666; font-size:11px;">Aguarde enquanto inicializamos o jogo</small>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPG Paper Craft - Testes Modulares</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Mensagem de Loading */
+    #loading-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(30, 30, 50, 0.95);
+      border: 2px solid #4ade80;
+      border-radius: 12px;
+      padding: 24px 40px;
+      text-align: center;
+      z-index: 2000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    #loading-message small {
+      display: block;
+      margin-top: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+    
+    /* Container principal do jogo */
+    #game-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+    
+    /* Canvas do Three.js (injetado dinamicamente) */
+    #three-test-container {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 300px;
+      height: 200px;
+      border: 2px solid #0ea5e9;
+      border-radius: 8px;
+      z-index: 999;
+      background: #000;
+      display: none; /* Mostra apenas quando Three.js inicializar */
+    }
+    #three-test-container canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    
+    /* Overlay de informações */
+    #info-overlay {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(30, 30, 50, 0.9);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 100;
+      border: 1px solid #444;
+      max-width: 300px;
+    }
+    #info-overlay h3 {
+      color: #4ade80;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    #info-overlay ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #info-overlay li {
+      margin: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #info-overlay li::before {
+      content: "•";
+      color: #4ade80;
+      font-weight: bold;
+    }
+    
+    /* Responsividade */
+    @media (max-width: 768px) {
+      #three-test-container {
+        width: 200px;
+        height: 150px;
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+      }
+      #info-overlay {
+        font-size: 12px;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Mensagem de Loading (removida após inicialização) -->
+  <div id="loading-message">
+    🎮 Carregando módulos...
+    <small>Aguarde enquanto inicializamos o jogo modular</small>
   </div>
-</div>
-
-<!-- Botões de exemplo (opcional, para interação) -->
-<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-  <button onclick="window.RPG?.game?.logic?.nextTurn()">➡️ Próximo Turno</button>
-  <button onclick="window.RPG?.game?.logic?.addItem('Item Aleatório')">🎒 Adicionar Item</button>
-  <button onclick="console.log('Estado:', window.RPG?.game?.logic?.getState())">📋 Debug</button>
-  <button onclick="location.reload()">🔄 Recarregar</button>
-</div>
-
-<!-- 
-  SCRIPT PRINCIPAL: Importa o módulo entry-point via CDN.
-  - Use type="module" para habilitar imports ES6.
-  - A URL deve apontar para o arquivo main.js no seu repositório.
-  - O parâmetro ?v= força cache busting ao atualizar o código.
--->
-<script type="module">
-  // ⚠️ SUBSTITUA ESTA URL PELA DO SEU REPOSITÓRIO REAL:
-  import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=1";
   
-  // Inicializa o jogo (o módulo também pode auto-iniciar se detectar root.GAME_SEED)
-  // Aguarda o DOM estar pronto para garantir que #game-container existe
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => initGame());
-  } else {
-    initGame();
-  }
-</script>
-
-<!-- 
-  ESTILOS GLOBAIS (opcional, para o jogo)
-  Podem ser movidos para um arquivo CSS externo se preferir.
--->
-<style>
-  #game-container {
-    font-family: system-ui, -apple-system, sans-serif;
-    color: #eee;
-  }
-  #game-container button {
-    background: #4a4a6a; color: white; border: none;
-    padding: 8px 16px; border-radius: 4px; cursor: pointer;
-    transition: background 0.2s;
-  }
-  #game-container button:hover { background: #5a5a7a; }
-  #debug-panel {
-    position: fixed; top: 10px; right: 10px;
-    background: rgba(0,0,0,0.7); color: #0f0;
-    padding: 10px; border-radius: 4px;
-    font-family: monospace; font-size: 12px;
-    z-index: 1000; pointer-events: none;
-  }
-</style>
+  <!-- Container principal (Three.js e outros elementos) -->
+  <div id="game-container"></div>
+  
+  <!-- Overlay de informações -->
+  <div id="info-overlay">
+    <h3>🧪 Painel de Testes</h3>
+    <ul>
+      <li>🎨 Three.js: Import via esm.sh</li>
+      <li>🧪 Perchance: Acesso a listas/vars via root</li>
+      <li>⏳ Async: Padrões await/async</li>
+      <li>🖼️ Imagem: Integração com plugin</li>
+    </ul>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #444;font-size:11px;color:#94a3b8">
+      <strong>Dica:</strong> Use o painel inferior para executar testes interativos.
+    </div>
+  </div>
+  
+  <!-- Script Principal (Módulo ES6) -->
+  <script type="module">
+    /**
+     * CONFIGURAÇÃO IMPORTANTE:
+     * Substitua a URL abaixo pela do SEU repositório no GitHub.
+     * Formato: https://cdn.jsdelivr.net/gh/USUARIO/REPO@BRANCH/src/main.js?v=VERSAO
+     * 
+     * Use jsdelivr para servir os arquivos .js com MIME type correto.
+     * Incremente ?v=X após cada push para forçar cache refresh.
+     */
+    
+    // ⚠️ ATUALIZE ESTA URL PARA O SEU REPO:
+    import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=4";
+    
+    // Inicializa o jogo quando o DOM estiver pronto
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initGame);
+    } else {
+      initGame();
+    }
+    
+    // Expor para debug (opcional)
+    window.__perchanceDebug = { initGame };
+  </script>
+  
+</body>
+</html>

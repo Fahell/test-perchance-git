@@ -1,2 +1,43 @@
-"node_modules/" 
-".DS_Store" 
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependências
+node_modules/
+vendor/
+
+# Ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Build outputs (se usar bundler no futuro)
+dist/
+build/
+*.bundle.js
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Cache de testes
+.cache/
+coverage/
+
+# Arquivos de configuração local (não commitar secrets)
+!README.md
+!for-perchance.html
+!test-local.html

@@ -1,63 +1,106 @@
 /**
- * main.js
- * Ponto de entrada do jogo.
- * Este arquivo é importado diretamente no HTML Panel do Perchance.
- * 
- * exports: initGame() - função principal de inicialização
+ * Entry Point do Jogo Modularizado
+ * Orquestra a inicialização de todos os módulos de teste.
  */
 
-// Imports de módulos locais (caminhos relativos à URL deste arquivo)
-import { root, GAME_SEED } from './perchance-bridge.js';
-import { initRenderer } from './modules/renderer.js';
-import { initLogic } from './modules/logic.js';
+import { initUITest, addLog } from './modules/ui-test.js';
 
-// Estado global do jogo (opcional, para acesso externo)
-export const game = {
-  renderer: null,
-  logic: null,
-  seed: null
-};
+// Variável global para debug
+window.RPG = window.RPG || {};
+
+export async function initGame() {
+  console.log('🚀 [Main] Iniciando jogo modularizado...');
+  addLog('🚀 Sistema inicializado. Aguardando comandos...');
+  
+  try {
+    // 1. Inicializa UI de testes primeiro (para feedback visual)
+    initUITest();
+    
+    // 2. Carrega módulos sob demanda (lazy loading)
+    // Isso evita erros se um módulo falhar, os outros continuam funcionando
+    
+    // Three.js: Carrega apenas quando o usuário clicar no botão
+    // (já configurado no ui-test.js)
+    
+    // Perchance Features: Também lazy load via botão
+    // (configurado no ui-test.js)
+    
+    // 3. Remove mensagem de loading
+    removeLoadingMessage();
+    
+    // 4. Log de sucesso
+    console.log('✅ [Main] Todos os módulos carregados. Painel de testes disponível.');
+    addLog('✅ Módulos carregados. Use o painel inferior para executar testes.');
+    
+    // 5. Expor para debug no console
+    window.RPG = {
+      version: '1.0.0-test',
+      modules: {
+        ui: 'loaded',
+        three: 'lazy',
+        perchance: 'lazy'
+      },
+      addLog // Expor função de log para uso externo
+    };
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ [Main] Erro crítico na inicialização:', error);
+    addLog(`❌ Erro: ${error.message}`);
+    return false;
+  }
+}
 
 /**
- * Função principal de inicialização.
- * Chame esta função após importar o módulo no HTML Panel.
+ * Remove a mensagem de loading inicial
  */
-export async function initGame(options = {}) {
-  console.log('🚀 Iniciando jogo modularizado...');
-  
-  // 1. Configura seed (prioriza opção, depois Perchance, depois aleatório)
-  const seed = options.seed 
-    || Number(GAME_SEED) 
-    || Math.floor(Math.random() * 100000);
-  
-  game.seed = seed;
-  
-  // 2. Inicializa módulos
-  game.renderer = initRenderer('#game-container');
-  game.logic = initLogic(seed);
-  
-  // 3. Exemplo de interação entre módulos
-  game.renderer.debug(`🎮 Seed: ${seed} | Bioma: ${game.logic.getState().bioma}`);
-  
-  // 4. Exemplo: gera um evento aleatório via Perchance
-  const evento = game.logic.rollEvent('eventos');
-  console.log(`🎲 Evento sorteado: ${evento}`);
-  
-  // 5. Expor para debug global (opcional)
-  if (typeof window !== 'undefined') {
-    window.RPG = { game, root };
-    console.log('💡 Debug: window.RPG disponível no console');
+function removeLoadingMessage() {
+  // Tenta por ID primeiro (mais eficiente)
+  const loadingMsg = document.getElementById('loading-message');
+  if (loadingMsg) {
+    loadingMsg.remove();
+    console.log('🗑️ [Main] Mensagem de loading removida (por ID)');
+    return;
   }
   
-  console.log('✅ Jogo inicializado com sucesso!');
-  return game;
+  // Fallback: busca por conteúdo de texto
+  const candidates = Array.from(document.body.children).filter(el => 
+    el.textContent?.includes('Carregando') || 
+    el.textContent?.includes('🎮')
+  );
+  
+  for (const el of candidates) {
+    if (el.tagName === 'DIV' && el.style?.position === 'absolute') {
+      el.remove();
+      console.log('🗑️ [Main] Mensagem de loading removida (fallback)');
+      return;
+    }
+  }
+  
+  console.log('ℹ️ [Main] Nenhuma mensagem de loading encontrada para remover');
 }
 
-// Auto-inicialização opcional (apenas se root.GAME_SEED existir, ou seja, no Perchance)
-// Comente esta linha se quiser controlar a inicialização manualmente
-if (root?.GAME_SEED !== undefined) {
-  // Pequeno delay para garantir que o DOM está pronto
-  setTimeout(() => initGame(), 100);
+/**
+ * Função utilitária para reload suave (útil para desenvolvimento)
+ */
+export function softReload() {
+  console.log('🔄 [Main] Soft reload solicitado...');
+  addLog('🔄 Recarregando módulos...');
+  
+  // Remove canvas do Three.js se existir
+  const canvas = document.querySelector('#three-test-container canvas');
+  if (canvas?.parentElement) {
+    canvas.parentElement.remove();
+  }
+  
+  // Limpa logs
+  const logs = document.getElementById('test-logs');
+  if (logs) logs.innerHTML = '';
+  
+  // Re-inicializa
+  initGame();
 }
 
-console.log('📦 main.js carregado. Aguardando initGame()...');
+// Expõe para uso global (opcional, para debug)
+window.RPG.softReload = softReload;

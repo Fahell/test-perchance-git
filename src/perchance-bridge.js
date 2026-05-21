@@ -26,6 +26,15 @@ export const root = getPerchanceRoot();
 export const GAME_SEED = root.GAME_SEED;
 export const image = root.image; // Plugin text-to-image, se importado no List Panel
 
+// Helper para acessar variáveis do Perchance com fallback seguro
+export const getVar = (varName, fallback = null) => {
+  if (root[varName] !== undefined) {
+    return root[varName];
+  }
+  // Retorna fallback para testes locais ou variável não definida
+  return fallback;
+};
+
 // Helper para acessar listas com fallback seguro
 export const getList = (listName, fallback = []) => {
   if (root[listName] && typeof root[listName].selectOne === 'function') {
