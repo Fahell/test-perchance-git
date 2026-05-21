@@ -53,10 +53,10 @@ test-perchance-git/
 No arquivo `for-perchance.html`, edite a linha de import:
 ```html
 <!-- DE (exemplo): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=3";
+import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=9";
 
 <!-- PARA (seus dados): -->
-import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/main.js?v=1";
+import { initGame } from "https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/main.js?v=10";
 ```
 
 > 🔑 **Dica de Cache**: Sempre incremente `?v=X` após cada push (`?v=2`, `?v=3`) para garantir que os jogadores recebam a versão mais recente.
@@ -230,6 +230,46 @@ window.resetGame(); // Reseta o sessionStorage e recarrega a página
 📄 HTML Panel injetado, chamando initGame()...
 ⏭️ Jogo já inicializado (sessionStorage). Ignorando re-execução.
 ```
+
+### Problema: Painel de testes não aparece (tela em branco com apenas HUD)
+
+**Sintoma**: Console mostra logs de sucesso, mas a tela está em branco exceto pelo HUD de FPS e pelo balão de informações estático.
+
+**Causas possíveis**:
+1. **Import dinâmico falhou**: O módulo `ui-test.js` não foi carregado via CDN (URL incorreta, arquivo não existe no GitHub, erro de CORS).
+2. **Erro silencioso em `initUITest`**: A função lançou um erro antes de criar o painel.
+3. **Painel fora da viewport ou escondido**: `z-index` conflitante ou posicionamento incorreto.
+
+**Solução aplicada (v10)**:
+1. ✅ `main.js` agora tem `try/catch` específico para o import dinâmico com logs detalhados.
+2. ✅ `ui-test.js` tem `try/catch` interno e verifica se `document.body` está disponível.
+3. ✅ Painel agora tem `z-index: 9999`, borda verde brilhante e sombra para máxima visibilidade.
+4. ✅ Logs de debug mostram posição do painel e se os botões foram encontrados.
+5. ✅ Alertas visuais (caixas vermelhas) aparecem se houver erro, com mensagem no console.
+
+**Como diagnosticar**:
+```javascript
+// No console do navegador (F12), procure por:
+// ✅ Logs esperados:
+//   🎮 [UI-Test] Criando painel de testes...
+//   📎 [UI-Test] Painel anexado ao document.body
+//   📐 [UI-Test] Painel visível: 320xXXXpx em (20, YYY)
+
+// ❌ Se aparecer:
+//   ❌ [Main] Falha ao importar ui-test.js: ...
+//   → Verifique se o arquivo existe em: https://cdn.jsdelivr.net/gh/SEU_USUARIO/test-perchance-git@main/src/modules/ui-test.js
+
+// ❌ Se aparecer:
+//   ❌ [UI-Test] btn-test-perchance não encontrado
+//   → O innerHTML pode ter falhado; verifique erros de sintaxe no template string
+```
+
+**Passos para corrigir**:
+1. Verifique se `src/modules/ui-test.js` existe no seu repositório no GitHub.
+2. Confirme que a URL no import usa `cdn.jsdelivr.net` (não `raw.githubusercontent.com`).
+3. Incremente `?v=` na URL do import em `for-perchance.html`.
+4. Limpe o cache do navegador (Ctrl+Shift+Del) ou use aba anônima.
+5. Recarregue o preview e verifique o console para logs de erro específicos.
 
 ---
 
