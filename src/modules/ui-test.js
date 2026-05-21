@@ -1,12 +1,12 @@
 // src/modules/ui-test.js
 // Painel de testes interativo com todos os módulos
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/perchance-bridge.js';
-import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/ai-text-test.js';
-import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/image-test.js';
-import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/lists-test.js';
-import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/raycaster-test.js';
-import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/state-test.js';
-import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/modules/canvas-test.js';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/perchance-bridge.js';
+import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/ai-text-test.js';
+import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/image-test.js';
+import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/lists-test.js';
+import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/raycaster-test.js';
+import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/state-test.js';
+import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/canvas-test.js';
 
 export function initUITest(rendererData) {
   console.log('🎮 [UI-Test] Criando painel de testes expandido...');
@@ -28,7 +28,7 @@ export function initUITest(rendererData) {
   `;
 
   panel.innerHTML = `
-    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.1.0</h3>
+    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.1.1</h3>
     
     <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
       <strong style="color:#4ade80;">🔌 Plugins</strong><br>
@@ -91,13 +91,17 @@ export function initUITest(rendererData) {
   // AI Text
   document.getElementById('btn-ai-text').onclick = async () => {
     log('🤖 Testando AI Text...', '#4ade80');
-    if (!aiTextTest.available) {
+    if (!aiTextTest) {
       log('⚠️ Plugin AI Text não disponível', '#ff6b6b');
       return;
     }
     try {
-      const result = await aiTextTest.generateBasic('Escreva uma frase curta sobre um aventureiro corajoso.');
-      log(`✅ AI: "${result.generatedText.substring(0, 50)}..."`, '#4ade80');
+      const result = await aiTextTest.testBasicText();
+      if (result) {
+        log(`✅ AI: "${result.substring(0, 50)}..."`, '#4ade80');
+      } else {
+        log('⚠️ Texto gerado vazio', '#ff6b6b');
+      }
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
     }
@@ -106,14 +110,17 @@ export function initUITest(rendererData) {
   // Image
   document.getElementById('btn-image').onclick = async () => {
     log('🖼️ Testando Image Plugin...', '#4ade80');
-    if (!imageTest.available) {
+    if (!imageTest) {
       log('⚠️ Plugin Image não disponível', '#ff6b6b');
       return;
     }
     try {
-      const result = await imageTest.generateBasic('papercraft warrior with sword, fantasy style');
-      imageTest.createImageElement(result, panel);
-      log('✅ Imagem gerada e exibida!', '#4ade80');
+      const result = await imageTest.testBasicImage();
+      if (result) {
+        log('✅ Imagem gerada! Veja console para URL', '#4ade80');
+      } else {
+        log('⚠️ Falha na geração (ver console)', '#ff6b6b');
+      }
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
     }
@@ -122,9 +129,14 @@ export function initUITest(rendererData) {
   // Listas
   document.getElementById('btn-lists').onclick = () => {
     log('📋 Testando listas...', '#4ade80');
-    const item = listsTest.testSelectOne('itens');
-    const unique = listsTest.testSelectUnique('nomes_herois', 2);
-    log(`✅ Item: "${item}" | Heróis: ${unique.join(', ')}`, '#4ade80');
+    try {
+      const item = listsTest.testSelectOne('itens');
+      const heroes = listsTest.testSelectUnique('nomes_herois', 2);
+      const length = listsTest.testListLength('nomes_herois');
+      log(`✅ Item: "${item}" | Heróis: ${heroes.length} | Tamanho: ${length}`, '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
   };
 
   // Bridge
@@ -146,8 +158,8 @@ export function initUITest(rendererData) {
   // Raycaster
   document.getElementById('btn-raycaster').onclick = () => {
     log('🖱️ Raycaster: Clique nas esferas coloridas!', '#4ade80');
-    if (raycasterTest.available) {
-      log(`✅ ${raycasterTest.spheres.length} esferas adicionadas`, '#4ade80');
+    if (raycasterTest) {
+      log(`✅ ${raycasterTest.spheres?.length || 0} esferas adicionadas`, '#4ade80');
     } else {
       log('⚠️ Raycaster não disponível', '#ff6b6b');
     }
@@ -156,15 +168,19 @@ export function initUITest(rendererData) {
   // Canvas
   document.getElementById('btn-canvas').onclick = () => {
     log('🎨 Testando Canvas 2D...', '#4ade80');
-    canvasTest.drawing.clear();
-    canvasTest.drawing.drawGradient();
-    canvasTest.drawing.drawCircles(15);
-    canvasTest.drawing.drawText('RPG Paper Craft', 256, 256);
-    if (canvasTest.threeIntegration) {
-      canvasTest.threeIntegration.show();
-      canvasTest.threeIntegration.update();
+    if (canvasTest) {
+      canvasTest.drawing?.clear?.();
+      canvasTest.drawing?.drawGradient?.();
+      canvasTest.drawing?.drawCircles?.(15);
+      canvasTest.drawing?.drawText?.('RPG Paper Craft', 256, 256);
+      if (canvasTest.threeIntegration) {
+        canvasTest.threeIntegration.show?.();
+        canvasTest.threeIntegration.update?.();
+      }
+      log('✅ Canvas desenhado!', '#4ade80');
+    } else {
+      log('⚠️ Canvas não disponível', '#ff6b6b');
     }
-    log('✅ Canvas desenhado!', '#4ade80');
   };
 
   // State Save

@@ -1,5 +1,5 @@
 // ⚠️ IMPORTANTE: Use URL absoluta com versão (tag) para evitar cache do CDN
-import { getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.0/src/perchance-bridge.js';
+import { getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/perchance-bridge.js';
 
 export function initLogic(seed, bioma) {
   console.log('🧠 [Logic] Inicializando lógica do jogo...');
