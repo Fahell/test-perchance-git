@@ -53,6 +53,7 @@ Edite os arquivos abaixo e substitua `@v1.0.0` pela nova tag:
 - `src/main.js` (linhas ~3, ~5, ~35)
 - `src/modules/logic.js` (linha ~2)
 - `src/modules/ui-test.js` (linha ~2)
+- `src/modules/renderer.js` (se houver imports de bridge)
 
 #### Passo 4: Commit e Push das URLs Atualizadas
 ```bash
@@ -162,6 +163,7 @@ Este projeto usa **tags semânticas** (`v1.0.0`, `v1.0.1`, etc.) em vez de hashe
 
 ### Histórico de Versões
 
+- **v1.0.2** - Correção crítica: material do cubo alterado de MeshNormalMaterial para MeshStandardMaterial (permite mudar cor). Todos os imports usam URLs absolutas com tag para evitar cache.
 - **v1.0.1** - Correções de debug: logs detalhados para erro do cubo, consistência de versões (v1.0.0 em todos os imports)
 - **v1.0.0** - Estrutura inicial com testes de Three.js, Perchance Bridge e UI interativa
 - **v0.x.x** - Versões anteriores com problemas de cache (hash de commit)
