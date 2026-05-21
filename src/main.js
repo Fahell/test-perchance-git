@@ -3,14 +3,20 @@ import { initRenderer } from './modules/renderer.js';
 import { initLogic } from './modules/logic.js';
 
 export async function initGame() {
-  // 🛡️ Guard clause: Evita inicialização duplicada no Perchance
-  if (window.GAME_INITIALIZED) {
-    console.warn('⚠️ Jogo já inicializado. Ignorando execução duplicada.');
+  console.log('🔍 [Main] initGame() chamado. Verificando estado...');
+  
+  // 🛡️ Guard clause duplo: sessionStorage (sobrevive a reloads) + window (rápido)
+  const alreadyInit = sessionStorage.getItem('RPG_INITIALIZED') === 'done';
+  if (alreadyInit || window.GAME_INITIALIZED) {
+    console.warn('⚠️ [Main] Jogo já inicializado. Ignorando execução duplicada.');
     return;
   }
+  
+  // Marca AMBOS os flags
   window.GAME_INITIALIZED = true;
-
-  console.log('🚀 [Main] Iniciando jogo modularizado...');
+  sessionStorage.setItem('RPG_INITIALIZED', 'done');
+  
+  console.log('🚀 [Main] Iniciando jogo modularizado (primeira execução)...');
 
   try {
     // 1. Inicializa Renderizador (Three.js)

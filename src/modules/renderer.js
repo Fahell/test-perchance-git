@@ -3,12 +3,28 @@ import * as THREE from 'https://esm.sh/three@0.160.0';
 export function initRenderer(container) {
   console.log('🎨 [Renderer] Inicializando Three.js...');
 
-  // 🗑️ Remove mensagem de loading
+  // 🗑️ Remove mensagem de loading (múltiplas tentativas robustas)
   const loadingEl = document.getElementById('loading-message');
   if (loadingEl) {
     loadingEl.remove();
-    console.log('🗑️ [Renderer] Mensagem de loading removida.');
+    console.log('🗑️ [Renderer] Mensagem de loading removida (por ID).');
   }
+  
+  // Fallback: remove qualquer elemento com texto "Carregando"
+  document.querySelectorAll('div').forEach(el => {
+    if (el.textContent?.includes('Carregando módulos')) {
+      el.remove();
+      console.log('🗑️ [Renderer] Mensagem de loading removida (por texto).');
+    }
+  });
+  
+  // Fallback agressivo: remove TODOS os elementos com z-index alto que não são nossos
+  document.querySelectorAll('[style*="z-index: 2000"]').forEach(el => {
+    if (el.id !== 'ui-test-panel') {
+      el.remove();
+      console.log('🗑️ [Renderer] Elemento com z-index alto removido.');
+    }
+  });
 
   // 🖼️ Setup Three.js
   const scene = new THREE.Scene();

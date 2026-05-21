@@ -171,13 +171,26 @@
      */
     
     // ⚠️ ATUALIZE ESTA URL PARA O SEU REPO:
-    import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=4";
+    import { initGame } from "https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@main/src/main.js?v=7";
     
-    // Inicializa o jogo quando o DOM estiver pronto
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initGame);
+    // 🛡️ PROTEÇÃO CONTRA EXECUÇÃO DUPLA NO PERCHANCE
+    // O Perchance às vezes re-avalia o HTML Panel, causando chamadas múltiplas
+    if (sessionStorage.getItem('RPG_INITIALIZED')) {
+      console.log('⏭️ Jogo já inicializado (detectado via sessionStorage). Ignorando.');
     } else {
-      initGame();
+      // Marca como inicializado ANTES de chamar
+      sessionStorage.setItem('RPG_INITIALIZED', 'true');
+      
+      // Inicializa o jogo quando o DOM estiver pronto
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('📄 DOM pronto, chamando initGame()...');
+          initGame();
+        });
+      } else {
+        console.log('📄 DOM já carregado, chamando initGame() imediatamente...');
+        initGame();
+      }
     }
     
     // Expor para debug (opcional)
