@@ -13,6 +13,12 @@ export function initUITest(rendererData) {
       return;
     }
 
+    // 🛡️ CAPTURA os valores do Perchance no momento da inicialização
+    // Isso evita o erro 'numActualScriptLines' do Perchance em event handlers
+    const capturedSeed = getVar('GAME_SEED', 'N/A');
+    const capturedRootExists = !!root;
+    console.log(`📸 [UI-Test] Valores capturados: seed=${capturedSeed}, root=${capturedRootExists}`);
+
     const panel = document.createElement('div');
     panel.id = 'ui-test-panel';
     // Estilização mais visível para debug
@@ -51,9 +57,9 @@ export function initUITest(rendererData) {
     
     if (btnBridge) {
       btnBridge.onclick = () => {
-        const seed = getVar('GAME_SEED', 'N/A');
+        // Usa os valores capturados (evita erro do Perchance em event handlers)
         if (logDiv) {
-          logDiv.textContent = `📡 Seed: ${seed} | Root: ${!!root}`;
+          logDiv.textContent = `📡 Seed: ${capturedSeed} | Root: ${capturedRootExists}`;
           logDiv.style.color = '#22c55e';
         }
         console.log('🔗 [UI-Test] Botão Bridge clicado');
@@ -64,13 +70,24 @@ export function initUITest(rendererData) {
 
     if (btn3d) {
       btn3d.onclick = () => {
-        if (rendererData && rendererData.cube) {
-          rendererData.cube.material.color.setHex(Math.random() * 0xffffff);
-          if (logDiv) logDiv.textContent = '🎲 Cor do cubo alterada!';
-          console.log('🎲 [UI-Test] Cor do cubo alterada');
+        console.log('🎲 [UI-Test] Botão 3D clicado. Verificando rendererData...');
+        console.log('   rendererData:', rendererData);
+        console.log('   rendererData.cube:', rendererData?.cube);
+        console.log('   rendererData.cube.material:', rendererData?.cube?.material);
+        console.log('   rendererData.cube.material.color:', rendererData?.cube?.material?.color);
+        
+        if (rendererData && rendererData.cube && rendererData.cube.material && rendererData.cube.material.color) {
+          const newColor = Math.random() * 0xffffff;
+          rendererData.cube.material.color.setHex(newColor);
+          if (logDiv) logDiv.textContent = `🎲 Cor alterada: #${newColor.toString(16).padStart(6, '0')}`;
+          console.log('🎲 [UI-Test] Cor do cubo alterada com sucesso!');
         } else {
-          if (logDiv) logDiv.textContent = '⚠️ Cubo não disponível';
-          console.warn('⚠️ [UI-Test] rendererData.cube não disponível');
+          const error = !rendererData ? 'rendererData é undefined' :
+                       !rendererData.cube ? 'cube é undefined' :
+                       !rendererData.cube.material ? 'material é undefined' :
+                       'color é undefined';
+          if (logDiv) logDiv.textContent = `⚠️ Erro: ${error}`;
+          console.warn('⚠️ [UI-Test] Não foi possível mudar cor:', error);
         }
       };
     } else {

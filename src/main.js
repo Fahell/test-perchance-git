@@ -36,6 +36,8 @@ export async function initGame() {
       
       if (typeof uiModule.initUITest === 'function') {
         console.log('🎮 [Main] Chamando initUITest...');
+        console.log('📦 [Main] rendererData passado:', renderer);
+        console.log('   renderer.cube:', renderer?.cube);
         uiModule.initUITest(renderer);
       } else {
         console.error('❌ [Main] initUITest não é uma função. exports:', Object.keys(uiModule));

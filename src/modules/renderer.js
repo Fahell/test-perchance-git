@@ -72,9 +72,17 @@ export function initRenderer(container) {
   // Anexa ao body para evitar overflow:hidden do container
   document.body.appendChild(renderer.domElement);
 
-  // Cubo de teste girando
+  // 💡 Iluminação (necessária para MeshStandardMaterial)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+  
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(5, 5, 5);
+  scene.add(directionalLight);
+
+  // Cubo de teste girando (com material que permite mudar cor)
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshNormalMaterial();
+  const material = new THREE.MeshStandardMaterial({ color: 0x3b82f6 }); // Azul inicial
   const cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
 

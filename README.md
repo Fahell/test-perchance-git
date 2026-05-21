@@ -114,6 +114,30 @@ git push
 3. Se retornar `null`, o painel não foi criado
 4. Verifique os logs de erro no console
 
+### Problema: "Cannot read properties of undefined (reading 'setHex')"
+
+**Causa**: O `rendererData.cube` ou `rendererData.cube.material` está undefined.
+
+**Solução**:
+1. Clique no botão "Mudar Cor do Cubo"
+2. Veja os logs detalhados no console - eles mostrarão exatamente qual propriedade está undefined
+3. Verifique se o `initRenderer` está retornando o objeto correto:
+   ```javascript
+   console.log(window.RPG) // Deve conter { renderer, world, seed }
+   ```
+
+### Problema: Erro "numActualScriptLines" do Perchance
+
+**Causa**: O Perchance tenta analisar scripts inline para encontrar bugs, mas falha com código complexo.
+
+**Solução**: Este erro é do Perchance, não do seu código. Ele não afeta a execução. Os valores do Perchance são capturados no momento da inicialização (veja `capturedSeed` no `ui-test.js`) para evitar acessar `root` em event handlers.
+
+### Problema: Warnings de "skeleton.js" ou "IntegralAS"
+
+**Causa**: Scripts de anúncios do Perchance.
+
+**Solução**: Ignore. Não afetam seu código.
+
 ## 📚 Aprendizados sobre o Perchance
 
 1. **HTML Panel é um fragmento**: Não use `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`
@@ -138,5 +162,6 @@ Este projeto usa **tags semânticas** (`v1.0.0`, `v1.0.1`, etc.) em vez de hashe
 
 ### Histórico de Versões
 
+- **v1.0.1** - Correções de debug: logs detalhados para erro do cubo, consistência de versões (v1.0.0 em todos os imports)
 - **v1.0.0** - Estrutura inicial com testes de Three.js, Perchance Bridge e UI interativa
 - **v0.x.x** - Versões anteriores com problemas de cache (hash de commit)
