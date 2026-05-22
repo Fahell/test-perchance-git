@@ -1,10 +1,9 @@
 // src/main.js
-// Entry point do jogo - importa e inicializa todos os módulos
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.2/src/perchance-bridge.js';
-import { initRenderer } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.2/src/modules/renderer.js';
-import { initLogic } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.2/src/modules/logic.js';
+// Entry point do jogo - v1.2.3 com diagnóstico melhorado
 
-// Mapeamento de módulos de teste (carregados sob demanda via import dinâmico)
+const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.3/src';
+
+// Mapeamento de módulos de teste
 const TEST_MODULES = {
   imageTest: 'image-test.js',
   aiTextTest: 'ai-text-test.js',
@@ -20,10 +19,39 @@ const TEST_MODULES = {
   seederTest: 'seeder-test.js'
 };
 
-const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.2/src/modules/';
-
 // Cache de módulos carregados
 const loadedModules = {};
+
+// Carrega um módulo dinamicamente com tratamento de erro detalhado
+async function loadModule(path, moduleName = 'módulo') {
+  const url = `${BASE_URL}/${path}`;
+  try {
+    console.log(`🔍 [Main] Tentando carregar ${moduleName}...`);
+    const module = await import(url);
+    console.log(`✅ [Main] ${moduleName} carregado com sucesso`);
+    return module;
+  } catch (error) {
+    console.error(`❌ [Main] Falha ao carregar ${moduleName}`);
+    console.error(`   URL: ${url}`);
+    console.error(`   Erro: ${error.message}`);
+    console.error(`   Stack:`, error.stack);
+    
+    // Tenta diagnosticar o problema
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error(`   HTTP Status: ${response.status}`);
+      } else {
+        const text = await response.text();
+        console.error(`   Arquivo existe (${text.length} bytes), mas tem erro de sintaxe ou import quebrado`);
+      }
+    } catch (fetchError) {
+      console.error(`   Falha ao buscar arquivo: ${fetchError.message}`);
+    }
+    
+    return null;
+  }
+}
 
 // Carrega um módulo de teste dinamicamente
 async function loadTestModule(moduleName) {
@@ -31,15 +59,11 @@ async function loadTestModule(moduleName) {
     return loadedModules[moduleName];
   }
   
-  try {
-    const module = await import(BASE_URL + TEST_MODULES[moduleName]);
-    loadedModules[moduleName] = module;
-    console.log(`📦 [Main] Módulo ${moduleName} carregado`);
-    return module;
-  } catch (error) {
-    console.error(`❌ [Main] Falha ao carregar ${moduleName}:`, error);
-    return null;
+  const mod = await loadModule(`modules/${TEST_MODULES[moduleName]}`, moduleName);
+  if (mod) {
+    loadedModules[moduleName] = mod;
   }
+  return mod;
 }
 
 // Carrega todos os módulos de teste
@@ -50,13 +74,11 @@ async function loadAllTestModules() {
   for (const [key, file] of Object.entries(TEST_MODULES)) {
     const mod = await loadTestModule(key);
     if (mod) {
-      // Extrai o export principal (geralmente o nome do teste)
-      const exportName = key;
-      modules[key] = mod[exportName] || mod;
+      modules[key] = mod[key] || mod;
     }
   }
   
-  console.log(`✅ [Main] ${Object.keys(modules).length} módulos carregados`);
+  console.log(`✅ [Main] ${Object.keys(modules).length}/${Object.keys(TEST_MODULES).length} módulos carregados`);
   return modules;
 }
 
@@ -64,16 +86,22 @@ async function loadAllTestModules() {
 function initTestModules(modules, rendererData) {
   console.log('🔧 [Main] Inicializando módulos que precisam de setup...');
   
-  // CanvasTest precisa do rendererData para integração com Three.js
   if (modules.canvasTest && modules.canvasTest.init) {
-    modules.canvasTest.init(rendererData);
-    console.log('✅ [Main] canvasTest inicializado');
+    try {
+      modules.canvasTest.init(rendererData);
+      console.log('✅ [Main] canvasTest inicializado');
+    } catch (e) {
+      console.error('❌ [Main] Erro ao inicializar canvasTest:', e.message);
+    }
   }
   
-  // RaycasterTest precisa do rendererData para adicionar esferas
   if (modules.raycasterTest && modules.raycasterTest.init) {
-    modules.raycasterTest.init(rendererData);
-    console.log('✅ [Main] raycasterTest inicializado');
+    try {
+      modules.raycasterTest.init(rendererData);
+      console.log('✅ [Main] raycasterTest inicializado');
+    } catch (e) {
+      console.error('❌ [Main] Erro ao inicializar raycasterTest:', e.message);
+    }
   }
 }
 
@@ -90,30 +118,52 @@ export async function initGame() {
   try {
     console.log('🚀 [Main] Iniciando jogo modularizado (primeira execução)...');
 
-    // 1. Inicializa Renderizador (Three.js)
+    // 1. Carrega módulos críticos SEQUENCIALMENTE (para identificar qual falha)
+    console.log('📦 [Main] Carregando perchance-bridge.js...');
+    const bridgeMod = await loadModule('perchance-bridge.js', 'perchance-bridge');
+    if (!bridgeMod) throw new Error('Falha ao carregar perchance-bridge.js');
+
+    console.log('📦 [Main] Carregando renderer.js...');
+    const rendererMod = await loadModule('modules/renderer.js', 'renderer');
+    if (!rendererMod) throw new Error('Falha ao carregar renderer.js (provavelmente Three.js não carregou)');
+
+    console.log('📦 [Main] Carregando logic.js...');
+    const logicMod = await loadModule('modules/logic.js', 'logic');
+    if (!logicMod) throw new Error('Falha ao carregar logic.js');
+
+    const { root, getVar, getList } = bridgeMod;
+    const { initRenderer } = rendererMod;
+    const { initLogic } = logicMod;
+
+    // 2. Inicializa Renderizador (Three.js)
+    console.log('🎨 [Main] Chamando initRenderer...');
     const rendererData = initRenderer(document.getElementById('game-container'));
 
-    // 2. Inicializa Lógica (Dados do Perchance)
+    // 3. Inicializa Lógica (Dados do Perchance)
     const seed = getVar('GAME_SEED', 999);
     const bioma = getList('biomas', ['planície']).selectOne;
     initLogic(seed, bioma);
 
-    // 3. Carrega todos os módulos de teste dinamicamente
+    // 4. Carrega todos os módulos de teste dinamicamente
     const testModules = await loadAllTestModules();
 
-    // 3.5. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
+    // 5. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
     initTestModules(testModules, rendererData);
 
-    // 4. Carrega e inicializa UI de Teste
+    // 6. Carrega e inicializa UI de Teste
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
-    const { initUITest } = await import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.2/src/modules/ui-test.js');
+    const uiTestMod = await loadModule('modules/ui-test.js', 'ui-test');
     
-    console.log('🎮 [Main] Chamando initUITest...');
-    console.log('📦 [Main] rendererData passado:', rendererData);
-    console.log('   renderer.cube:', rendererData.cube);
+    if (uiTestMod && uiTestMod.initUITest) {
+      console.log('🎮 [Main] Chamando initUITest...');
+      console.log('📦 [Main] rendererData passado:', rendererData);
+      console.log('   renderer.cube:', rendererData.cube);
 
-    // Passa todos os módulos de teste para a UI
-    initUITest(rendererData, testModules);
+      // Passa todos os módulos de teste para a UI
+      uiTestMod.initUITest(rendererData, testModules);
+    } else {
+      console.error('❌ [Main] ui-test.js não carregou corretamente');
+    }
 
     console.log('✅ [Main] Jogo inicializado com sucesso!');
     console.log('💡 Debug: window.RPG disponível no console');
@@ -128,6 +178,7 @@ export async function initGame() {
     };
   } catch (error) {
     console.error('❌ [Main] Erro fatal na inicialização:', error);
+    console.error('Stack trace:', error.stack);
 
     // Mostra mensagem de erro na tela
     const errorDiv = document.createElement('div');
@@ -135,11 +186,14 @@ export async function initGame() {
       position: fixed; bottom: 20px; left: 20px; z-index: 9999;
       background: #ff0000; color: white; padding: 20px;
       border-radius: 8px; font-family: monospace; font-size: 14px;
-      border: 2px solid #ff6b6b; max-width: 400px;
+      border: 2px solid #ff6b6b; max-width: 500px;
+      max-height: 300px; overflow-y: auto;
     `;
     errorDiv.innerHTML = `
       <strong>❌ Erro ao iniciar o jogo</strong><br>
-      <small>${error.message}</small><br>
+      <strong>Mensagem:</strong> ${error.message}<br>
+      <strong>Stack:</strong><br>
+      <pre style="font-size:11px; white-space:pre-wrap;">${error.stack || 'N/A'}</pre>
       <small>Verifique o console (F12) para mais detalhes.</small>
     `;
     document.body.appendChild(errorDiv);

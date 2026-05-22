@@ -5,6 +5,21 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.2.3] - 2025-01-21
+
+### Corrigido
+- **Diagnóstico melhorado**: `main.js` agora carrega módulos sequencialmente (não em paralelo) para identificar qual módulo falha
+- Logs detalhados para cada etapa de carregamento
+- Mensagens de erro na tela quando inicialização falha
+- Stack traces completos no console
+
+### Adicionado
+- Função `loadModule()` com diagnóstico avançado (tenta fetch para verificar se arquivo existe)
+- Tratamento de erro em `initTestModules()` para canvasTest e raycasterTest
+- Mensagem de erro visual na tela quando jogo falha ao iniciar
+
+---
+
 ## [1.2.2] - 2025-01-21
 
 ### Corrigido
