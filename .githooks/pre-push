@@ -1,0 +1,33 @@
+#!/bin/bash
+# pre-push hook - Validates version consistency before push
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${YELLOW}🔍 Running pre-push checks...${NC}"
+
+# Check if we're pushing tags
+TAGS_BEING_PUSHED=$(git rev-list --tags --max-count=1 2>/dev/null)
+
+# Check version consistency in key files
+HTML_VER=$(grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' for-perchance.html 2>/dev/null | head -1 || echo "")
+README_VER=$(grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null | head -1 || echo "")
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+if [ -n "$HTML_VER" ] && [ -n "$LATEST_TAG" ]; then
+    if [ "$HTML_VER" != "$LATEST_TAG" ]; then
+        echo -e "${YELLOW}⚠️  Version mismatch: for-perchance.html has ${HTML_VER}, latest tag is ${LATEST_TAG}${NC}"
+        echo "   Consider running: ./scripts/release.sh to keep versions in sync."
+    fi
+fi
+
+# Check if main branch is being pushed
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    echo -e "${YELLOW}⚠️  Pushing from branch '${CURRENT_BRANCH}' (not main)${NC}"
+fi
+
+echo -e "${GREEN}✅ Pre-push checks passed!${NC}"
+exit 0

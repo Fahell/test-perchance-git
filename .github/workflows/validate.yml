@@ -1,0 +1,50 @@
+name: Validate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Validate JavaScript syntax
+      run: |
+        ERRORS=0
+        for file in $(find src -name '*.js'); do
+          node --check "$file" 2>/dev/null || { echo "❌ Syntax error in $file"; ERRORS=$((ERRORS + 1)); }
+        done
+        if [ $ERRORS -gt 0 ]; then exit 1; fi
+        echo "✅ All JavaScript files have valid syntax"
+    
+    - name: Check version consistency
+      run: |
+        HTML_VER=$(grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' for-perchance.html | head -1 || echo "")
+        README_VER=$(grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1 || echo "")
+        echo "HTML Panel version: $HTML_VER"
+        echo "README version: $README_VER"
+        if [ -n "$HTML_VER" ] && [ -n "$README_VER" ] && [ "$HTML_VER" != "$README_VER" ]; then
+          echo "⚠️ Version mismatch between for-perchance.html and README.md"
+          echo "This is a warning, not an error."
+        fi
+    
+    - name: Check for required files
+      run: |
+        FILES="src/main.js src/perchance-bridge.js for-perchance.html for-perchance-list-panel.txt test-local.html"
+        for file in $FILES; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Missing required file: $file"
+            exit 1
+          fi
+        done
+        echo "✅ All required files present"

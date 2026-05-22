@@ -14,15 +14,16 @@ vendor/
 .env.test.local
 .env.production.local
 
-# IDE
-.vscode/
+# IDE (exceto .vscode que é versionado para o projeto)
 .idea/
 *.swp
 *.swo
+*~
 
 # Sistema operacional
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Build outputs (se usar bundler no futuro)
 dist/
@@ -41,3 +42,8 @@ coverage/
 !README.md
 !for-perchance.html
 !test-local.html
+
+# Python (para dev server)
+__pycache__/
+*.py[cod]
+*$py.class
