@@ -1,176 +1,128 @@
 # Changelog
 
-Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
+Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
-e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+## [1.2.5] - 2025-01-22
 
-## [1.2.4] - 2025-01-21
+### 🐛 Correções Críticas de API
 
-### Fixed
-- **TTS Test**: Agora usa Web Speech API nativa como fallback quando plugin não disponível
-- **TTS Test**: Método stopSpeech corrigido para usar `speechSynthesis.cancel()` nativo
-- **TTS Test**: Adicionado método `listVoices()` para listar vozes disponíveis
-- **RPG Icon Test**: API corrigida com múltiplas abordagens (function, selectOne, selectMany, get)
-- **RPG Icon Test**: Adicionado método `checkAPI()` para diagnosticar estrutura do plugin
-- **KV Test**: API corrigida com múltiplas abordagens (set/get, store/retrieve, function)
-- **KV Test**: Adicionado método `checkAPI()` para listar propriedades disponíveis
-- **Pattern Test**: API corrigida com múltiplas abordagens (function, generate, create, selectOne)
-- **Pattern Test**: Adicionado método `checkAPI()` para diagnosticar plugin
-- **Seeder Test**: API corrigida com múltiplas abordagens (function, generate, create, selectOne, get)
-- **Seeder Test**: Adicionado método `checkAPI()` para verificar estrutura
-- **UI Test**: Mensagens de log atualizadas para v1.2.4
+#### KV Plugin
+- **Corrigido**: API incorreta `root.kv.set()` → `root.kv.folderName.set()`
+- **Novo**: Método `initStore()` para inicializar o folder
+- **Novo**: Métodos `listKeys()`, `deleteValue()`, `updateValue()`
+- **Documentação**: https://perchance.org/kv-plugin
 
-### Added
-- Todos os módulos de plugin agora têm método `checkAPI()` para diagnóstico
-- Fallbacks automáticos quando plugins têm APIs diferentes do esperado
-- Melhor tratamento de erros com mensagens explicativas
+#### Seeder Plugin
+- **Corrigido**: `generateSeed()` retornava vazio
+- **Novo**: `applySeed(seedText)` configura seed global
+- **Novo**: `demonstrateReproducibility()` prova que mesma seed = mesmos resultados
+- **Novo**: `resetSeed()` volta para aleatoriedade normal
+- **Documentação**: https://perchance.org/seeder-plugin
 
----
+#### Pattern Maker Plugin
+- **Corrigido**: `generateBasicPattern()` falhava por falta de opções
+- **Novo**: `generateEmojiPattern()` com grid de emojis exemplo
+- **Novo**: `generateCustomPattern(width, height, n, symmetry)`
+- **Novo**: `generateTileablePattern()` para padrões periódicos
+- **Novo**: Preview visual automático no canto inferior direito
+- **Documentação**: https://perchance.org/pattern-maker-plugin
 
-## [1.2.3] - 2025-01-21
+#### RPG Icon Plugin
+- **Corrigido**: `getMultipleIcons()` tentava usar `evaluateItem` (não existe)
+- **Corrigido**: Plugin retorna HTML string diretamente, não objeto
+- **Novo**: Grid de preview visual no canto superior direito
+- **Novo**: `demonstrateUsage()` mostra exemplo de inventário HTML
+- **Documentação**: https://perchance.org/rpg-icon-plugin
 
-### Corrigido
-- **Diagnóstico melhorado**: `main.js` agora carrega módulos sequencialmente (não em paralelo) para identificar qual módulo falha
-- Logs detalhados para cada etapa de carregamento
-- Mensagens de erro na tela quando inicialização falha
-- Stack traces completos no console
+#### TTS Plugin
+- **Corrigido**: `stopSpeech()` tentava método inexistente no plugin
+- **Novo**: Fallback para Web Speech API nativa (`window.speechSynthesis.cancel()`)
+- **Novo**: `getAvailableVoices()` lista vozes do navegador
+- **Novo**: `speakWithVoice()` para selecionar voz específica
+- **Documentação**: https://perchance.org/text-to-speech-plugin
 
-### Adicionado
-- Função `loadModule()` com diagnóstico avançado (tenta fetch para verificar se arquivo existe)
-- Tratamento de erro em `initTestModules()` para canvasTest e raycasterTest
-- Mensagem de erro visual na tela quando jogo falha ao iniciar
+### 📝 Documentação
+- Adicionados links para documentação oficial de cada plugin
+- Exemplos de uso baseados na documentação oficial
+- Comentários explicativos em cada módulo
 
----
+### 🔧 Melhorias Técnicas
+- Todos os módulos agora têm método `checkAPI()` para diagnóstico
+- Logs mais claros com dicas de troubleshooting
+- Fallbacks automáticos quando API é diferente do esperado
 
-## [1.2.2] - 2025-01-21
+## [1.2.4] - 2025-01-22
 
-### Corrigido
-- **Problema crítico**: Imports estáticos no topo do `main.js` causavam erro de "does not provide an export named"
-- Todos os imports de módulos de teste agora são **dinâmicos** (`await import()`)
-- URLs de import atualizadas para `@v1.2.2` em todos os arquivos
-- `ui-test.js` atualizado para versão `@v1.2.2`
+### 🔧 Melhorias
 
-### Alterado
-- `main.js` agora usa 100% imports dinâmicos para módulos de teste
-- Removidos imports estáticos que causavam incompatibilidade com cache do jsDelivr
-- Documentação atualizada com instruções claras de versionamento
+- Carregamento sequencial de módulos para melhor diagnóstico
+- Logs detalhados em cada etapa de carregamento
+- Mensagem de erro visual na tela quando falha
 
-### Notas Técnicas
-- Tags Git são imutáveis: ao fazer mudanças, SEMPRE crie uma nova tag
-- jsDelivr cacheia tags por até 12h; use `?v=` ou mude a tag para forçar refresh
-- Imports estáticos no topo do arquivo são resolvidos antes do código executar, causando falhas se houver erro em qualquer módulo
+## [1.2.3] - 2025-01-22
 
----
+### 🔧 Melhorias
 
-## [1.2.0] - 2025-01-21
+- Conversão de todos os imports de módulos de teste para dinâmicos
+- Isolamento de erros por módulo
 
-### Adicionado
-- Novo módulo `tts-test.js` para testar o plugin text-to-speech
-- Novo módulo `dice-test.js` para testar o plugin dice (rolagem de dados RPG)
-- Novo módulo `rpg-icon-test.js` para testar o plugin rpg-icon (~500 ícones)
-- Novo módulo `pattern-test.js` para testar o plugin pattern-maker
-- Novo módulo `kv-test.js` para testar o plugin kv (key-value storage)
-- Novo módulo `seeder-test.js` para testar o plugin seeder (seeds copiáveis)
-- Preview visual de imagens geradas pelo plugin text-to-image
-- Container de preview para RPG Icons no canto superior direito
-- Container de preview para Pattern Maker no centro inferior
-- Botões agrupados por categoria no painel de testes (IA, RPG, Áudio, Seeds, Persistência)
+## [1.2.2] - 2025-01-22
 
-### Alterado
-- `image-test.js` agora exibe imagem gerada em container visual com informações
-- `ui-test.js` reorganizado com 12 botões de teste em categorias
-- `main.js` atualizado para importar e passar todos os módulos de teste
-- URLs de import atualizadas para @v1.2.0
+### 🐛 Correções
 
-### Corrigido
-- Material do cubo alterado para `MeshStandardMaterial` para permitir mudança de cor
+- Corrigido erro de exports em módulos de teste
 
----
+## [1.2.0] - 2025-01-22
 
-## [1.1.3] - 2025-01-20
+### ✨ Novos Recursos
 
-### Corrigido
-- Nome do método do AI Text test corrigido de `testBasicText` para `generateBasic`
-- Adicionada verificação de disponibilidade (`available`) em todos os módulos de teste
-- Tratamento de erros melhorado no painel de testes
+- 12 módulos de teste completos
+- Preview visual de imagens geradas
+- Testes de plugins: AI Text, Image, TTS, Dice, RPG Icon, Pattern, KV, Seeder
 
----
+## [1.1.3] - 2025-01-21
 
-## [1.1.2] - 2025-01-20
+### 🐛 Correções
 
-### Corrigido
-- Tratamento do retorno do plugin text-to-image (retorna String object, não primitiva)
-- Adicionado método `_extractImageUrl()` para extrair URL corretamente de diferentes formatos
-- Mensagens de erro mais informativas quando geração de imagem falha
+- Corrigido nome do método AI Text
 
----
+## [1.1.2] - 2025-01-21
 
-## [1.1.1] - 2025-01-20
+### 🐛 Correções
 
-### Corrigido
-- API de listas: `selectUnique` não existe nativamente, implementado fallback seguro
-- Tratamento de erros em todos os módulos de teste com try/catch
-- Verificação de null/undefined antes de chamar métodos de teste
+- Corrigido tratamento do retorno do plugin de imagem
 
-### Alterado
-- Mensagens de log mais detalhadas para debug
-- Fallback para `selectMany` + `Set` quando `selectUnique` não disponível
+## [1.1.1] - 2025-01-21
 
----
+### 🐛 Correções
 
-## [1.1.0] - 2025-01-20
+- Corrigido API de listas (selectUnique)
+- Melhor tratamento de erros
 
-### Adicionado
-- Módulo `ai-text-test.js` para testar o plugin ai-text-plugin
-- Módulo `image-test.js` para testar o plugin text-to-image-plugin
-- Módulo `lists-test.js` para testar listas avançadas (selectMany, selectUnique, consumableList)
-- Módulo `raycaster-test.js` para testar clique em objetos 3D com Raycaster
-- Módulo `state-test.js` para testar persistência com localStorage
-- Módulo `canvas-test.js` para testar Canvas 2D + integração com Three.js
-- Painel de testes expandido com 9 botões organizados por categoria
+## [1.1.0] - 2025-01-21
 
-### Alterado
-- `main.js` agora importa dinamicamente o módulo ui-test
-- `ui-test.js` refatorado para receber rendererData e testModules como parâmetros
+### ✨ Novos Recursos
 
----
+- 6 novos módulos de teste (TTS, Dice, RPG Icon, Pattern, KV, Seeder)
+- Painel de testes expandido com 12 botões
 
-## [1.0.2] - 2025-01-19
+## [1.0.2] - 2025-01-20
 
-### Corrigido
-- Material do cubo alterado de `MeshNormalMaterial` para `MeshStandardMaterial`
-- URLs de import alteradas para absolutas com tags de versão
-- Cache do jsDelivr bypassado usando tags em vez de branches
+### 🐛 Correções
 
----
+- Material do cubo alterado para MeshStandardMaterial
 
-## [1.0.1] - 2025-01-19
+## [1.0.1] - 2025-01-20
 
-### Corrigido
-- Adicionada proteção contra execução duplicada com sessionStorage
-- Mensagem de loading agora é removida corretamente
-- Canvas do Three.js com z-index correto
+### 🐛 Correções
 
----
+- Debug logs para interação com cubo 3D
 
-## [1.0.0] - 2025-01-19
+## [1.0.0] - 2025-01-20
 
-### Adicionado
-- Estrutura inicial do projeto modular
-- `main.js` como entry point
-- `perchance-bridge.js` para acesso seguro ao root do Perchance
-- `renderer.js` com setup básico do Three.js
-- `logic.js` com lógica de jogo
-- `ui-test.js` com painel de testes básico
-- Documentação completa no README.md
-- Arquivos de exemplo para HTML Panel e List Panel
+### ✨ Lançamento Inicial
 
----
-
-## [0.1.0] - 2025-01-18
-
-### Adicionado
-- Projeto inicial de teste
-- Prova de conceito de modularização com ES Modules
-- Integração básica com jsDelivr CDN
+- Arquitetura modular com ES Modules
+- Integração com Three.js
+- Ponte para Perchance (perchance-bridge.js)
+- 6 módulos de teste iniciais

@@ -1,153 +1,190 @@
 // src/modules/tts-test.js
 // Testa o plugin text-to-speech-plugin do Perchance
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
-
-// Fallback: usa Web Speech API nativa do navegador se plugin não disponível
-const useNativeTTS = !root.speak || typeof root.speak !== 'function';
-
-let currentUtterance = null;
+// Documentação: https://perchance.org/text-to-speech-plugin
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
 
 export const ttsTest = {
-  available: !!root.speak || ('speechSynthesis' in window),
-  useNativeTTS,
+  available: !!root.speak,
   
   // Teste 1: Fala básica
-  async testBasicSpeech() {
-    console.log('🔊 [TTS] Testando fala básica...');
-    
-    const text = 'Olá! Este é um teste de síntese de voz no Perchance.';
-    
-    try {
-      if (useNativeTTS) {
-        // Usa Web Speech API nativa
-        if (!('speechSynthesis' in window)) {
-          console.warn('⚠️ [TTS] speechSynthesis não disponível neste navegador');
-          return;
-        }
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        
-        currentUtterance = utterance;
-        
-        utterance.onstart = () => console.log('🔊 [TTS] Fala iniciada (nativa)');
-        utterance.onend = () => {
-          console.log('✅ [TTS] Fala concluída');
-          currentUtterance = null;
-        };
-        utterance.onerror = (e) => console.error('❌ [TTS] Erro:', e);
-        
-        window.speechSynthesis.speak(utterance);
-      } else {
-        // Usa plugin do Perchance
-        await root.speak(text);
-        console.log('✅ [TTS] Fala iniciada via plugin');
-      }
-    } catch (e) {
-      console.error('❌ [TTS] Erro:', e.message);
+  speakBasic(text = 'Olá! Este é um teste de síntese de voz no Perchance.') {
+    if (!this.available) {
+      console.warn('⚠️ [TTS] Plugin text-to-speech não disponível');
+      return null;
     }
-  },
-  
-  // Teste 2: Velocidade variada
-  async testSpeedVariation() {
-    console.log('🔊 [TTS] Testando velocidade variada...');
-    
+
     try {
-      if (useNativeTTS) {
-        const utterance = new SpeechSynthesisUtterance('Esta fala é mais lenta que o normal.');
-        utterance.lang = 'pt-BR';
-        utterance.rate = 0.7; // Mais lento
-        utterance.pitch = 1.2;
-        
-        currentUtterance = utterance;
-        
-        utterance.onstart = () => console.log('🔊 [TTS] Fala lenta iniciada');
-        utterance.onend = () => {
-          console.log('✅ [TTS] Fala lenta concluída');
-          currentUtterance = null;
-        };
-        
-        window.speechSynthesis.speak(utterance);
-      } else {
-        await root.speak('Esta fala é mais lenta que o normal.', { rate: 0.7 });
-      }
-    } catch (e) {
-      console.error('❌ [TTS] Erro:', e.message);
-    }
-  },
-  
-  // Teste 3: Parar fala
-  stopSpeech() {
-    console.log('🔊 [TTS] Parando fala...');
-    
-    try {
-      if (useNativeTTS) {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          console.log('✅ [TTS] Fala parada (nativa)');
-        }
-      } else {
-        // Tenta diferentes métodos do plugin
-        if (typeof root.stopSpeaking === 'function') {
-          root.stopSpeaking();
-        } else if (typeof root.speak.stop === 'function') {
-          root.speak.stop();
-        } else if (typeof root.speak.cancel === 'function') {
-          root.speak.cancel();
-        } else {
-          console.warn('⚠️ [TTS] Método de stop não encontrado no plugin');
-          // Fallback: cancela via Web Speech API
-          if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-          }
-        }
-        console.log('✅ [TTS] Fala parada');
-      }
-      currentUtterance = null;
-    } catch (e) {
-      console.error('❌ [TTS] Erro:', e.message);
-    }
-  },
-  
-  // Teste 4: Listar vozes disponíveis
-  listVoices() {
-    console.log('🔊 [TTS] Listando vozes disponíveis...');
-    
-    if ('speechSynthesis' in window) {
-      const voices = window.speechSynthesis.getVoices();
-      console.log(`📋 [TTS] ${voices.length} vozes encontradas:`);
+      console.log('🔊 [TTS] Iniciando fala básica...');
+      console.log(`   Texto: "${text}"`);
       
-      const ptVoices = voices.filter(v => v.lang.startsWith('pt'));
-      if (ptVoices.length > 0) {
-        console.log('🇧🇷 [TTS] Vozes em português:');
-        ptVoices.forEach(v => console.log(`   - ${v.name} (${v.lang})`));
-      } else {
-        console.log('⚠️ [TTS] Nenhuma voz em português encontrada');
+      // Chama o plugin de fala
+      root.speak(text);
+      
+      console.log('✅ [TTS] Fala iniciada!');
+      return true;
+    } catch (error) {
+      console.error('❌ [TTS] Erro ao iniciar fala:', error.message);
+      return null;
+    }
+  },
+
+  // Teste 2: Fala com opções (velocidade, tom, volume)
+  speakWithOptions(text = 'Testando velocidade e tom.', options = {}) {
+    if (!this.available) {
+      console.warn('⚠️ [TTS] Plugin text-to-speech não disponível');
+      return null;
+    }
+
+    try {
+      const rate = options.rate || 1.0;
+      const pitch = options.pitch || 1.0;
+      const volume = options.volume || 1.0;
+      
+      console.log('🔊 [TTS] Iniciando fala com opções...');
+      console.log(`   Texto: "${text}"`);
+      console.log(`   Rate: ${rate}, Pitch: ${pitch}, Volume: ${volume}`);
+      
+      // Tenta passar opções se o plugin suportar
+      // Nota: a API do plugin pode variar
+      try {
+        root.speak(text, { rate, pitch, volume });
+      } catch {
+        // Fallback: chama sem opções
+        root.speak(text);
+      }
+      
+      console.log('✅ [TTS] Fala com opções iniciada!');
+      return true;
+    } catch (error) {
+      console.error('❌ [TTS] Erro ao iniciar fala com opções:', error.message);
+      return null;
+    }
+  },
+
+  // Teste 3: Parar fala usando Web Speech API nativa
+  stopSpeech() {
+    try {
+      console.log('🔊 [TTS] Parando fala...');
+      
+      // Método 1: Tenta método do plugin (se existir)
+      if (root.speak && typeof root.speak.cancel === 'function') {
+        root.speak.cancel();
+        console.log('✅ [TTS] Fala parada via plugin.cancel()');
+        return true;
+      }
+      
+      if (root.speak && typeof root.speak.stop === 'function') {
+        root.speak.stop();
+        console.log('✅ [TTS] Fala parada via plugin.stop()');
+        return true;
+      }
+      
+      // Método 2: Usa Web Speech API nativa (fallback confiável)
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        console.log('✅ [TTS] Fala parada via Web Speech API');
+        return true;
+      }
+      
+      console.warn('⚠️ [TTS] Nenhum método de stop disponível');
+      return false;
+    } catch (error) {
+      console.error('❌ [TTS] Erro ao parar fala:', error.message);
+      return null;
+    }
+  },
+
+  // Teste 4: Verificar vozes disponíveis
+  getAvailableVoices() {
+    if (!window.speechSynthesis) {
+      console.warn('⚠️ [TTS] Web Speech API não disponível');
+      return [];
+    }
+
+    try {
+      const voices = window.speechSynthesis.getVoices();
+      console.log(`🔊 [TTS] ${voices.length} vozes disponíveis`);
+      
+      if (voices.length > 0) {
+        const ptVoices = voices.filter(v => v.lang.startsWith('pt'));
+        console.log(`   Vozes em português: ${ptVoices.length}`);
+        ptVoices.forEach(v => {
+          console.log(`   - ${v.name} (${v.lang})`);
+        });
       }
       
       return voices;
-    } else {
-      console.warn('⚠️ [TTS] speechSynthesis não disponível');
+    } catch (error) {
+      console.error('❌ [TTS] Erro ao obter vozes:', error.message);
       return [];
+    }
+  },
+
+  // Teste 5: Fala com voz específica (Web Speech API)
+  speakWithVoice(text = 'Testando voz específica.', voiceName = null) {
+    if (!window.speechSynthesis) {
+      console.warn('⚠️ [TTS] Web Speech API não disponível');
+      return null;
+    }
+
+    try {
+      console.log('🔊 [TTS] Iniciando fala com voz específica...');
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      if (voiceName) {
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(v => v.name === voiceName);
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          console.log(`   Voz selecionada: ${selectedVoice.name}`);
+        }
+      }
+      
+      utterance.onstart = () => console.log('🔊 [TTS] Fala iniciada');
+      utterance.onend = () => console.log('🔊 [TTS] Fala concluída');
+      utterance.onerror = (e) => console.error('❌ [TTS] Erro na fala:', e.error);
+      
+      window.speechSynthesis.speak(utterance);
+      
+      console.log('✅ [TTS] Fala com voz específica iniciada!');
+      return true;
+    } catch (error) {
+      console.error('❌ [TTS] Erro ao falar com voz específica:', error.message);
+      return null;
+    }
+  },
+
+  // Diagnóstico da API
+  checkAPI() {
+    console.log('🔊 [TTS] Verificando API do plugin...');
+    console.log('   root.speak disponível:', !!root.speak);
+    console.log('   Tipo:', typeof root.speak);
+    
+    if (typeof root.speak === 'function') {
+      console.log('   ✅ É uma função');
+      console.log('   Uso: root.speak("texto")');
+    }
+    
+    console.log('   Web Speech API:', window.speechSynthesis ? '✅ Disponível' : '❌ Não disponível');
+    
+    // Carrega vozes (pode ser assíncrono)
+    if (window.speechSynthesis) {
+      setTimeout(() => {
+        const voices = window.speechSynthesis.getVoices();
+        console.log(`   Vozes carregadas: ${voices.length}`);
+      }, 100);
     }
   }
 };
 
-// Inicialização
+// Log de inicialização
 console.log('🔊 [TTS] Inicializando teste do plugin text-to-speech...');
 if (ttsTest.available) {
-  console.log('✅ [TTS] Plugin text-to-speech disponível');
-  console.log(`   Modo: ${ttsTest.useNativeTTS ? 'Web Speech API nativa' : 'Plugin Perchance'}`);
-  
-  // Carrega vozes (pode ser assíncrono em alguns navegadores)
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      console.log('🔊 [TTS] Vozes carregadas');
-    };
-  }
+  console.log('✅ [TTS] Plugin text-to-speech-plugin disponível');
+  ttsTest.checkAPI();
 } else {
-  console.warn('⚠️ [TTS] Plugin text-to-speech NÃO disponível');
+  console.warn('⚠️ [TTS] Plugin text-to-speech-plugin NÃO disponível');
   console.warn('   Adicione no List Panel: speak = {import:text-to-speech-plugin}');
+  console.warn('   Web Speech API nativa ainda pode ser usada como fallback');
 }

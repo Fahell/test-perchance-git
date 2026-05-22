@@ -1,198 +1,206 @@
 // src/modules/pattern-test.js
-// Testa o plugin pattern-maker-plugin do Perchance
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
+// Testa o plugin pattern-maker-plugin do Perchance (Wave Function Collapse)
+// Documentação: https://perchance.org/pattern-maker-plugin
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
 
 export const patternTest = {
   available: !!root.pattern,
-  patternContainer: null,
-  
-  // Teste 1: Verificar API do plugin
+
+  // Teste 1: Gerar padrão com grid de emojis
+  generateEmojiPattern() {
+    if (!this.available) {
+      console.warn('⚠️ [Pattern] Plugin pattern-maker-plugin não disponível');
+      return null;
+    }
+
+    try {
+      console.log('🎨 [Pattern] Gerando padrão com grid de emojis...');
+      
+      // Opções de exemplo da documentação oficial
+      const patternOptions = {
+        inputTextGrid: [
+          '🌳🟩🟩🟩🌲🟩🟩🟩🟩🟩🟩🌾',
+          '🟩🟩🟩🟦🟩🟩🟩🔲🔲🔲🔲🟩',
+          '🟩🟦🟦🟦🟩🟩🟩🔲🟫🪑🔲🟩',
+          '🟩🟦🟦🟦🌲🌷🌷🔲🟫🟫🔲🟩',
+          '🟩🟩🟦🟦🟩🟩🟩🔲🚪🔲🔲🟩',
+          '🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩',
+          '🟩🌳🌳🟩🟩🟩🟩🟩🟩🟩🟩🟩',
+          '🟩🟩🌳🟦🟦🟦🟩🟩🌷🟩🟦🟦',
+          '🟩🌳🟦🟦🟦🟩🟩🪨🟩🟩🟦🟩',
+          '🌾🟩🟦🟦🟦🟩🟩🌳🟦🟦🟦🟩',
+          '🟩🟩🟦🟦🟦🟦🟦🟦🟦🌳🟩🟩'
+        ],
+        settings: {
+          width: 30,
+          height: 30,
+          n: 3,
+          symmetry: 8,
+          magnify: 0.6
+        }
+      };
+
+      // Chama o plugin com as opções
+      const result = root.pattern(patternOptions);
+      
+      console.log('✅ [Pattern] Padrão gerado com sucesso!');
+      console.log('   Tipo do resultado:', typeof result);
+      
+      // Mostra o resultado (pode ser HTML com imagem ou texto)
+      if (typeof result === 'string') {
+        console.log('   Tamanho:', result.length, 'caracteres');
+        
+        // Se for uma imagem (data URL), mostra no container
+        if (result.startsWith('data:image/')) {
+          this._showPatternPreview(result);
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('❌ [Pattern] Erro ao gerar padrão:', error.message);
+      return null;
+    }
+  },
+
+  // Teste 2: Gerar padrão com configurações diferentes
+  generateCustomPattern(width = 40, height = 40, n = 3, symmetry = 8) {
+    if (!this.available) {
+      console.warn('⚠️ [Pattern] Plugin pattern-maker-plugin não disponível');
+      return null;
+    }
+
+    try {
+      console.log(`🎨 [Pattern] Gerando padrão customizado (${width}x${height}, n=${n}, symmetry=${symmetry})...`);
+      
+      const patternOptions = {
+        inputTextGrid: [
+          '🟥🟧🟨🟩🟦🟪',
+          '🟧🟨🟩🟦🟪🟥',
+          '🟨🟩🟦🟪🟥🟧',
+          '🟩🟦🟪🟥🟧🟨',
+          '🟦🟪🟥🟧🟨🟩',
+          '🟪🟥🟧🟨🟩🟦'
+        ],
+        settings: {
+          width: width,
+          height: height,
+          n: n,
+          symmetry: symmetry,
+          magnify: 0.8
+        }
+      };
+
+      const result = root.pattern(patternOptions);
+      
+      console.log('✅ [Pattern] Padrão customizado gerado!');
+      return result;
+    } catch (error) {
+      console.error('❌ [Pattern] Erro ao gerar padrão customizado:', error.message);
+      return null;
+    }
+  },
+
+  // Teste 3: Gerar padrão periódico (tileable)
+  generateTileablePattern() {
+    if (!this.available) {
+      console.warn('⚠️ [Pattern] Plugin pattern-maker-plugin não disponível');
+      return null;
+    }
+
+    try {
+      console.log('🎨 [Pattern] Gerando padrão tileable (periódico)...');
+      
+      const patternOptions = {
+        inputTextGrid: [
+          '🌲🌲🌳🌲🌲',
+          '🌲🌳🌳🌳🌲',
+          '🌳🌳🟫🌳🌳',
+          '🌲🌳🌳🌳🌲',
+          '🌲🌲🌳🌲🌲'
+        ],
+        settings: {
+          width: 30,
+          height: 30,
+          n: 2,
+          symmetry: 4,
+          periodic: 1, // Padrão tileable
+          magnify: 0.7
+        }
+      };
+
+      const result = root.pattern(patternOptions);
+      
+      console.log('✅ [Pattern] Padrão tileable gerado!');
+      console.log('   Este padrão pode ser repetido sem costuras visíveis');
+      
+      return result;
+    } catch (error) {
+      console.error('❌ [Pattern] Erro ao gerar padrão tileable:', error.message);
+      return null;
+    }
+  },
+
+  // Mostra preview do padrão gerado
+  _showPatternPreview(dataUrl) {
+    // Remove preview anterior se existir
+    const existing = document.getElementById('pattern-preview');
+    if (existing) existing.remove();
+
+    // Cria container para o padrão
+    const container = document.createElement('div');
+    container.id = 'pattern-preview';
+    container.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      background: #1a1a2e;
+      border: 2px solid #a855f7;
+      border-radius: 8px;
+      padding: 10px;
+      max-width: 200px;
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+    `;
+
+    const title = document.createElement('div');
+    title.style.cssText = 'color: #a855f7; font-family: monospace; font-size: 12px; margin-bottom: 5px;';
+    title.textContent = '🎨 Pattern Preview';
+
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.cssText = 'width: 100%; height: auto; border-radius: 4px;';
+
+    container.appendChild(title);
+    container.appendChild(img);
+    document.body.appendChild(container);
+
+    console.log('🖼️ [Pattern] Preview exibido no canto inferior direito');
+
+    // Auto-remove após 10 segundos
+    setTimeout(() => {
+      if (container.parentNode) {
+        container.remove();
+        console.log('🗑️ [Pattern] Preview removido');
+      }
+    }, 10000);
+  },
+
+  // Diagnóstico da API
   checkAPI() {
     console.log('🎨 [Pattern] Verificando API do plugin...');
-    
-    if (!root.pattern) {
-      console.warn('⚠️ [Pattern] root.pattern não existe');
-      return null;
-    }
-    
-    console.log('📋 [Pattern] Propriedades disponíveis:');
+    console.log('   root.pattern disponível:', !!root.pattern);
     console.log('   Tipo:', typeof root.pattern);
     
-    if (typeof root.pattern === 'object') {
-      const props = Object.keys(root.pattern);
-      console.log('   Props:', props.join(', '));
-      return props;
-    } else if (typeof root.pattern === 'function') {
-      console.log('   É uma função');
-      return ['function'];
-    }
-    
-    return null;
-  },
-  
-  // Teste 2: Gerar padrão básico
-  async generateBasicPattern() {
-    console.log('🎨 [Pattern] Gerando padrão básico...');
-    
-    try {
-      if (!this.available) {
-        console.warn('⚠️ [Pattern] Plugin não disponível');
-        return null;
-      }
-      
-      let patternResult;
-      
-      // Tenta diferentes abordagens
-      if (typeof root.pattern === 'function') {
-        // Caso 1: É uma função
-        patternResult = await root.pattern();
-      } else if (typeof root.pattern.generate === 'function') {
-        // Caso 2: Tem método generate
-        patternResult = await root.pattern.generate();
-      } else if (typeof root.pattern.create === 'function') {
-        // Caso 3: Tem método create
-        patternResult = await root.pattern.create();
-      } else if (typeof root.pattern.selectOne === 'function') {
-        // Caso 4: É uma lista
-        patternResult = root.pattern.selectOne;
-      } else {
-        console.warn('⚠️ [Pattern] Método de geração não encontrado. Use checkAPI() para ver métodos disponíveis.');
-        return null;
-      }
-      
-      console.log('✅ [Pattern] Padrão gerado:', patternResult);
-      
-      // Tenta exibir se for uma imagem ou canvas
-      if (patternResult) {
-        this.displayPattern(patternResult);
-      }
-      
-      return patternResult;
-    } catch (e) {
-      console.error('❌ [Pattern] Erro ao gerar:', e.message);
-      console.log('💡 [Pattern] Dica: Este plugin pode requerer parâmetros específicos');
-      return null;
-    }
-  },
-  
-  // Teste 3: Gerar padrão com opções
-  async generateWithOptions(options = {}) {
-    console.log('🎨 [Pattern] Gerando padrão com opções...', options);
-    
-    try {
-      if (!this.available) {
-        console.warn('⚠️ [Pattern] Plugin não disponível');
-        return null;
-      }
-      
-      let patternResult;
-      
-      if (typeof root.pattern === 'function') {
-        patternResult = await root.pattern(options);
-      } else if (typeof root.pattern.generate === 'function') {
-        patternResult = await root.pattern.generate(options);
-      } else {
-        console.warn('⚠️ [Pattern] Método com opções não encontrado');
-        return null;
-      }
-      
-      console.log('✅ [Pattern] Padrão com opções gerado');
-      this.displayPattern(patternResult);
-      return patternResult;
-    } catch (e) {
-      console.error('❌ [Pattern] Erro:', e.message);
-      return null;
-    }
-  },
-  
-  // Teste 4: Exibir padrão
-  displayPattern(patternData) {
-    console.log('🎨 [Pattern] Exibindo padrão...');
-    
-    try {
-      // Remove container anterior
-      if (this.patternContainer) {
-        this.patternContainer.remove();
-      }
-      
-      // Cria novo container
-      this.patternContainer = document.createElement('div');
-      this.patternContainer.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.9);
-        padding: 20px;
-        border-radius: 12px;
-        z-index: 1000;
-        border: 2px solid #a855f7;
-        max-width: 90vw;
-        max-height: 90vh;
-        overflow: auto;
-      `;
-      
-      // Título
-      const title = document.createElement('h3');
-      title.style.cssText = 'margin: 0 0 15px 0; color: #a855f7; font-family: monospace; text-align: center;';
-      title.textContent = '🎨 Padrão Gerado';
-      this.patternContainer.appendChild(title);
-      
-      // Conteúdo
-      const content = document.createElement('div');
-      content.style.cssText = 'text-align: center;';
-      
-      if (typeof patternData === 'string' && patternData.startsWith('data:image/')) {
-        // Data URL
-        const img = document.createElement('img');
-        img.src = patternData;
-        img.style.cssText = 'max-width: 100%; max-height: 60vh; border-radius: 8px;';
-        content.appendChild(img);
-      } else if (patternData instanceof HTMLCanvasElement) {
-        // Canvas
-        content.appendChild(patternData);
-      } else if (typeof patternData === 'string' && patternData.startsWith('http')) {
-        // URL externa
-        const img = document.createElement('img');
-        img.src = patternData;
-        img.style.cssText = 'max-width: 100%; max-height: 60vh; border-radius: 8px;';
-        img.onerror = () => {
-          content.textContent = `URL: ${patternData}`;
-        };
-        content.appendChild(img);
-      } else {
-        // Outro formato
-        content.textContent = typeof patternData === 'string' ? patternData : JSON.stringify(patternData, null, 2);
-        content.style.cssText += 'color: #9ca3af; font-family: monospace; font-size: 12px; max-width: 400px;';
-      }
-      
-      this.patternContainer.appendChild(content);
-      
-      // Botão de fechar
-      const closeBtn = document.createElement('button');
-      closeBtn.textContent = '✕ Fechar';
-      closeBtn.style.cssText = 'display: block; margin: 15px auto 0; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; padding: 8px 16px; font-family: monospace;';
-      closeBtn.onclick = () => this.patternContainer.remove();
-      this.patternContainer.appendChild(closeBtn);
-      
-      document.body.appendChild(this.patternContainer);
-      console.log('✅ [Pattern] Padrão exibido');
-    } catch (e) {
-      console.error('❌ [Pattern] Erro ao exibir:', e.message);
-    }
-  },
-  
-  // Teste 5: Limpar padrão
-  clearPattern() {
-    if (this.patternContainer) {
-      this.patternContainer.remove();
-      this.patternContainer = null;
-      console.log('✅ [Pattern] Padrão removido');
+    if (typeof root.pattern === 'function') {
+      console.log('   ✅ É uma função');
+      console.log('   Uso: root.pattern({ inputTextGrid: [...], settings: {...} })');
+      console.log('   Settings: width, height, n, symmetry, magnify, periodic');
     }
   }
 };
 
-// Inicialização
+// Log de inicialização
 console.log('🎨 [Pattern] Inicializando teste do plugin pattern-maker...');
 if (patternTest.available) {
   console.log('✅ [Pattern] Plugin pattern-maker-plugin disponível');

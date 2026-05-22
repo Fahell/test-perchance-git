@@ -1,9 +1,9 @@
 // src/modules/ui-test.js
-// Painel de testes interativo com todos os módulos (v1.2.2)
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
+// Painel de testes interativo com todos os módulos (v1.2.5)
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
 
 export function initUITest(rendererData, testModules) {
-  console.log('🎮 [UI-Test] Criando painel de testes expandido v1.2.4...');
+  console.log('🎮 [UI-Test] Criando painel de testes expandido v1.2.5...');
 
   // Captura valores do Perchance ANTES de qualquer delay
   const capturedSeed = getVar('GAME_SEED', 'N/A');
@@ -38,7 +38,7 @@ export function initUITest(rendererData, testModules) {
   `;
 
   panel.innerHTML = `
-    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.2.2</h3>
+    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.2.5</h3>
     
     <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
       <strong style="color:#4ade80;">🤖 IA</strong><br>
@@ -98,29 +98,26 @@ export function initUITest(rendererData, testModules) {
   // Área de log
   const logDiv = document.getElementById('test-log');
   function log(message, color = '#aaa') {
-    logDiv.innerHTML = `<span style="color:${color}">${message}</span><br>` + logDiv.innerHTML;
-    // Mantém apenas as últimas 10 linhas
-    const lines = logDiv.innerHTML.split('<br>');
-    if (lines.length > 10) {
-      logDiv.innerHTML = lines.slice(0, 10).join('<br>');
+    if (logDiv) {
+      logDiv.innerHTML += `<div style="color:${color}">${message}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
     }
   }
 
-  // Event Listeners
-  
   // AI Text
   document.getElementById('btn-ai-text').onclick = async () => {
-    log('🤖 Testando AI Text...', '#4ade80');
+    log('🤖 Gerando texto com IA...', '#4ade80');
     if (!aiTextTest || !aiTextTest.available) {
       log('⚠️ Plugin AI Text não disponível', '#ff6b6b');
       return;
     }
     try {
-      const result = await aiTextTest.generateBasic();
-      if (result && result.text) {
-        log(`✅ AI: "${result.text.substring(0, 50)}..."`, '#4ade80');
+      const result = await aiTextTest.generateBasic('Escreva uma frase curta sobre um aventureiro.');
+      if (result && result.generatedText) {
+        const preview = result.generatedText.substring(0, 60) + '...';
+        log(`✅ AI: "${preview}"`, '#4ade80');
       } else {
-        log('⚠️ Texto gerado vazio', '#ff6b6b');
+        log('❌ Erro ao gerar texto', '#ff6b6b');
       }
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
@@ -129,17 +126,17 @@ export function initUITest(rendererData, testModules) {
 
   // Image
   document.getElementById('btn-image').onclick = async () => {
-    log('🖼️ Testando Image Plugin...', '#4ade80');
-    if (!imageTest) {
+    log('🖼️ Gerando imagem com IA...', '#4ade80');
+    if (!imageTest || !imageTest.available) {
       log('⚠️ Plugin Image não disponível', '#ff6b6b');
       return;
     }
     try {
-      const result = await imageTest.testBasicImage();
-      if (result && result.success) {
-        log('✅ Imagem gerada! Veja preview à direita', '#4ade80');
+      const result = await imageTest.testBasicImage('papercraft warrior with sword, fantasy art style', 12345);
+      if (result) {
+        log('✅ Imagem gerada! Veja preview no canto inferior direito', '#4ade80');
       } else {
-        log('⚠️ Falha na geração (ver console)', '#ff6b6b');
+        log('❌ Erro ao gerar imagem', '#ff6b6b');
       }
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
@@ -229,8 +226,8 @@ export function initUITest(rendererData, testModules) {
       return;
     }
     try {
-      rpgIconTest.getMultipleIcons(12);
-      log('✅ 12 ícones carregados! Veja grid no canto superior direito', '#4ade80');
+      const icons = rpgIconTest.getMultipleIcons(6);
+      log(icons ? `✅ ${icons.length} ícones carregados! Veja grid no canto superior direito` : '❌ Erro ao carregar ícones', icons ? '#4ade80' : '#ff6b6b');
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
     }
@@ -244,7 +241,7 @@ export function initUITest(rendererData, testModules) {
       return;
     }
     try {
-      ttsTest.testBasicSpeech();
+      ttsTest.speakBasic('Olá! Este é um teste de síntese de voz.');
       log('✅ Fala iniciada!', '#4ade80');
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
@@ -255,8 +252,8 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-tts-stop').onclick = () => {
     log('⏹️ Parando fala...', '#a78bfa');
     if (ttsTest) {
-      ttsTest.stopSpeech();
-      log('✅ Fala parada', '#4ade80');
+      const stopped = ttsTest.stopSpeech();
+      log(stopped ? '✅ Fala parada' : '⚠️ Nenhum método de stop disponível', stopped ? '#4ade80' : '#fbbf24');
     }
   };
 
@@ -268,8 +265,10 @@ export function initUITest(rendererData, testModules) {
       return;
     }
     try {
-      const seed = seederTest.generateSeed();
-      log(`✅ Seed gerada: ${seed.seed}`, '#4ade80');
+      const seed = seederTest.generateRandomSeed();
+      seederTest.applySeed(seed);
+      log(`✅ Seed aplicada: ${seed}`, '#4ade80');
+      log('   Seleções agora são determinísticas!', '#4ade80');
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
     }
@@ -283,8 +282,8 @@ export function initUITest(rendererData, testModules) {
       return;
     }
     try {
-      await patternTest.generateBasicPattern();
-      log('✅ Padrão gerado! Veja preview no centro', '#4ade80');
+      const result = patternTest.generateEmojiPattern();
+      log(result ? '✅ Padrão gerado! Veja preview no canto inferior direito' : '❌ Erro ao gerar padrão', result ? '#4ade80' : '#ff6b6b');
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
     }
@@ -332,13 +331,17 @@ export function initUITest(rendererData, testModules) {
       return;
     }
     try {
-      await kvTest.setSimpleValue('test_key', 'test_value');
-      const result = await kvTest.getValue('test_key');
-      log(`✅ KV: test_key = ${result.value}`, '#4ade80');
+      const saved = await kvTest.setSimpleValue('test_key', 'test_value');
+      if (saved) {
+        const retrieved = await kvTest.getValue('test_key');
+        log(`✅ KV: test_key = "${retrieved}"`, '#4ade80');
+      } else {
+        log('❌ Erro ao salvar', '#ff6b6b');
+      }
     } catch (e) {
       log(`❌ Erro: ${e.message}`, '#ff6b6b');
     }
   };
 
-  console.log('✅ [UI-Test] Painel de testes v1.2.4 criado e visível.');
+  console.log('✅ [UI-Test] Painel de testes v1.2.5 criado e visível.');
 }

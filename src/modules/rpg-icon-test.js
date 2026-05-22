@@ -1,193 +1,206 @@
 // src/modules/rpg-icon-test.js
-// Testa o plugin rpg-icon-plugin do Perchance
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
+// Testa o plugin rpg-icon-plugin do Perchance (~500 ícones RPG)
+// Documentação: https://perchance.org/rpg-icon-plugin
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
 
 export const rpgIconTest = {
   available: !!root.rpgIcon,
-  iconContainer: null,
-  
+
+  // Lista de ícones comuns para teste
+  commonIcons: ['sword', 'shield', 'potion', 'scroll', 'ring', 'helmet', 'armor', 'bow', 'axe', 'staff', 'gem', 'coin'],
+
   // Teste 1: Obter um único ícone
-  getSingleIcon(iconName) {
-    console.log(`⚔️ [RPG-Icon] Obtendo ícone: ${iconName || 'aleatório'}...`);
-    
+  getSingleIcon(iconName = 'sword') {
+    if (!this.available) {
+      console.warn('⚠️ [RPG-Icon] Plugin rpg-icon-plugin não disponível');
+      return null;
+    }
+
     try {
-      if (!this.available) {
-        console.warn('⚠️ [RPG-Icon] Plugin não disponível');
-        return null;
-      }
+      console.log(`⚔️ [RPG-Icon] Obtendo ícone: ${iconName}...`);
       
-      // O plugin pode funcionar de diferentes formas
-      // Tenta várias abordagens
-      let iconData;
+      // O plugin retorna HTML string diretamente
+      const html = root.rpgIcon(iconName);
       
-      if (typeof root.rpgIcon === 'function') {
-        // Caso 1: É uma função
-        iconData = iconName ? root.rpgIcon(iconName) : root.rpgIcon();
-      } else if (typeof root.rpgIcon.selectOne === 'function') {
-        // Caso 2: É uma lista
-        iconData = root.rpgIcon.selectOne;
-      } else if (typeof root.rpgIcon.get === 'function') {
-        // Caso 3: Tem método get
-        iconData = root.rpgIcon.get(iconName);
-      } else if (root.rpgIcon && typeof root.rpgIcon.toString === 'function') {
-        // Caso 4: Tenta usar como string
-        iconData = root.rpgIcon.toString();
-      }
+      console.log('✅ [RPG-Icon] Ícone obtido!');
+      console.log('   HTML:', html);
       
-      console.log('✅ [RPG-Icon] Ícone obtido:', iconData);
-      return iconData;
-    } catch (e) {
-      console.error('❌ [RPG-Icon] Erro:', e.message);
+      return html;
+    } catch (error) {
+      console.error('❌ [RPG-Icon] Erro ao obter ícone:', error.message);
       return null;
     }
   },
-  
+
   // Teste 2: Obter múltiplos ícones
-  getMultipleIcons(count = 12) {
-    console.log(`⚔️ [RPG-Icon] Obtendo ${count} ícones...`);
-    
+  getMultipleIcons(count = 6) {
+    if (!this.available) {
+      console.warn('⚠️ [RPG-Icon] Plugin rpg-icon-plugin não disponível');
+      return null;
+    }
+
     try {
-      if (!this.available) {
-        console.warn('⚠️ [RPG-Icon] Plugin não disponível');
-        return [];
-      }
+      console.log(`⚔️ [RPG-Icon] Obtendo ${count} ícones...`);
       
       const icons = [];
+      const availableIcons = this.commonIcons.slice(0, count);
       
-      // Tenta diferentes abordagens
-      if (typeof root.rpgIcon.selectMany === 'function') {
-        // Caso 1: selectMany
-        const items = root.rpgIcon.selectMany(count);
-        for (let i = 0; i < items.length; i++) {
-          icons.push(items[i]);
+      for (const iconName of availableIcons) {
+        try {
+          const html = root.rpgIcon(iconName);
+          icons.push({ name: iconName, html: html });
+        } catch (e) {
+          console.warn(`   ⚠️ Ícone "${iconName}" não disponível`);
         }
-      } else if (typeof root.rpgIcon === 'function') {
-        // Caso 2: Chama função múltiplas vezes
-        for (let i = 0; i < count; i++) {
-          icons.push(root.rpgIcon());
-        }
-      } else {
-        console.warn('⚠️ [RPG-Icon] Método de múltiplos ícones não encontrado');
-        return [];
       }
       
-      console.log(`✅ [RPG-Icon] ${icons.length} ícones obtidos`);
-      this.displayIcons(icons);
+      console.log(`✅ [RPG-Icon] ${icons.length} ícones obtidos!`);
+      
+      // Mostra grid de preview
+      this._showIconGrid(icons);
+      
       return icons;
-    } catch (e) {
-      console.error('❌ [RPG-Icon] Erro:', e.message);
-      return [];
+    } catch (error) {
+      console.error('❌ [RPG-Icon] Erro ao obter múltiplos ícones:', error.message);
+      return null;
     }
   },
-  
-  // Teste 3: Exibir ícones em grid
-  displayIcons(icons) {
-    console.log('⚔️ [RPG-Icon] Exibindo ícones em grid...');
-    
+
+  // Teste 3: Obter ícone aleatório
+  getRandomIcon() {
+    if (!this.available) {
+      console.warn('⚠️ [RPG-Icon] Plugin rpg-icon-plugin não disponível');
+      return null;
+    }
+
     try {
-      // Remove container anterior
-      if (this.iconContainer) {
-        this.iconContainer.remove();
-      }
+      const randomName = this.commonIcons[Math.floor(Math.random() * this.commonIcons.length)];
+      console.log(`🎲 [RPG-Icon] Ícone aleatório: ${randomName}`);
       
-      // Cria novo container
-      this.iconContainer = document.createElement('div');
-      this.iconContainer.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(0,0,0,0.85);
-        padding: 15px;
-        border-radius: 8px;
-        z-index: 1000;
-        max-width: 400px;
-        max-height: 400px;
-        overflow-y: auto;
-        border: 1px solid #fbbf24;
+      const html = root.rpgIcon(randomName);
+      
+      console.log('✅ [RPG-Icon] Ícone aleatório obtido!');
+      return { name: randomName, html: html };
+    } catch (error) {
+      console.error('❌ [RPG-Icon] Erro ao obter ícone aleatório:', error.message);
+      return null;
+    }
+  },
+
+  // Teste 4: Demonstrar uso em HTML
+  demonstrateUsage() {
+    if (!this.available) {
+      console.warn('⚠️ [RPG-Icon] Plugin rpg-icon-plugin não disponível');
+      return null;
+    }
+
+    try {
+      console.log('📖 [RPG-Icon] Demonstrando uso em HTML...');
+      
+      const sword = root.rpgIcon('sword');
+      const shield = root.rpgIcon('shield');
+      const potion = root.rpgIcon('potion');
+      
+      const html = `
+        <div style="background:#2a2a3e; padding:15px; border-radius:8px; color:white; font-family:monospace;">
+          <h3 style="margin:0 0 10px 0; color:#4ade80;">⚔️ Inventário</h3>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span>${sword}</span>
+            <span>Espada Longa</span>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span>${shield}</span>
+            <span>Escudo de Ferro</span>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span>${potion}</span>
+            <span>Poção de Vida</span>
+          </div>
+        </div>
       `;
       
-      // Título
-      const title = document.createElement('h3');
-      title.style.cssText = 'margin: 0 0 10px 0; color: #fbbf24; font-family: monospace;';
-      title.textContent = `⚔️ ${icons.length} Ícones RPG`;
-      this.iconContainer.appendChild(title);
+      console.log('✅ [RPG-Icon] HTML de inventário criado!');
+      console.log('   Você pode injetar este HTML em qualquer elemento');
       
-      // Grid de ícones
-      const grid = document.createElement('div');
-      grid.style.cssText = 'display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;';
-      
-      icons.forEach((icon, i) => {
-        const cell = document.createElement('div');
-        cell.style.cssText = `
-          width: 40px;
-          height: 40px;
-          background: #374151;
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 10px;
-          color: #9ca3af;
-          overflow: hidden;
-        `;
-        
-        // Se for uma URL de imagem
-        if (typeof icon === 'string' && icon.startsWith('http')) {
-          const img = document.createElement('img');
-          img.src = icon;
-          img.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
-          img.onerror = () => {
-            cell.textContent = `#${i+1}`;
-          };
-          cell.appendChild(img);
-        } else {
-          // Texto ou outro formato
-          cell.textContent = typeof icon === 'string' ? icon.substring(0, 3) : `#${i+1}`;
-        }
-        
-        grid.appendChild(cell);
-      });
-      
-      this.iconContainer.appendChild(grid);
-      
-      // Botão de fechar
-      const closeBtn = document.createElement('button');
-      closeBtn.textContent = '✕';
-      closeBtn.style.cssText = 'position: absolute; top: 5px; right: 5px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 2px 6px;';
-      closeBtn.onclick = () => this.iconContainer.remove();
-      this.iconContainer.appendChild(closeBtn);
-      
-      document.body.appendChild(this.iconContainer);
-      console.log('✅ [RPG-Icon] Ícones exibidos');
-    } catch (e) {
-      console.error('❌ [RPG-Icon] Erro ao exibir:', e.message);
+      return html;
+    } catch (error) {
+      console.error('❌ [RPG-Icon] Erro na demonstração:', error.message);
+      return null;
     }
   },
-  
-  // Teste 4: Verificar API do plugin
+
+  // Mostra grid de ícones no preview
+  _showIconGrid(icons) {
+    // Remove preview anterior se existir
+    const existing = document.getElementById('rpg-icon-preview');
+    if (existing) existing.remove();
+
+    // Cria container para o grid
+    const container = document.createElement('div');
+    container.id = 'rpg-icon-preview';
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      background: #1a1a2e;
+      border: 2px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    `;
+
+    const title = document.createElement('div');
+    title.style.cssText = 'color: #f59e0b; font-family: monospace; font-size: 12px; margin-bottom: 8px;';
+    title.textContent = '⚔️ RPG Icons';
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;';
+
+    icons.forEach(icon => {
+      const item = document.createElement('div');
+      item.style.cssText = `
+        background: #2a2a3e;
+        padding: 8px;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 20px;
+      `;
+      item.innerHTML = icon.html;
+      item.title = icon.name;
+      grid.appendChild(item);
+    });
+
+    container.appendChild(title);
+    container.appendChild(grid);
+    document.body.appendChild(container);
+
+    console.log('🖼️ [RPG-Icon] Grid de ícones exibido no canto superior direito');
+
+    // Auto-remove após 10 segundos
+    setTimeout(() => {
+      if (container.parentNode) {
+        container.remove();
+        console.log('🗑️ [RPG-Icon] Preview removido');
+      }
+    }, 10000);
+  },
+
+  // Diagnóstico da API
   checkAPI() {
     console.log('⚔️ [RPG-Icon] Verificando API do plugin...');
-    
-    if (!root.rpgIcon) {
-      console.warn('⚠️ [RPG-Icon] root.rpgIcon não existe');
-      return;
-    }
-    
-    console.log('📋 [RPG-Icon] Propriedades disponíveis:');
+    console.log('   root.rpgIcon disponível:', !!root.rpgIcon);
     console.log('   Tipo:', typeof root.rpgIcon);
     
-    if (typeof root.rpgIcon === 'object') {
-      const props = Object.keys(root.rpgIcon);
-      console.log('   Props:', props.join(', '));
-      
-      if (props.length === 0) {
-        console.log('   ⚠️ Objeto vazio - plugin pode não ter carregado corretamente');
-      }
+    if (typeof root.rpgIcon === 'function') {
+      console.log('   ✅ É uma função');
+      console.log('   Uso: root.rpgIcon("sword") → retorna HTML string');
+      console.log('   Ícones comuns:', this.commonIcons.join(', '));
     }
   }
 };
 
-// Inicialização
+// Log de inicialização
 console.log('⚔️ [RPG-Icon] Inicializando teste do plugin rpg-icon...');
 if (rpgIconTest.available) {
   console.log('✅ [RPG-Icon] Plugin rpg-icon-plugin disponível');
