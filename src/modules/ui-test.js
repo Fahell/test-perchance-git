@@ -182,7 +182,7 @@ export function initUITest(rendererData, testModules) {
   // Raycaster
   document.getElementById('btn-raycaster').onclick = () => {
     log('🖱️ Raycaster: Clique nas esferas coloridas!', '#4ade80');
-    if (raycasterTest) {
+    if (raycasterTest && raycasterTest.available) {
       log(`✅ ${raycasterTest.spheres?.length || 0} esferas adicionadas`, '#4ade80');
     } else {
       log('⚠️ Raycaster não disponível', '#ff6b6b');
@@ -193,13 +193,11 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-canvas').onclick = () => {
     log('🎨 Testando Canvas 2D...', '#4ade80');
     if (canvasTest) {
-      canvasTest.drawing?.clear?.();
-      canvasTest.drawing?.drawGradient?.();
-      canvasTest.drawing?.drawCircles?.(15);
-      canvasTest.drawing?.drawText?.('RPG Paper Craft', 256, 256);
+      canvasTest.drawGradient();
+      canvasTest.drawCircles(15);
+      canvasTest.drawText('RPG Paper Craft', 256, 256);
       if (canvasTest.threeIntegration) {
-        canvasTest.threeIntegration.show?.();
-        canvasTest.threeIntegration.update?.();
+        canvasTest.showThreePlane();
       }
       log('✅ Canvas desenhado!', '#4ade80');
     } else {

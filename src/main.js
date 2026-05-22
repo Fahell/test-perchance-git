@@ -4,7 +4,7 @@ import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-p
 import { initRenderer } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/modules/renderer.js';
 import { initLogic } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/modules/logic.js';
 
-// Mapeamento de módulos de teste (carregados sob demanda)
+// Mapeamento de módulos de teste (carregados sob demanda via import dinâmico)
 const TEST_MODULES = {
   imageTest: 'image-test.js',
   aiTextTest: 'ai-text-test.js',
@@ -60,6 +60,23 @@ async function loadAllTestModules() {
   return modules;
 }
 
+// Inicializa módulos que precisam de setup
+function initTestModules(modules, rendererData) {
+  console.log('🔧 [Main] Inicializando módulos que precisam de setup...');
+  
+  // CanvasTest precisa do rendererData para integração com Three.js
+  if (modules.canvasTest && modules.canvasTest.init) {
+    modules.canvasTest.init(rendererData);
+    console.log('✅ [Main] canvasTest inicializado');
+  }
+  
+  // RaycasterTest precisa do rendererData para adicionar esferas
+  if (modules.raycasterTest && modules.raycasterTest.init) {
+    modules.raycasterTest.init(rendererData);
+    console.log('✅ [Main] raycasterTest inicializado');
+  }
+}
+
 export async function initGame() {
   // 🛡️ Guard clause duplo para evitar execução duplicada
   if (window.GAME_INITIALIZED) {
@@ -83,6 +100,9 @@ export async function initGame() {
 
     // 3. Carrega todos os módulos de teste dinamicamente
     const testModules = await loadAllTestModules();
+
+    // 3.5. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
+    initTestModules(testModules, rendererData);
 
     // 4. Carrega e inicializa UI de Teste
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
