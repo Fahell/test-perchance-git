@@ -4,7 +4,7 @@
  * @version 1.2.0
  */
 
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/perchance-bridge.js';
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/perchance-bridge.js';
 
 export const rpgIconTest = {
   available: !!root.rpgIcon,

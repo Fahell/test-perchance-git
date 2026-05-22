@@ -1,5 +1,5 @@
 // src/modules/ui-test.js
-// Painel de testes interativo com todos os módulos
+// Painel de testes interativo com todos os módulos (v1.2.0)
 import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/perchance-bridge.js';
 
 export function initUITest(rendererData, testModules) {
@@ -117,8 +117,8 @@ export function initUITest(rendererData, testModules) {
     }
     try {
       const result = await aiTextTest.generateBasic();
-      if (result && result.generatedText) {
-        log(`✅ AI: "${result.generatedText.substring(0, 50)}..."`, '#4ade80');
+      if (result && result.text) {
+        log(`✅ AI: "${result.text.substring(0, 50)}..."`, '#4ade80');
       } else {
         log('⚠️ Texto gerado vazio', '#ff6b6b');
       }
@@ -136,7 +136,7 @@ export function initUITest(rendererData, testModules) {
     }
     try {
       const result = await imageTest.testBasicImage();
-      if (result) {
+      if (result && result.success) {
         log('✅ Imagem gerada! Veja preview à direita', '#4ade80');
       } else {
         log('⚠️ Falha na geração (ver console)', '#ff6b6b');
@@ -150,6 +150,10 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-lists').onclick = () => {
     log('📋 Testando listas...', '#4ade80');
     try {
+      if (!listsTest) {
+        log('⚠️ Lists não disponível', '#ff6b6b');
+        return;
+      }
       const item = listsTest.testSelectOne('itens');
       const heroes = listsTest.testSelectUnique('nomes_herois', 2);
       const length = listsTest.testListLength('nomes_herois');
@@ -291,6 +295,10 @@ export function initUITest(rendererData, testModules) {
   // State Save
   document.getElementById('btn-state-save').onclick = () => {
     log('💾 Salvando estado...', '#f87171');
+    if (!stateTest) {
+      log('⚠️ State não disponível', '#ff6b6b');
+      return;
+    }
     const state = stateTest.getDefaultState();
     state.player.name = 'Herói Testador';
     state.player.level = 5;
@@ -306,6 +314,10 @@ export function initUITest(rendererData, testModules) {
   // State Load
   document.getElementById('btn-state-load').onclick = () => {
     log('📂 Carregando estado...', '#f87171');
+    if (!stateTest) {
+      log('⚠️ State não disponível', '#ff6b6b');
+      return;
+    }
     const loaded = stateTest.load();
     if (loaded) {
       log(`✅ Carregado: ${loaded.player.name} Lv.${loaded.player.level}`, '#4ade80');
