@@ -1,20 +1,30 @@
 // src/modules/ui-test.js
 // Painel de testes interativo com todos os módulos
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/perchance-bridge.js';
-import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/ai-text-test.js';
-import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/image-test.js';
-import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/lists-test.js';
-import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/raycaster-test.js';
-import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/state-test.js';
-import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/canvas-test.js';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/perchance-bridge.js';
 
-export function initUITest(rendererData) {
-  console.log('🎮 [UI-Test] Criando painel de testes expandido...');
+export function initUITest(rendererData, testModules) {
+  console.log('🎮 [UI-Test] Criando painel de testes expandido v1.2.0...');
 
   // Captura valores do Perchance ANTES de qualquer delay
   const capturedSeed = getVar('GAME_SEED', 'N/A');
   const capturedRoot = !!root;
   console.log('📸 [UI-Test] Valores capturados:', { seed: capturedSeed, root: capturedRoot });
+
+  // Desestrutura os módulos de teste
+  const {
+    imageTest,
+    aiTextTest,
+    listsTest,
+    stateTest,
+    raycasterTest,
+    canvasTest,
+    ttsTest,
+    diceTest,
+    rpgIconTest,
+    patternTest,
+    kvTest,
+    seederTest
+  } = testModules;
 
   // Cria painel flutuante
   const panel = document.createElement('div');
@@ -24,14 +34,14 @@ export function initUITest(rendererData) {
     background: rgba(0, 0, 0, 0.9); color: white; padding: 15px;
     border-radius: 8px; font-family: monospace; font-size: 12px;
     border: 2px solid #4ade80; box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
-    max-width: 320px; max-height: 80vh; overflow-y: auto;
+    max-width: 340px; max-height: 85vh; overflow-y: auto;
   `;
 
   panel.innerHTML = `
-    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.1.2</h3>
+    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.2.0</h3>
     
     <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
-      <strong style="color:#4ade80;">🔌 Plugins</strong><br>
+      <strong style="color:#4ade80;">🤖 IA</strong><br>
       <button id="btn-ai-text" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🤖 AI Text</button>
       <button id="btn-image" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🖼️ Image</button>
     </div>
@@ -49,10 +59,29 @@ export function initUITest(rendererData) {
       <button id="btn-canvas" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🎨 Canvas</button>
     </div>
     
+    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+      <strong style="color:#fbbf24;">🎮 RPG</strong><br>
+      <button id="btn-dice" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #fbbf24; border-radius:4px;">🎲 Dice</button>
+      <button id="btn-rpg-icon" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #fbbf24; border-radius:4px;">⚔️ RPG Icons</button>
+    </div>
+    
+    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+      <strong style="color:#a78bfa;">🔊 Áudio</strong><br>
+      <button id="btn-tts" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #a78bfa; border-radius:4px;">🔊 TTS</button>
+      <button id="btn-tts-stop" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #a78bfa; border-radius:4px;">⏹️ Parar</button>
+    </div>
+    
+    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+      <strong style="color:#60a5fa;">🌱 Seeds</strong><br>
+      <button id="btn-seeder" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #60a5fa; border-radius:4px;">🌱 Seeder</button>
+      <button id="btn-pattern" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #60a5fa; border-radius:4px;">🎨 Pattern</button>
+    </div>
+    
     <div>
-      <strong style="color:#4ade80;">💾 Estado</strong><br>
-      <button id="btn-state-save" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">💾 Salvar</button>
-      <button id="btn-state-load" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">📂 Carregar</button>
+      <strong style="color:#f87171;">💾 Persistência</strong><br>
+      <button id="btn-state-save" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #f87171; border-radius:4px;">💾 Save</button>
+      <button id="btn-state-load" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #f87171; border-radius:4px;">📂 Load</button>
+      <button id="btn-kv" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #f87171; border-radius:4px;">💾 KV</button>
     </div>
     
     <div id="test-log" style="margin-top:10px; color:#aaa; font-size:11px; max-height:100px; overflow-y: auto; background:#0a0a0a; padding:8px; border-radius:4px;">Aguardando interação...</div>
@@ -65,7 +94,6 @@ export function initUITest(rendererData) {
   // Verifica visibilidade
   const rect = panel.getBoundingClientRect();
   console.log(`📐 [UI-Test] Painel visível: ${rect.width}x${rect.height}px em (${rect.left}, ${rect.top})`);
-  console.log(`👁️ [UI-Test] Panel offsetParent:`, panel.offsetParent);
 
   // Área de log
   const logDiv = document.getElementById('test-log');
@@ -77,14 +105,6 @@ export function initUITest(rendererData) {
       logDiv.innerHTML = lines.slice(0, 10).join('<br>');
     }
   }
-
-  // Inicializa módulos de teste
-  const aiTextTest = initAITextTest();
-  const imageTest = initImageTest();
-  const listsTest = initListsTest();
-  const stateTest = initStateTest();
-  const raycasterTest = initRaycasterTest(rendererData);
-  const canvasTest = initCanvasTest(rendererData);
 
   // Event Listeners
   
@@ -117,7 +137,7 @@ export function initUITest(rendererData) {
     try {
       const result = await imageTest.testBasicImage();
       if (result) {
-        log('✅ Imagem gerada! Veja console para URL', '#4ade80');
+        log('✅ Imagem gerada! Veja preview à direita', '#4ade80');
       } else {
         log('⚠️ Falha na geração (ver console)', '#ff6b6b');
       }
@@ -183,9 +203,94 @@ export function initUITest(rendererData) {
     }
   };
 
+  // Dice
+  document.getElementById('btn-dice').onclick = () => {
+    log('🎲 Rolando dados...', '#fbbf24');
+    if (!diceTest || !diceTest.available) {
+      log('⚠️ Plugin Dice não disponível', '#ff6b6b');
+      return;
+    }
+    try {
+      const d20 = diceTest.rollD20();
+      const d6 = diceTest.roll3D6();
+      log(`✅ 1d20: ${d20.result} | 3d6: ${d6.result}`, '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
+  };
+
+  // RPG Icons
+  document.getElementById('btn-rpg-icon').onclick = () => {
+    log('⚔️ Carregando RPG Icons...', '#fbbf24');
+    if (!rpgIconTest || !rpgIconTest.available) {
+      log('⚠️ Plugin RPG Icon não disponível', '#ff6b6b');
+      return;
+    }
+    try {
+      rpgIconTest.getMultipleIcons(12);
+      log('✅ 12 ícones carregados! Veja grid no canto superior direito', '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
+  };
+
+  // TTS
+  document.getElementById('btn-tts').onclick = () => {
+    log('🔊 Testando Text-to-Speech...', '#a78bfa');
+    if (!ttsTest || !ttsTest.available) {
+      log('⚠️ Plugin TTS não disponível', '#ff6b6b');
+      return;
+    }
+    try {
+      ttsTest.testBasicSpeech();
+      log('✅ Fala iniciada!', '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
+  };
+
+  // TTS Stop
+  document.getElementById('btn-tts-stop').onclick = () => {
+    log('⏹️ Parando fala...', '#a78bfa');
+    if (ttsTest) {
+      ttsTest.stopSpeech();
+      log('✅ Fala parada', '#4ade80');
+    }
+  };
+
+  // Seeder
+  document.getElementById('btn-seeder').onclick = () => {
+    log('🌱 Testando Seeder...', '#60a5fa');
+    if (!seederTest || !seederTest.available) {
+      log('⚠️ Plugin Seeder não disponível', '#ff6b6b');
+      return;
+    }
+    try {
+      const seed = seederTest.generateSeed();
+      log(`✅ Seed gerada: ${seed.seed}`, '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
+  };
+
+  // Pattern
+  document.getElementById('btn-pattern').onclick = async () => {
+    log('🎨 Gerando padrão procedural...', '#60a5fa');
+    if (!patternTest || !patternTest.available) {
+      log('⚠️ Plugin Pattern não disponível', '#ff6b6b');
+      return;
+    }
+    try {
+      await patternTest.generateBasicPattern();
+      log('✅ Padrão gerado! Veja preview no centro', '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
+  };
+
   // State Save
   document.getElementById('btn-state-save').onclick = () => {
-    log('💾 Salvando estado...', '#4ade80');
+    log('💾 Salvando estado...', '#f87171');
     const state = stateTest.getDefaultState();
     state.player.name = 'Herói Testador';
     state.player.level = 5;
@@ -200,7 +305,7 @@ export function initUITest(rendererData) {
 
   // State Load
   document.getElementById('btn-state-load').onclick = () => {
-    log('📂 Carregando estado...', '#4ade80');
+    log('📂 Carregando estado...', '#f87171');
     const loaded = stateTest.load();
     if (loaded) {
       log(`✅ Carregado: ${loaded.player.name} Lv.${loaded.player.level}`, '#4ade80');
@@ -209,5 +314,21 @@ export function initUITest(rendererData) {
     }
   };
 
-  console.log('✅ [UI-Test] Painel de testes criado e visível.');
+  // KV
+  document.getElementById('btn-kv').onclick = async () => {
+    log('💾 Testando KV Plugin...', '#f87171');
+    if (!kvTest || !kvTest.available) {
+      log('⚠️ Plugin KV não disponível', '#ff6b6b');
+      return;
+    }
+    try {
+      await kvTest.setSimpleValue('test_key', 'test_value');
+      const result = await kvTest.getValue('test_key');
+      log(`✅ KV: test_key = ${result.value}`, '#4ade80');
+    } catch (e) {
+      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+    }
+  };
+
+  console.log('✅ [UI-Test] Painel de testes v1.2.0 criado e visível.');
 }

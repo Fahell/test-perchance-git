@@ -1,133 +1,118 @@
-# Changelog - Testes Perchance Modularizados
+# Changelog
 
-## v1.1.1 - Correções de API de Listas e Tratamento de Erros (2026-05-21)
+Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
-### 🐛 Correções
+O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
+e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-#### `lists-test.js`
-- ✅ Corrigido erro `selectUnique is not a function`
-- ✅ Adicionado fallback seguro para quando `selectUnique` não está disponível
-- ✅ Verificação de tipo antes de chamar métodos (`typeof list.selectUnique === 'function'`)
-- ✅ Melhor tratamento de erro com try/catch em todos os testes
-- ✅ Adicionado teste `testGetAllKeys()` para listar todas as chaves disponíveis
-- ✅ Logs mais detalhados para diagnóstico
+## [1.2.0] - 2025-01-21
 
-#### `image-test.js`
-- ✅ Melhor tratamento de erro para `fetch_failure` (problema do servidor Perchance)
-- ✅ Mensagens de erro mais claras com dicas de troubleshooting
-- ✅ Logs explicando possíveis causas do erro (limite de uso, problema temporário, prompt inválido)
-- ✅ Retorno seguro (`null`) em caso de falha
+### Adicionado
+- Novo módulo `tts-test.js` para testar o plugin text-to-speech
+- Novo módulo `dice-test.js` para testar o plugin dice (rolagem de dados RPG)
+- Novo módulo `rpg-icon-test.js` para testar o plugin rpg-icon (~500 ícones)
+- Novo módulo `pattern-test.js` para testar o plugin pattern-maker
+- Novo módulo `kv-test.js` para testar o plugin kv (key-value storage)
+- Novo módulo `seeder-test.js` para testar o plugin seeder (seeds copiáveis)
+- Preview visual de imagens geradas pelo plugin text-to-image
+- Container de preview para RPG Icons no canto superior direito
+- Container de preview para Pattern Maker no centro inferior
+- Botões agrupados por categoria no painel de testes (IA, RPG, Áudio, Seeds, Persistência)
 
-#### `ui-test.js`
-- ✅ Atualizado para v1.1.1
-- ✅ Chamadas corrigidas para `listsTest.testSelectUnique()` (agora retorna array)
-- ✅ Verificação de null/undefined antes de chamar métodos dos testes
-- ✅ Logs mais seguros com fallbacks
+### Alterado
+- `image-test.js` agora exibe imagem gerada em container visual com informações
+- `ui-test.js` reorganizado com 12 botões de teste em categorias
+- `main.js` atualizado para importar e passar todos os módulos de teste
+- URLs de import atualizadas para @v1.2.0
 
-### 📝 Notas Técnicas
-
-#### API de Listas do Perchance
-A documentação oficial confirma que:
-- `root.listName.selectOne` - retorna um item aleatório
-- `root.listName.selectMany(n)` - retorna array de n itens (pode repetir)
-- `root.listName.selectUnique(n)` - retorna array de n itens únicos
-- `root.listName.consumableList` - retorna lista consumível
-
-**Importante**: Quando o método não está disponível (ex: fallback), o código agora usa alternativas seguras.
-
-#### Problema do Image Plugin
-O erro `fetch_failure` é causado por:
-1. Limite de uso do plugin (conta não logada)
-2. Problema temporário no servidor do Perchance
-3. Timeout na requisição
-
-**Solução**: Fazer login no Perchance ou aguardar alguns minutos e tentar novamente.
+### Corrigido
+- Material do cubo alterado para `MeshStandardMaterial` para permitir mudança de cor
 
 ---
 
-## v1.1.0 - Testes Expandidos (2026-05-21)
+## [1.1.3] - 2025-01-20
 
-### ✨ Novos Módulos
-
-1. **`ai-text-test.js`** - Teste do plugin AI Text
-   - Geração básica de texto
-   - Streaming com `onChunk`
-   - `startWith` e `stopSequences`
-
-2. **`image-test.js`** - Teste do plugin Image
-   - Geração com prompt, seed, negativePrompt
-   - Exibição de imagem no DOM
-
-3. **`lists-test.js`** - Teste de listas avançadas
-   - `selectOne`, `selectMany`, `selectUnique`
-   - `consumableList`, `pluralForm`, `titleCase`
-   - `joinItems`, `getLength`
-
-4. **`raycaster-test.js`** - Interação 3D
-   - Clique em objetos 3D
-   - Hover com mudança de cor
-   - Eventos customizados
-
-5. **`state-test.js`** - Persistência
-   - Save/Load com localStorage
-   - Migração de versão
-   - Estado padrão
-
-6. **`canvas-test.js`** - Canvas 2D + Three.js
-   - Desenho procedural
-   - CanvasTexture para fog-of-war
-   - Integração com cena 3D
-
-### 🎮 Painel de Testes Expandido
-- 9 botões interativos organizados por categoria
-- Área de log com histórico
-- Visual melhorado com bordas verdes brilhantes
+### Corrigido
+- Nome do método do AI Text test corrigido de `testBasicText` para `generateBasic`
+- Adicionada verificação de disponibilidade (`available`) em todos os módulos de teste
+- Tratamento de erros melhorado no painel de testes
 
 ---
 
-## v1.0.2 - Correção de Material do Cubo (2026-05-21)
+## [1.1.2] - 2025-01-20
 
-### 🐛 Correções
+### Corrigido
+- Tratamento do retorno do plugin text-to-image (retorna String object, não primitiva)
+- Adicionado método `_extractImageUrl()` para extrair URL corretamente de diferentes formatos
+- Mensagens de erro mais informativas quando geração de imagem falha
+
+---
+
+## [1.1.1] - 2025-01-20
+
+### Corrigido
+- API de listas: `selectUnique` não existe nativamente, implementado fallback seguro
+- Tratamento de erros em todos os módulos de teste com try/catch
+- Verificação de null/undefined antes de chamar métodos de teste
+
+### Alterado
+- Mensagens de log mais detalhadas para debug
+- Fallback para `selectMany` + `Set` quando `selectUnique` não disponível
+
+---
+
+## [1.1.0] - 2025-01-20
+
+### Adicionado
+- Módulo `ai-text-test.js` para testar o plugin ai-text-plugin
+- Módulo `image-test.js` para testar o plugin text-to-image-plugin
+- Módulo `lists-test.js` para testar listas avançadas (selectMany, selectUnique, consumableList)
+- Módulo `raycaster-test.js` para testar clique em objetos 3D com Raycaster
+- Módulo `state-test.js` para testar persistência com localStorage
+- Módulo `canvas-test.js` para testar Canvas 2D + integração com Three.js
+- Painel de testes expandido com 9 botões organizados por categoria
+
+### Alterado
+- `main.js` agora importa dinamicamente o módulo ui-test
+- `ui-test.js` refatorado para receber rendererData e testModules como parâmetros
+
+---
+
+## [1.0.2] - 2025-01-19
+
+### Corrigido
 - Material do cubo alterado de `MeshNormalMaterial` para `MeshStandardMaterial`
-- Permite mudança de cor via `material.color.setHex()`
-- Imports atualizados com URLs absolutas e tags
+- URLs de import alteradas para absolutas com tags de versão
+- Cache do jsDelivr bypassado usando tags em vez de branches
 
 ---
 
-## v1.0.0 - Versão Inicial (2026-05-21)
+## [1.0.1] - 2025-01-19
 
-### ✨ Funcionalidades
-- Arquitetura modular com ES6 Modules
-- Bridge segura para acessar `root` do Perchance
-- Three.js via CDN (esm.sh)
-- Painel de testes básico
-- Sistema de guard clause para execução única
-
-### 📁 Estrutura
-```
-test-perchance-git/
-├── src/
-│   ├── main.js              # Entry point
-│   ├── perchance-bridge.js  # Ponte para Perchance
-│   └── modules/
-│       ├── renderer.js      # Three.js
-│       ├── logic.js         # Lógica do jogo
-│       └── ui-test.js       # Painel de testes
-├── for-perchance.html       # HTML Panel
-└── for-perchance-list-panel.txt  # List Panel
-```
+### Corrigido
+- Adicionada proteção contra execução duplicada com sessionStorage
+- Mensagem de loading agora é removida corretamente
+- Canvas do Three.js com z-index correto
 
 ---
 
-## 📚 Documentação
+## [1.0.0] - 2025-01-19
 
-- [Tutorial Perchance](https://perchance.org/tutorial)
-- [Perchance Reference](https://perchance.org/perchance-reference)
-- [Perchance Methods Wiki](https://perchance.fandom.com/wiki/Perchance_Methods)
-- [Unique Selections](https://perchance.fandom.com/wiki/Unique_Selections)
+### Adicionado
+- Estrutura inicial do projeto modular
+- `main.js` como entry point
+- `perchance-bridge.js` para acesso seguro ao root do Perchance
+- `renderer.js` com setup básico do Three.js
+- `logic.js` com lógica de jogo
+- `ui-test.js` com painel de testes básico
+- Documentação completa no README.md
+- Arquivos de exemplo para HTML Panel e List Panel
 
-## 🔗 Links Úteis
+---
 
-- [jsDelivr CDN](https://www.jsdelivr.com/github)
-- [ES Modules no Navegador](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
-- [Three.js Documentation](https://threejs.org/docs/)
+## [0.1.0] - 2025-01-18
+
+### Adicionado
+- Projeto inicial de teste
+- Prova de conceito de modularização com ES Modules
+- Integração básica com jsDelivr CDN

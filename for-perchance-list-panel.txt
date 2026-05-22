@@ -1,39 +1,32 @@
-# ============================================
-# LIST PANEL - Cole isso no List Panel do Perchance
-# ============================================
-# Este arquivo contém as configurações, listas e imports de plugins
-# que DEVEM estar no List Panel (separado do HTML Panel).
-#
-# ⚠️ IMPORTANTE: O Perchance usa 2 ESPAÇOS para indentação de listas.
-# NÃO use 4 espaços, tabs ou outros valores.
-#
-# O HTML Panel (for-perchance.html) importa este conteúdo via root.
-# ============================================
+// List Panel para Perchance - v1.2.0
+// Cole este conteúdo no List Panel do seu gerador Perchance
+// ⚠️ IMPORTANTE: Use 2 espaços para indentação (não 4!)
 
-# Configurações globais
 GAME_SEED = 12345
 
-# Listas de teste
 biomas
   tundra
   floresta
   montanha
   planície
   deserto
+  pântano
+  selva
 
 eventos
   nada acontece
   encontro inesperado
   tesouro encontrado
-  armadilha secreta
-  aliado misterioso
+  armadilha ativada
+  comerciante aparece
 
 itens
   espada mágica
   poção de cura
   mapa antigo
   amuleto protetor
-  pergaminho encantado
+  pergaminho arcano
+  anel encantado
 
 nomes_herois
   Aldric
@@ -41,14 +34,24 @@ nomes_herois
   Thorin
   Elara
   Kael
+  Lyra
+  Darius
+  Morgana
 
 adjetivos
   corajoso
   sábio
   ágil
-  misterioso
-  lendário
+  forte
+  astuto
+  leal
 
-# Plugins do Perchance (acessíveis via root no JS)
+// Plugins - importe os que você quer testar
 ai = {import:ai-text-plugin}
 image = {import:text-to-image-plugin}
+speak = {import:text-to-speech-plugin}
+dice = {import:dice-plugin}
+rpgIcon = {import:rpg-icon-plugin}
+pattern = {import:pattern-maker-plugin}
+kv = {import:kv-plugin}
+seeder = {import:seeder-plugin}

@@ -1,57 +1,18 @@
 <!-- 
-  HTML PANEL - Cole isso no HTML Panel do Perchance
-  
-  ⚠️ IMPORTANTE: Este é apenas um fragmento HTML, NÃO um documento completo.
-  O Perchance injeta este conteúdo em uma página existente via innerHTML.
-  NÃO inclua <!DOCTYPE>, <html>, <head> ou <body> aqui.
-  
-  📋 LIST PANEL: Veja o arquivo for-perchance-list-panel.txt para o conteúdo
-  que deve ser colocado no List Panel (separado do HTML Panel).
+  HTML Panel para Perchance - v1.2.0
+  Cole este conteúdo no HTML Panel do seu gerador Perchance
 -->
 
-<!-- Container para o jogo -->
-<div id="game-container" style="width:100vw; height:100vh; overflow:hidden; position:relative; background:#1a1a2e;">
-  <!-- A mensagem de loading será criada dinamicamente pelo renderer.js -->
+<div id="game-container" style="width:100vw; height:100vh; overflow:hidden; position:relative;">
+  <!-- Mensagem de loading será criada dinamicamente pelo renderer.js -->
 </div>
 
-<!-- Import do módulo principal via CDN -->
 <script type="module">
-  // 🛡️ Guard clause: Verifica se o jogo já foi inicializado
-  if (window.__RPG_INITIALIZED) {
-    console.warn('⏭️ Jogo já inicializado. Ignorando re-execução.');
-  } else {
-    window.__RPG_INITIALIZED = true;
-    
-    console.log('📄 HTML Panel injetado, chamando initGame()...');
-    
-    // ⚠️ IMPORT DINÂMICO (necessário dentro de blocos if/else)
-    // Import estático não pode ser usado dentro de condicionais em módulos ES6
-    const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/main.js");
-    
-    // Chama imediatamente (o DOM já está pronto no contexto de fragmento injetado)
-    initGame();
-  }
+  // Importa o ponto de entrada direto do GitHub via jsDelivr CDN
+  // ⚠️ SEMPRE use tags de versão (ex: @v1.2.0) para evitar cache do CDN
+  const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/main.js");
+  
+  // Chama imediatamente (o DOM já está pronto no contexto de fragmento injetado)
+  console.log('📄 HTML Panel injetado, chamando initGame()...');
+  initGame();
 </script>
-
-<!-- 
-  📝 NOTAS IMPORTANTES:
-  
-  1. O Perchance roda este HTML em um iframe com políticas de segurança (CSP).
-     Warnings de CSP são normais e não bloqueiam a execução.
-  
-  2. Para atualizar o código:
-     a) Faça commit e push no GitHub
-     b) Crie uma nova tag: git tag -a v1.1.1 -m "Descrição" && git push origin v1.1.1
-     c) Atualize TODAS as URLs nos arquivos para a nova tag
-     d) Limpe o cache do navegador (Ctrl+Shift+Del) ou use aba anônima
-  
-  3. O List Panel (for-perchance-list-panel.txt) deve conter:
-     - Imports de plugins (ai, image)
-     - Listas de dados (biomas, itens, etc.)
-     - Variáveis globais (GAME_SEED)
-  
-  4. Para acessar dados do List Panel no JavaScript:
-     import { root, getVar, getList } from './perchance-bridge.js';
-     const seed = getVar('GAME_SEED', 12345);
-     const bioma = getList('biomas', ['planície']).selectOne;
--->
