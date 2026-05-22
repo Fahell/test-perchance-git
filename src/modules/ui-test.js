@@ -1,12 +1,12 @@
 // src/modules/ui-test.js
 // Painel de testes interativo com todos os módulos
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/perchance-bridge.js';
-import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/ai-text-test.js';
-import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/image-test.js';
-import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/lists-test.js';
-import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/raycaster-test.js';
-import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/state-test.js';
-import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/canvas-test.js';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/perchance-bridge.js';
+import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/ai-text-test.js';
+import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/image-test.js';
+import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/lists-test.js';
+import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/raycaster-test.js';
+import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/state-test.js';
+import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.3/src/modules/canvas-test.js';
 
 export function initUITest(rendererData) {
   console.log('🎮 [UI-Test] Criando painel de testes expandido...');
@@ -91,14 +91,14 @@ export function initUITest(rendererData) {
   // AI Text
   document.getElementById('btn-ai-text').onclick = async () => {
     log('🤖 Testando AI Text...', '#4ade80');
-    if (!aiTextTest) {
+    if (!aiTextTest || !aiTextTest.available) {
       log('⚠️ Plugin AI Text não disponível', '#ff6b6b');
       return;
     }
     try {
-      const result = await aiTextTest.testBasicText();
-      if (result) {
-        log(`✅ AI: "${result.substring(0, 50)}..."`, '#4ade80');
+      const result = await aiTextTest.generateBasic();
+      if (result && result.generatedText) {
+        log(`✅ AI: "${result.generatedText.substring(0, 50)}..."`, '#4ade80');
       } else {
         log('⚠️ Texto gerado vazio', '#ff6b6b');
       }

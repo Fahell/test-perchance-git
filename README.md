@@ -4,7 +4,7 @@
 
 Este projeto é um **ambiente de teste modularizado** para validar a arquitetura de desenvolvimento no Perchance usando ES Modules hospedados no GitHub via jsDelivr CDN.
 
-**Versão Atual:** `v1.1.2` (Correção do tipo de retorno do plugin de imagem)
+**Versão Atual:** `v1.1.3` (Correção: método do plugin AI Text)
 
 ---
 
