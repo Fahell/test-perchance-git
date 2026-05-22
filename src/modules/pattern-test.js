@@ -53,6 +53,12 @@ export const patternTest = {
         // Se for uma imagem (data URL), mostra no container
         if (result.startsWith('data:image/')) {
           this._showPatternPreview(result);
+        } else {
+          // Padrão gerado mas renderização automática pode falhar
+          // Isso é esperado - o plugin tenta renderizar em elementos DOM que não existem
+          console.log('   ℹ️ Padrão gerado como string HTML');
+          console.log('   ⚠️ Renderização automática pode falhar (limitação conhecida do plugin)');
+          console.log('   💡 Para uso real, considere gerar padrões com Canvas 2D puro');
         }
       }
       

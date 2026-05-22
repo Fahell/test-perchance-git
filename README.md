@@ -198,6 +198,24 @@ ai = {import:ai-text-plugin}
 image = {import:text-to-image-plugin}
 ```
 
+### Pattern Plugin: Erro de renderização
+
+**Sintoma**: O padrão é gerado com sucesso (log mostra "Padrão gerado com sucesso!"), mas ocorre erro:
+```
+Uncaught TypeError: Cannot read properties of null (reading 'dataset')
+```
+
+**Causa**: O plugin `pattern-maker-plugin` espera um contexto DOM específico do Perchance (elementos `<output>` com atributos `data-*`) que não existe quando chamamos via JavaScript puro. O padrão é gerado internamente, mas a renderização automática falha.
+
+**Solução**:
+- O teste continua válido para demonstrar que o plugin funciona
+- Para uso real no seu projeto, considere:
+  1. Usar o plugin diretamente no List Panel (contexto padrão do Perchance)
+  2. Gerar padrões com Canvas 2D puro (mais controle)
+  3. Implementar algoritmo Wave Function Collapse manualmente
+
+**Status**: Limitação conhecida do plugin. O teste é mantido para fins de documentação e validação da API.
+
 ## 📚 Recursos Úteis
 
 - [Perchance Official](https://perchance.org/)

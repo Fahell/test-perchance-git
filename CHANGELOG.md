@@ -26,6 +26,7 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 - **Novo**: `generateTileablePattern()` para padrões periódicos
 - **Novo**: Preview visual automático no canto inferior direito
 - **Documentação**: https://perchance.org/pattern-maker-plugin
+- **⚠️ Limitação Conhecida**: O padrão é gerado com sucesso, mas a renderização automática pode falhar com erro `Cannot read properties of null (reading 'dataset')`. Isso acontece porque o plugin espera um contexto DOM específico do Perchance que não existe quando chamado via JavaScript puro. O teste é mantido para validação da API e documentação.
 
 #### RPG Icon Plugin
 - **Corrigido**: `getMultipleIcons()` tentava usar `evaluateItem` (não existe)
