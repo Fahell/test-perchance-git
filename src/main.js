@@ -1,8 +1,8 @@
 // src/main.js
 // Entry point do jogo - importa e inicializa todos os módulos
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/perchance-bridge.js';
-import { initRenderer } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/renderer.js';
-import { initLogic } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/logic.js';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/perchance-bridge.js';
+import { initRenderer } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/renderer.js';
+import { initLogic } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/logic.js';
 
 export async function initGame() {
   // 🛡️ Guard clause duplo para evitar execução duplicada
@@ -27,8 +27,8 @@ export async function initGame() {
 
     // 3. Carrega e inicializa UI de Teste (import dinâmico)
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
-    const { initUITest } = await import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/ui-test.js');
-    console.log('📦 [Main] ui-test.js carregado. exports:', Object.keys(await import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/ui-test.js')));
+    const { initUITest } = await import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/ui-test.js');
+    console.log('📦 [Main] ui-test.js carregado. exports:', Object.keys(await import('https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/ui-test.js')));
 
     console.log('🎮 [Main] Chamando initUITest...');
     console.log('📦 [Main] rendererData passado:', rendererData);

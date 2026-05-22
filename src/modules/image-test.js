@@ -27,12 +27,18 @@ export function initImageTest() {
           negativePrompt: 'blurry, low quality'
         });
 
-        if (result && result.src) {
+        // O plugin retorna um objeto String com propriedades extras (canvas, dataUrl, inputs)
+        // ou uma string primitiva data URL
+        const imageUrl = this._extractImageUrl(result);
+        
+        if (imageUrl) {
           console.log('✅ [Image] Imagem gerada com sucesso!');
-          console.log('   URL:', result.src);
-          return result.src;
+          console.log('   Data URL length:', imageUrl.length, 'chars');
+          console.log('   Tipo do resultado:', typeof result, result instanceof String ? '(String object)' : '');
+          return imageUrl;
         } else {
           console.error('❌ [Image] Falha na geração:', result);
+          console.error('   Tipo:', typeof result, '| Chaves:', Object.keys(result || {}));
           return null;
         }
       } catch (error) {
@@ -55,10 +61,12 @@ export function initImageTest() {
           seed: seed
         });
 
-        if (result && result.src) {
+        const imageUrl = this._extractImageUrl(result);
+        
+        if (imageUrl) {
           console.log(`✅ [Image] Imagem com seed ${seed} gerada!`);
-          console.log('   URL:', result.src);
-          return result.src;
+          console.log('   Data URL length:', imageUrl.length, 'chars');
+          return imageUrl;
         } else {
           console.error('❌ [Image] Falha na geração com seed');
           return null;
@@ -80,10 +88,12 @@ export function initImageTest() {
           negativePrompt: 'realistic, photograph, low quality, blurry'
         });
 
-        if (result && result.src) {
+        const imageUrl = this._extractImageUrl(result);
+        
+        if (imageUrl) {
           console.log('✅ [Image] Imagem com negative prompt gerada!');
-          console.log('   URL:', result.src);
-          return result.src;
+          console.log('   Data URL length:', imageUrl.length, 'chars');
+          return imageUrl;
         } else {
           console.error('❌ [Image] Falha na geração');
           return null;
@@ -104,10 +114,12 @@ export function initImageTest() {
           seed: 77777
         });
 
-        if (result && result.src) {
+        const imageUrl = this._extractImageUrl(result);
+        
+        if (imageUrl) {
           // Cria elemento de imagem
           const img = document.createElement('img');
-          img.src = result.src;
+          img.src = imageUrl;
           img.style.cssText = `
             position: fixed;
             top: 50%;
@@ -131,7 +143,7 @@ export function initImageTest() {
           }, 5000);
 
           console.log('✅ [Image] Imagem exibida no DOM por 5 segundos');
-          return result.src;
+          return imageUrl;
         } else {
           console.error('❌ [Image] Falha na geração');
           return null;
@@ -152,6 +164,40 @@ export function initImageTest() {
       };
       console.log('✅ [Image] Informações do plugin:', info);
       return info;
+    },
+
+    // Helper privado: Extrai a URL da imagem do resultado do plugin
+    _extractImageUrl(result) {
+      if (!result) return null;
+      
+      // Caso 1: Objeto com propriedade dataUrl (formato do text-to-image-plugin)
+      if (result.dataUrl) {
+        return result.dataUrl;
+      }
+      
+      // Caso 2: Objeto com propriedade src
+      if (result.src) {
+        return result.src;
+      }
+      
+      // Caso 3: Objeto com propriedade url
+      if (result.url) {
+        return result.url;
+      }
+      
+      // Caso 4: O próprio resultado é uma String object (String object com valor data URL)
+      // O plugin text-to-image-plugin retorna um String object especial
+      const strValue = result.toString ? result.toString() : String(result);
+      if (strValue && strValue.startsWith('data:image/')) {
+        return strValue;
+      }
+      
+      // Caso 5: String primitiva
+      if (typeof result === 'string' && result.startsWith('data:image/')) {
+        return result;
+      }
+      
+      return null;
     }
   };
 }

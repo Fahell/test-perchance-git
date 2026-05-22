@@ -1,12 +1,12 @@
 // src/modules/ui-test.js
 // Painel de testes interativo com todos os módulos
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/perchance-bridge.js';
-import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/ai-text-test.js';
-import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/image-test.js';
-import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/lists-test.js';
-import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/raycaster-test.js';
-import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/state-test.js';
-import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.1/src/modules/canvas-test.js';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/perchance-bridge.js';
+import { initAITextTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/ai-text-test.js';
+import { initImageTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/image-test.js';
+import { initListsTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/lists-test.js';
+import { initRaycasterTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/raycaster-test.js';
+import { initStateTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/state-test.js';
+import { initCanvasTest } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.1.2/src/modules/canvas-test.js';
 
 export function initUITest(rendererData) {
   console.log('🎮 [UI-Test] Criando painel de testes expandido...');
@@ -28,7 +28,7 @@ export function initUITest(rendererData) {
   `;
 
   panel.innerHTML = `
-    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.1.1</h3>
+    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.1.2</h3>
     
     <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
       <strong style="color:#4ade80;">🔌 Plugins</strong><br>
