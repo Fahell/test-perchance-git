@@ -5,6 +5,29 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.2.4] - 2025-01-21
+
+### Fixed
+- **TTS Test**: Agora usa Web Speech API nativa como fallback quando plugin não disponível
+- **TTS Test**: Método stopSpeech corrigido para usar `speechSynthesis.cancel()` nativo
+- **TTS Test**: Adicionado método `listVoices()` para listar vozes disponíveis
+- **RPG Icon Test**: API corrigida com múltiplas abordagens (function, selectOne, selectMany, get)
+- **RPG Icon Test**: Adicionado método `checkAPI()` para diagnosticar estrutura do plugin
+- **KV Test**: API corrigida com múltiplas abordagens (set/get, store/retrieve, function)
+- **KV Test**: Adicionado método `checkAPI()` para listar propriedades disponíveis
+- **Pattern Test**: API corrigida com múltiplas abordagens (function, generate, create, selectOne)
+- **Pattern Test**: Adicionado método `checkAPI()` para diagnosticar plugin
+- **Seeder Test**: API corrigida com múltiplas abordagens (function, generate, create, selectOne, get)
+- **Seeder Test**: Adicionado método `checkAPI()` para verificar estrutura
+- **UI Test**: Mensagens de log atualizadas para v1.2.4
+
+### Added
+- Todos os módulos de plugin agora têm método `checkAPI()` para diagnóstico
+- Fallbacks automáticos quando plugins têm APIs diferentes do esperado
+- Melhor tratamento de erros com mensagens explicativas
+
+---
+
 ## [1.2.3] - 2025-01-21
 
 ### Corrigido

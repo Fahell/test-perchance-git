@@ -1,190 +1,193 @@
-/**
- * Módulo de teste para o plugin pattern-maker-plugin do Perchance
- * Testa: geração de padrões procedurais baseados em imagem de entrada
- * @version 1.2.0
- */
-
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.3/src/perchance-bridge.js';
+// src/modules/pattern-test.js
+// Testa o plugin pattern-maker-plugin do Perchance
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
 
 export const patternTest = {
   available: !!root.pattern,
-  containerId: 'pattern-preview-container',
+  patternContainer: null,
   
-  // Cria ou retorna o container de preview
-  _getOrCreateContainer() {
-    let container = document.getElementById(this.containerId);
-    if (!container) {
-      container = document.createElement('div');
-      container.id = this.containerId;
-      container.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 400px;
-        background: rgba(0, 0, 0, 0.9);
-        border: 2px solid #a78bfa;
-        border-radius: 12px;
-        padding: 15px;
-        font-family: monospace;
-        font-size: 12px;
-        color: white;
-        z-index: 9998;
-        box-shadow: 0 4px 20px rgba(167, 139, 250, 0.3);
-      `;
-      container.innerHTML = `
-        <h3 style="margin: 0 0 10px 0; color: #a78bfa; font-size: 14px;">🎨 Pattern Maker Preview</h3>
-        <div id="pattern-preview-area" style="
-          width: 100%;
-          height: 200px;
-          background: #1a1a1a;
-          border: 1px solid #333;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          margin-bottom: 10px;
-        ">
-          <span style="color: #666;">Nenhum padrão gerado</span>
-        </div>
-        <div id="pattern-info" style="color: #aaa; font-size: 11px;">
-          Aguardando geração...
-        </div>
-      `;
-      document.body.appendChild(container);
-    }
-    return container;
-  },
-
-  // Atualiza o preview com o padrão gerado
-  _updatePreview(imageUrl, info) {
-    const previewArea = document.getElementById('pattern-preview-area');
-    const infoDiv = document.getElementById('pattern-info');
+  // Teste 1: Verificar API do plugin
+  checkAPI() {
+    console.log('🎨 [Pattern] Verificando API do plugin...');
     
-    if (imageUrl) {
-      previewArea.innerHTML = `<img src="${imageUrl}" style="
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-      " />`;
-      infoDiv.innerHTML = info || '✅ Padrão gerado com sucesso!';
-    } else {
-      previewArea.innerHTML = '<span style="color: #ff6b6b;">❌ Falha na geração</span>';
-      infoDiv.innerHTML = info || 'Erro ao gerar padrão';
+    if (!root.pattern) {
+      console.warn('⚠️ [Pattern] root.pattern não existe');
+      return null;
     }
+    
+    console.log('📋 [Pattern] Propriedades disponíveis:');
+    console.log('   Tipo:', typeof root.pattern);
+    
+    if (typeof root.pattern === 'object') {
+      const props = Object.keys(root.pattern);
+      console.log('   Props:', props.join(', '));
+      return props;
+    } else if (typeof root.pattern === 'function') {
+      console.log('   É uma função');
+      return ['function'];
+    }
+    
+    return null;
   },
-
-  // Teste 1: Gerar padrão simples
+  
+  // Teste 2: Gerar padrão básico
   async generateBasicPattern() {
     console.log('🎨 [Pattern] Gerando padrão básico...');
     
-    this._getOrCreateContainer();
-    this._updatePreview(null, '⏳ Gerando padrão...');
-    
     try {
-      // Nota: O plugin pattern-maker requer uma imagem de entrada
-      // Para teste, vamos usar um canvas simples como fonte
-      const sourceCanvas = document.createElement('canvas');
-      sourceCanvas.width = 64;
-      sourceCanvas.height = 64;
-      const ctx = sourceCanvas.getContext('2d');
-      
-      // Desenha um padrão simples na fonte
-      ctx.fillStyle = '#4ade80';
-      ctx.fillRect(0, 0, 32, 32);
-      ctx.fillStyle = '#fbbf24';
-      ctx.fillRect(32, 0, 32, 32);
-      ctx.fillStyle = '#f87171';
-      ctx.fillRect(0, 32, 32, 32);
-      ctx.fillStyle = '#60a5fa';
-      ctx.fillRect(32, 32, 32, 32);
-      
-      const sourceDataUrl = sourceCanvas.toDataURL();
-      
-      const result = await root.pattern({
-        source: sourceDataUrl,
-        seed: 12345
-      });
-      
-      if (result) {
-        const imageUrl = typeof result === 'string' ? result : result.dataUrl || result.src;
-        
-        if (imageUrl) {
-          console.log('✅ [Pattern] Padrão gerado com sucesso!');
-          this._updatePreview(imageUrl, `
-            ✅ Seed: 12345<br>
-            📐 Fonte: 64x64 canvas<br>
-            🎨 Padrão procedural gerado
-          `);
-          return { success: true, url: imageUrl };
-        }
+      if (!this.available) {
+        console.warn('⚠️ [Pattern] Plugin não disponível');
+        return null;
       }
       
-      throw new Error('Não foi possível gerar o padrão');
-    } catch (error) {
-      console.error('❌ [Pattern] Falha:', error.message);
-      this._updatePreview(null, `❌ Erro: ${error.message}`);
-      return { success: false, error: error.message };
+      let patternResult;
+      
+      // Tenta diferentes abordagens
+      if (typeof root.pattern === 'function') {
+        // Caso 1: É uma função
+        patternResult = await root.pattern();
+      } else if (typeof root.pattern.generate === 'function') {
+        // Caso 2: Tem método generate
+        patternResult = await root.pattern.generate();
+      } else if (typeof root.pattern.create === 'function') {
+        // Caso 3: Tem método create
+        patternResult = await root.pattern.create();
+      } else if (typeof root.pattern.selectOne === 'function') {
+        // Caso 4: É uma lista
+        patternResult = root.pattern.selectOne;
+      } else {
+        console.warn('⚠️ [Pattern] Método de geração não encontrado. Use checkAPI() para ver métodos disponíveis.');
+        return null;
+      }
+      
+      console.log('✅ [Pattern] Padrão gerado:', patternResult);
+      
+      // Tenta exibir se for uma imagem ou canvas
+      if (patternResult) {
+        this.displayPattern(patternResult);
+      }
+      
+      return patternResult;
+    } catch (e) {
+      console.error('❌ [Pattern] Erro ao gerar:', e.message);
+      console.log('💡 [Pattern] Dica: Este plugin pode requerer parâmetros específicos');
+      return null;
     }
   },
-
-  // Teste 2: Padrão com seed diferente
-  async generatePatternWithSeed(seed) {
-    console.log(`🎨 [Pattern] Gerando padrão com seed ${seed}...`);
-    
-    this._getOrCreateContainer();
-    this._updatePreview(null, `⏳ Gerando padrão com seed ${seed}...`);
+  
+  // Teste 3: Gerar padrão com opções
+  async generateWithOptions(options = {}) {
+    console.log('🎨 [Pattern] Gerando padrão com opções...', options);
     
     try {
-      const sourceCanvas = document.createElement('canvas');
-      sourceCanvas.width = 32;
-      sourceCanvas.height = 32;
-      const ctx = sourceCanvas.getContext('2d');
-      
-      // Padrão xadrez
-      for (let i = 0; i < 32; i += 8) {
-        for (let j = 0; j < 32; j += 8) {
-          ctx.fillStyle = ((i + j) / 8) % 2 === 0 ? '#333' : '#666';
-          ctx.fillRect(i, j, 8, 8);
-        }
+      if (!this.available) {
+        console.warn('⚠️ [Pattern] Plugin não disponível');
+        return null;
       }
       
-      const sourceDataUrl = sourceCanvas.toDataURL();
+      let patternResult;
       
-      const result = await root.pattern({
-        source: sourceDataUrl,
-        seed: seed
-      });
-      
-      if (result) {
-        const imageUrl = typeof result === 'string' ? result : result.dataUrl || result.src;
-        
-        if (imageUrl) {
-          console.log(`✅ [Pattern] Padrão com seed ${seed} gerado!`);
-          this._updatePreview(imageUrl, `
-            ✅ Seed: ${seed}<br>
-            📐 Fonte: 32x32 xadrez<br>
-            🎨 Variação procedural
-          `);
-          return { success: true, url: imageUrl, seed: seed };
-        }
+      if (typeof root.pattern === 'function') {
+        patternResult = await root.pattern(options);
+      } else if (typeof root.pattern.generate === 'function') {
+        patternResult = await root.pattern.generate(options);
+      } else {
+        console.warn('⚠️ [Pattern] Método com opções não encontrado');
+        return null;
       }
       
-      throw new Error('Não foi possível gerar o padrão');
-    } catch (error) {
-      console.error('❌ [Pattern] Falha:', error.message);
-      this._updatePreview(null, `❌ Erro: ${error.message}`);
-      return { success: false, error: error.message };
+      console.log('✅ [Pattern] Padrão com opções gerado');
+      this.displayPattern(patternResult);
+      return patternResult;
+    } catch (e) {
+      console.error('❌ [Pattern] Erro:', e.message);
+      return null;
     }
   },
-
-  // Limpa o container
-  clear() {
-    const container = document.getElementById(this.containerId);
-    if (container) {
-      container.remove();
-      console.log('🗑️ [Pattern] Container de preview removido');
+  
+  // Teste 4: Exibir padrão
+  displayPattern(patternData) {
+    console.log('🎨 [Pattern] Exibindo padrão...');
+    
+    try {
+      // Remove container anterior
+      if (this.patternContainer) {
+        this.patternContainer.remove();
+      }
+      
+      // Cria novo container
+      this.patternContainer = document.createElement('div');
+      this.patternContainer.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        padding: 20px;
+        border-radius: 12px;
+        z-index: 1000;
+        border: 2px solid #a855f7;
+        max-width: 90vw;
+        max-height: 90vh;
+        overflow: auto;
+      `;
+      
+      // Título
+      const title = document.createElement('h3');
+      title.style.cssText = 'margin: 0 0 15px 0; color: #a855f7; font-family: monospace; text-align: center;';
+      title.textContent = '🎨 Padrão Gerado';
+      this.patternContainer.appendChild(title);
+      
+      // Conteúdo
+      const content = document.createElement('div');
+      content.style.cssText = 'text-align: center;';
+      
+      if (typeof patternData === 'string' && patternData.startsWith('data:image/')) {
+        // Data URL
+        const img = document.createElement('img');
+        img.src = patternData;
+        img.style.cssText = 'max-width: 100%; max-height: 60vh; border-radius: 8px;';
+        content.appendChild(img);
+      } else if (patternData instanceof HTMLCanvasElement) {
+        // Canvas
+        content.appendChild(patternData);
+      } else if (typeof patternData === 'string' && patternData.startsWith('http')) {
+        // URL externa
+        const img = document.createElement('img');
+        img.src = patternData;
+        img.style.cssText = 'max-width: 100%; max-height: 60vh; border-radius: 8px;';
+        img.onerror = () => {
+          content.textContent = `URL: ${patternData}`;
+        };
+        content.appendChild(img);
+      } else {
+        // Outro formato
+        content.textContent = typeof patternData === 'string' ? patternData : JSON.stringify(patternData, null, 2);
+        content.style.cssText += 'color: #9ca3af; font-family: monospace; font-size: 12px; max-width: 400px;';
+      }
+      
+      this.patternContainer.appendChild(content);
+      
+      // Botão de fechar
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕ Fechar';
+      closeBtn.style.cssText = 'display: block; margin: 15px auto 0; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; padding: 8px 16px; font-family: monospace;';
+      closeBtn.onclick = () => this.patternContainer.remove();
+      this.patternContainer.appendChild(closeBtn);
+      
+      document.body.appendChild(this.patternContainer);
+      console.log('✅ [Pattern] Padrão exibido');
+    } catch (e) {
+      console.error('❌ [Pattern] Erro ao exibir:', e.message);
+    }
+  },
+  
+  // Teste 5: Limpar padrão
+  clearPattern() {
+    if (this.patternContainer) {
+      this.patternContainer.remove();
+      this.patternContainer = null;
+      console.log('✅ [Pattern] Padrão removido');
     }
   }
 };
@@ -193,6 +196,7 @@ export const patternTest = {
 console.log('🎨 [Pattern] Inicializando teste do plugin pattern-maker...');
 if (patternTest.available) {
   console.log('✅ [Pattern] Plugin pattern-maker-plugin disponível');
+  patternTest.checkAPI();
 } else {
   console.warn('⚠️ [Pattern] Plugin pattern-maker-plugin NÃO disponível');
   console.warn('   Adicione no List Panel: pattern = {import:pattern-maker-plugin}');

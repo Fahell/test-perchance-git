@@ -1,7 +1,7 @@
 // src/main.js
-// Entry point do jogo - v1.2.3 com diagnóstico melhorado
+// Entry point do jogo - v1.2.4 com diagnóstico melhorado
 
-const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.3/src';
+const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src';
 
 // Mapeamento de módulos de teste
 const TEST_MODULES = {

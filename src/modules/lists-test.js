@@ -1,6 +1,6 @@
 // src/modules/lists-test.js
 // Testa funcionalidades avançadas de listas do Perchance
-import { root, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.3/src/perchance-bridge.js';
+import { root, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
 
 export const listsTest = {
   available: true,

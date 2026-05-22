@@ -1,103 +1,136 @@
-/**
- * Módulo de teste para o plugin text-to-speech-plugin do Perchance
- * Testa: síntese de voz, velocidade, pitch, idiomas
- * @version 1.2.0
- */
+// src/modules/tts-test.js
+// Testa o plugin text-to-speech-plugin do Perchance
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
 
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.3/src/perchance-bridge.js';
+// Fallback: usa Web Speech API nativa do navegador se plugin não disponível
+const useNativeTTS = !root.speak || typeof root.speak !== 'function';
+
+let currentUtterance = null;
 
 export const ttsTest = {
-  available: !!root.speak,
+  available: !!root.speak || ('speechSynthesis' in window),
+  useNativeTTS,
   
-  // Teste 1: Falar texto básico
-  testBasicSpeech() {
+  // Teste 1: Fala básica
+  async testBasicSpeech() {
     console.log('🔊 [TTS] Testando fala básica...');
     
-    if (!this.available) {
-      console.warn('⚠️ [TTS] Plugin não disponível');
-      return { success: false, error: 'Plugin não disponível' };
-    }
+    const text = 'Olá! Este é um teste de síntese de voz no Perchance.';
     
     try {
-      root.speak('Olá! Este é um teste de síntese de voz no Perchance.', {
-        rate: 1.0,
-        pitch: 1.0,
-        volume: 1.0
-      });
-      
-      console.log('✅ [TTS] Fala iniciada!');
-      return { success: true };
-    } catch (error) {
-      console.error('❌ [TTS] Erro:', error.message);
-      return { success: false, error: error.message };
+      if (useNativeTTS) {
+        // Usa Web Speech API nativa
+        if (!('speechSynthesis' in window)) {
+          console.warn('⚠️ [TTS] speechSynthesis não disponível neste navegador');
+          return;
+        }
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        
+        currentUtterance = utterance;
+        
+        utterance.onstart = () => console.log('🔊 [TTS] Fala iniciada (nativa)');
+        utterance.onend = () => {
+          console.log('✅ [TTS] Fala concluída');
+          currentUtterance = null;
+        };
+        utterance.onerror = (e) => console.error('❌ [TTS] Erro:', e);
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        // Usa plugin do Perchance
+        await root.speak(text);
+        console.log('✅ [TTS] Fala iniciada via plugin');
+      }
+    } catch (e) {
+      console.error('❌ [TTS] Erro:', e.message);
     }
   },
-
-  // Teste 2: Diferentes velocidades
-  testSpeedVariation() {
-    console.log('🔊 [TTS] Testando variação de velocidade...');
-    
-    if (!this.available) {
-      return { success: false, error: 'Plugin não disponível' };
-    }
+  
+  // Teste 2: Velocidade variada
+  async testSpeedVariation() {
+    console.log('🔊 [TTS] Testando velocidade variada...');
     
     try {
-      // Fala rápida
-      root.speak('Esta é uma fala rápida.', { rate: 1.5 });
-      
-      setTimeout(() => {
-        // Fala lenta
-        root.speak('Esta é uma fala lenta.', { rate: 0.7 });
-      }, 2000);
-      
-      console.log('✅ [TTS] Variação de velocidade iniciada!');
-      return { success: true };
-    } catch (error) {
-      console.error('❌ [TTS] Erro:', error.message);
-      return { success: false, error: error.message };
+      if (useNativeTTS) {
+        const utterance = new SpeechSynthesisUtterance('Esta fala é mais lenta que o normal.');
+        utterance.lang = 'pt-BR';
+        utterance.rate = 0.7; // Mais lento
+        utterance.pitch = 1.2;
+        
+        currentUtterance = utterance;
+        
+        utterance.onstart = () => console.log('🔊 [TTS] Fala lenta iniciada');
+        utterance.onend = () => {
+          console.log('✅ [TTS] Fala lenta concluída');
+          currentUtterance = null;
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        await root.speak('Esta fala é mais lenta que o normal.', { rate: 0.7 });
+      }
+    } catch (e) {
+      console.error('❌ [TTS] Erro:', e.message);
     }
   },
-
-  // Teste 3: Diferentes tons (pitch)
-  testPitchVariation() {
-    console.log('🔊 [TTS] Testando variação de tom...');
-    
-    if (!this.available) {
-      return { success: false, error: 'Plugin não disponível' };
-    }
-    
-    try {
-      // Tom agudo
-      root.speak('Este é um tom agudo.', { pitch: 1.5 });
-      
-      setTimeout(() => {
-        // Tom grave
-        root.speak('Este é um tom grave.', { pitch: 0.5 });
-      }, 2000);
-      
-      console.log('✅ [TTS] Variação de tom iniciada!');
-      return { success: true };
-    } catch (error) {
-      console.error('❌ [TTS] Erro:', error.message);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Teste 4: Parar fala
+  
+  // Teste 3: Parar fala
   stopSpeech() {
     console.log('🔊 [TTS] Parando fala...');
     
-    if (!this.available) {
-      return { success: false, error: 'Plugin não disponível' };
-    }
-    
     try {
-      root.stopSpeaking();
-      console.log('✅ [TTS] Fala parada!');
-      return { success: true };
-    } catch (error) {
-      console.error('❌ [TTS] Erro:', error.message);
-      return { success: false, error: error.message };
+      if (useNativeTTS) {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          console.log('✅ [TTS] Fala parada (nativa)');
+        }
+      } else {
+        // Tenta diferentes métodos do plugin
+        if (typeof root.stopSpeaking === 'function') {
+          root.stopSpeaking();
+        } else if (typeof root.speak.stop === 'function') {
+          root.speak.stop();
+        } else if (typeof root.speak.cancel === 'function') {
+          root.speak.cancel();
+        } else {
+          console.warn('⚠️ [TTS] Método de stop não encontrado no plugin');
+          // Fallback: cancela via Web Speech API
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+          }
+        }
+        console.log('✅ [TTS] Fala parada');
+      }
+      currentUtterance = null;
+    } catch (e) {
+      console.error('❌ [TTS] Erro:', e.message);
+    }
+  },
+  
+  // Teste 4: Listar vozes disponíveis
+  listVoices() {
+    console.log('🔊 [TTS] Listando vozes disponíveis...');
+    
+    if ('speechSynthesis' in window) {
+      const voices = window.speechSynthesis.getVoices();
+      console.log(`📋 [TTS] ${voices.length} vozes encontradas:`);
+      
+      const ptVoices = voices.filter(v => v.lang.startsWith('pt'));
+      if (ptVoices.length > 0) {
+        console.log('🇧🇷 [TTS] Vozes em português:');
+        ptVoices.forEach(v => console.log(`   - ${v.name} (${v.lang})`));
+      } else {
+        console.log('⚠️ [TTS] Nenhuma voz em português encontrada');
+      }
+      
+      return voices;
+    } else {
+      console.warn('⚠️ [TTS] speechSynthesis não disponível');
+      return [];
     }
   }
 };
@@ -105,8 +138,16 @@ export const ttsTest = {
 // Inicialização
 console.log('🔊 [TTS] Inicializando teste do plugin text-to-speech...');
 if (ttsTest.available) {
-  console.log('✅ [TTS] Plugin text-to-speech-plugin disponível');
+  console.log('✅ [TTS] Plugin text-to-speech disponível');
+  console.log(`   Modo: ${ttsTest.useNativeTTS ? 'Web Speech API nativa' : 'Plugin Perchance'}`);
+  
+  // Carrega vozes (pode ser assíncrono em alguns navegadores)
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      console.log('🔊 [TTS] Vozes carregadas');
+    };
+  }
 } else {
-  console.warn('⚠️ [TTS] Plugin text-to-speech-plugin NÃO disponível');
+  console.warn('⚠️ [TTS] Plugin text-to-speech NÃO disponível');
   console.warn('   Adicione no List Panel: speak = {import:text-to-speech-plugin}');
 }

@@ -1,6 +1,6 @@
 // src/modules/ai-text-test.js
 // Testa o plugin ai-text-plugin do Perchance
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.3/src/perchance-bridge.js';
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.4/src/perchance-bridge.js';
 
 export const aiTextTest = {
   available: !!root.ai,
