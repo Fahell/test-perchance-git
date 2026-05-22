@@ -5,6 +5,26 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.2.2] - 2025-01-21
+
+### Corrigido
+- **Problema crítico**: Imports estáticos no topo do `main.js` causavam erro de "does not provide an export named"
+- Todos os imports de módulos de teste agora são **dinâmicos** (`await import()`)
+- URLs de import atualizadas para `@v1.2.2` em todos os arquivos
+- `ui-test.js` atualizado para versão `@v1.2.2`
+
+### Alterado
+- `main.js` agora usa 100% imports dinâmicos para módulos de teste
+- Removidos imports estáticos que causavam incompatibilidade com cache do jsDelivr
+- Documentação atualizada com instruções claras de versionamento
+
+### Notas Técnicas
+- Tags Git são imutáveis: ao fazer mudanças, SEMPRE crie uma nova tag
+- jsDelivr cacheia tags por até 12h; use `?v=` ou mude a tag para forçar refresh
+- Imports estáticos no topo do arquivo são resolvidos antes do código executar, causando falhas se houver erro em qualquer módulo
+
+---
+
 ## [1.2.0] - 2025-01-21
 
 ### Adicionado

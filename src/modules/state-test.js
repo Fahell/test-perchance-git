@@ -1,6 +1,6 @@
 // src/modules/state-test.js
 // Testa persistência de estado com localStorage
-import { getVar } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/perchance-bridge.js';
+import { getVar } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.2/src/perchance-bridge.js';
 
 const STORAGE_KEY = 'rpg_perchance_state';
 const STORAGE_VERSION = 1;

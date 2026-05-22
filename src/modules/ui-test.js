@@ -1,9 +1,9 @@
 // src/modules/ui-test.js
-// Painel de testes interativo com todos os módulos (v1.2.0)
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/perchance-bridge.js';
+// Painel de testes interativo com todos os módulos (v1.2.2)
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.2/src/perchance-bridge.js';
 
 export function initUITest(rendererData, testModules) {
-  console.log('🎮 [UI-Test] Criando painel de testes expandido v1.2.0...');
+  console.log('🎮 [UI-Test] Criando painel de testes expandido v1.2.2...');
 
   // Captura valores do Perchance ANTES de qualquer delay
   const capturedSeed = getVar('GAME_SEED', 'N/A');
@@ -38,7 +38,7 @@ export function initUITest(rendererData, testModules) {
   `;
 
   panel.innerHTML = `
-    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.2.0</h3>
+    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.2.2</h3>
     
     <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
       <strong style="color:#4ade80;">🤖 IA</strong><br>
@@ -340,5 +340,5 @@ export function initUITest(rendererData, testModules) {
     }
   };
 
-  console.log('✅ [UI-Test] Painel de testes v1.2.0 criado e visível.');
+  console.log('✅ [UI-Test] Painel de testes v1.2.2 criado e visível.');
 }
