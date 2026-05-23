@@ -88,3 +88,12 @@ git tag -l --sort=-v:refname
 ## Contexto do Domínio
 
 Este projeto modulariza JavaScript ES6 para uso no Perchance (https://perchance.org), plataforma de geração procedural. Os módulos são servidos via GitHub + jsDelivr CDN porque o Perchance não suporta bundlers. Cada módulo em `src/modules/` testa um plugin ou funcionalidade específica do ecossistema Perchance.
+
+## 🔒 Security Controls (Project-Level Reference)
+
+This project inherits all global security controls from `~/.ai-agent-instructions.md`. Key reminders:
+
+- **NEVER use `rm`** — Use `del` (trash-cli) for safe deletion
+- **Git pre-commit hook is active** — Blocks `.env`, `.pem`, `.key`, `.credentials` files and hardcoded secrets
+- **Escape hatch**: `command rm` only with explicit user confirmation and logged intent
+- For full security policy, run: `agent-help` or read `$AI_AGENT_INSTRUCTIONS`
