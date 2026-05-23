@@ -2,13 +2,45 @@
 
 Este documento define o contexto operacional obrigatório para qualquer agente de IA que trabalhe neste repositório. Leia antes de executar qualquer ação.
 
+## ⚠️ LEITURA OBRIGATÓRIA ANTES DE TUDO
+
+1. **Leia PRIMEIRO:** `~/.ai-agent-instructions.md` (ou `$AI_AGENT_INSTRUCTIONS`) — regras globais do ambiente WSL2
+2. **Depois leia este arquivo** — contexto específico deste projeto
+3. Em caso de conflito, as regras globais têm precedência
+
 ## Ambiente de Desenvolvimento
 
 - **SO de trabalho:** Ubuntu via WSL2 (não Windows nativo)
 - **Diretório do projeto:** `/home/rafael/projects/test-perchance-git`
-- **Shell:** Bash com PTY persistente via MCP Terminal
-- **Node.js:** v22.x | **Python:** 3.14 | **Git:** 2.53+
+- **Shell:** Zsh com Oh My Zsh + PTY persistente via MCP Terminal
+- **Node.js:** v24.x LTS (gerenciado por nvm) | **Python:** 3.12.9 (gerenciado por pyenv) | **Git:** 2.53+
+- **GitHub CLI:** `gh` v2.92.0 autenticado via SSH
 - **Acesso ao Windows:** Disponível via `/mnt/c/` apenas para leitura de configs do editor. Nunca desenvolva ou execute builds no FS do Windows.
+
+## Ferramentas Disponíveis
+
+| Ferramenta | Versão | Uso Principal |
+|---|---|---|
+| git | 2.53.0 | Versionamento (SSH) |
+| gh | 2.92.0 | GitHub API (PRs, Issues, Releases) |
+| node (nvm) | v24.16.0 LTS | Runtime JavaScript |
+| python (pyenv) | 3.12.9 | Runtime Python |
+| rg (ripgrep) | 15.1.0 | Busca de código rápida |
+| fd (fd-find) | 10.3.0 | Busca de arquivos rápida |
+| bat | 0.25.0 | `cat` com syntax highlighting |
+| eza | 0.23.4 | `ls` moderno com ícones e git status |
+| jq / yq | 1.8.1 / 3.4.3 | Manipulação JSON / YAML |
+| htop | 3.4.1 | Monitor de processos |
+| tmux | 3.6a | Multiplexador de terminal |
+| httpie | 3.2.4 | Cliente HTTP human-friendly |
+| pass | 1.7.4 | Gerenciador de senhas GPG |
+
+### Aliases de Workflow
+
+- `gs` = git status | `gl` = git log --oneline --graph -20 | `gd` = git diff
+- `gp` = git push | `gc` = git commit -m | `ga` = git add
+- `ll` = eza -la --icons --git | `lt` = tree -L 2 --dirsfirst
+- `proj` = cd ~/projects | `agent-help` = exibe instruções globais
 
 ## Fluxo de Trabalho Obrigatório
 
