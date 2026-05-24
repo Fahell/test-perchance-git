@@ -1,147 +1,267 @@
 #!/usr/bin/env node
 /**
- * sync-version.js - Sincroniza a versão de constants.js com múltiplos arquivos
+ * sync-version.js - Synchronizes version from constants.js across the entire project
  * 
- * Uso: node scripts/sync-version.js
+ * Usage: node scripts/sync-version.js
  * 
- * Arquivos sincronizados:
- * 1. for-perchance.html - URLs CDN e comentários HTML
- * 2. README.md - Linha 1 (título do projeto)
- * 3. src/main.js - Comentário de versão e BASE_URL
+ * Features:
+ * - Validates semver format (vMAJOR.MINOR.PATCH)
+ * - Scans entire project for version occurrences
+ * - Excludes node_modules, dist, .git, and binary files
+ * - Warns about missing tags and unpushed changes
  */
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const CONSTANTS_PATH = path.join(ROOT, 'src', 'constants.js');
-const PERCHANCE_HTML_PATH = path.join(ROOT, 'for-perchance.html');
-const README_PATH = path.join(ROOT, 'README.md');
-const MAIN_JS_PATH = path.join(ROOT, 'src', 'main.js');
 
+// Directories to exclude from scanning
+const EXCLUDED_DIRS = new Set([
+  'node_modules',
+  'dist',
+  '.git',
+  '.husky',
+  '.vscode',
+  'coverage'
+]);
+
+// File extensions to scan
+const TEXT_EXTENSIONS = new Set([
+  '.js', '.jsx', '.ts', '.tsx', '.mjs',
+  '.html', '.htm',
+  '.css', '.scss', '.less',
+  '.md', '.txt',
+  '.json', '.yml', '.yaml',
+  '.sh', '.bash'
+]);
+
+// Specific files to always include
+const INCLUDE_FILES = new Set([
+  'README.md',
+  'for-perchance.html',
+  'AGENTS.md'
+]);
+
+/**
+ * Validates semver format: vMAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH
+ */
+function validateSemver(version) {
+  const semverPattern = /^v?(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9.-]+))?(?:\+([a-zA-Z0-9.-]+))?$/;
+  const match = version.match(semverPattern);
+  
+  if (!match) {
+    throw new Error(`Invalid semver format: "${version}". Expected: vMAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH`);
+  }
+  
+  const [, major, minor, patch] = match;
+  return {
+    valid: true,
+    major: parseInt(major, 10),
+    minor: parseInt(minor, 10),
+    patch: parseInt(patch, 10),
+    normalized: `v${major}.${minor}.${patch}`
+  };
+}
+
+/**
+ * Extracts version from constants.js
+ */
 function extractVersion() {
   const content = fs.readFileSync(CONSTANTS_PATH, 'utf-8');
   const match = content.match(/export\s+const\s+VERSION\s*=\s*['"]([^'"]+)['"]/);
   if (!match) {
-    throw new Error('Não foi possível extrair VERSION de constants.js');
+    throw new Error('Could not extract VERSION from constants.js');
   }
   return match[1];
 }
 
-function updatePerchanceHtml(version) {
-  const content = fs.readFileSync(PERCHANCE_HTML_PATH, 'utf-8');
-  const versionNumber = version.replace(/^v/, '');
-  const versionPattern = /v?\d+\.\d+\.\d+/g;
-  
-  let updatedContent = content;
-  let changesCount = 0;
-  
-  updatedContent = updatedContent.replace(versionPattern, (match) => {
-    const hadPrefix = match.startsWith('v');
-    const newVersion = hadPrefix ? version : versionNumber;
-    if (match !== newVersion) changesCount++;
-    return newVersion;
-  });
-  
-  return { updatedContent, changesCount };
+/**
+ * Checks if a file is likely binary (not text)
+ */
+function isBinaryFile(filePath) {
+  try {
+    const buffer = fs.readFileSync(filePath);
+    const length = Math.min(buffer.length, 8000);
+    
+    for (let i = 0; i < length; i++) {
+      // Check for null bytes (common in binary files)
+      if (buffer[i] === 0) return true;
+    }
+    
+    return false;
+  } catch {
+    return true;
+  }
 }
 
-function updateReadme(version) {
-  const content = fs.readFileSync(README_PATH, 'utf-8');
-  const lines = content.split('\n');
-  let changesCount = 0;
+/**
+ * Recursively finds all text files in the project
+ */
+function findTextFiles(dir, fileList = []) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
   
-  // Linha 1: Título do projeto "# 🎮 Test Perchance Git (vX.Y.Z)"
-  const titlePattern = /^(# .+\()(v?\d+\.\d+\.\d+)(\))$/;
-  if (titlePattern.test(lines[0])) {
-    const oldLine = lines[0];
-    lines[0] = lines[0].replace(titlePattern, `$1${version}$3`);
-    if (oldLine !== lines[0]) changesCount++;
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    
+    if (entry.isDirectory()) {
+      if (!EXCLUDED_DIRS.has(entry.name) && !entry.name.startsWith('.')) {
+        findTextFiles(fullPath, fileList);
+      }
+    } else if (entry.isFile()) {
+      const ext = path.extname(entry.name).toLowerCase();
+      const isIncluded = INCLUDE_FILES.has(entry.name);
+      const hasTextExt = TEXT_EXTENSIONS.has(ext);
+      
+      if (isIncluded || hasTextExt) {
+        if (!isBinaryFile(fullPath)) {
+          fileList.push(fullPath);
+        }
+      }
+    }
   }
   
-  return { updatedContent: lines.join('\n'), changesCount };
+  return fileList;
 }
 
-function updateMainJs(version) {
-  const content = fs.readFileSync(MAIN_JS_PATH, 'utf-8');
-  const versionPattern = /v?\d+\.\d+\.\d+/g;
+/**
+ * Updates version occurrences in a file
+ */
+function updateFileVersion(filePath, version, stats) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const versionPattern = /v?\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?/g;
   
   let updatedContent = content;
   let changesCount = 0;
+  const oldVersions = new Set();
   
   updatedContent = updatedContent.replace(versionPattern, (match) => {
+    // Skip if it's the source of truth (constants.js)
+    if (filePath === CONSTANTS_PATH) {
+      return match;
+    }
+    
     const hadPrefix = match.startsWith('v');
     const newVersion = hadPrefix ? version : version.replace(/^v/, '');
-    if (match !== newVersion) changesCount++;
+    
+    if (match !== newVersion) {
+      changesCount++;
+      oldVersions.add(match);
+    }
+    
     return newVersion;
   });
   
-  return { updatedContent, changesCount };
+  if (changesCount > 0) {
+    fs.writeFileSync(filePath, updatedContent, 'utf-8');
+    stats.totalChanges += changesCount;
+    stats.filesUpdated.push({
+      path: path.relative(ROOT, filePath),
+      count: changesCount,
+      oldVersions: [...oldVersions]
+    });
+  }
+  
+  return changesCount;
+}
+
+/**
+ * Checks for unpushed changes and missing tags
+ */
+function checkGitStatus(version) {
+  const warnings = [];
+  
+  try {
+    // Check if tag exists
+    try {
+      execSync(`git rev-parse ${version}`, { stdio: 'ignore' });
+      // Tag exists, check if it's pushed
+      try {
+        execSync(`git ls-remote --tags origin ${version}`, { stdio: 'ignore' });
+      } catch {
+        warnings.push(`Tag ${version} exists locally but hasn't been pushed. Run: git push origin ${version}`);
+      }
+    } catch {
+      warnings.push(`Tag ${version} doesn't exist. Create it with: git tag -a ${version} -m "Release ${version}"`);
+      warnings.push(`After creating the tag, push it with: git push origin ${version}`);
+    }
+    
+    // Check for uncommitted changes
+    const status = execSync('git status --porcelain', { encoding: 'utf-8' });
+    if (status.trim()) {
+      warnings.push('There are uncommitted changes in the repository. Don\'t forget to commit and push them.');
+    }
+  } catch {
+    // Git commands failed, skip warnings
+  }
+  
+  return warnings;
 }
 
 function main() {
   try {
-    console.log('🔄 Sincronizando versão...\n');
+    console.log('🔄 Synchronizing version...\n');
     
-    const version = extractVersion();
-    console.log(`📋 Versão detectada em constants.js: ${version}\n`);
+    // Extract and validate version
+    const rawVersion = extractVersion();
+    const validation = validateSemver(rawVersion);
+    const version = validation.normalized;
     
-    let totalChanges = 0;
+    console.log(`📋 Version detected in constants.js: ${version}`);
+    console.log(`   Semver: ${validation.major}.${validation.minor}.${validation.patch}\n`);
     
-    // 1. for-perchance.html
-    const perchanceOriginal = fs.readFileSync(PERCHANCE_HTML_PATH, 'utf-8');
-    const perchanceMatches = perchanceOriginal.match(/v?\d+\.\d+\.\d+/g) || [];
-    console.log(`📄 for-perchance.html: ${[...new Set(perchanceMatches)].join(', ')}`);
+    // Find all text files in the project
+    const textFiles = findTextFiles(ROOT);
+    console.log(`📂 Scanning ${textFiles.length} text files...\n`);
     
-    const { updatedContent: perchanceUpdated, changesCount: perchanceChanges } = updatePerchanceHtml(version);
-    if (perchanceChanges > 0) {
-      fs.writeFileSync(PERCHANCE_HTML_PATH, perchanceUpdated, 'utf-8');
-      console.log(`   ✏️  ${perchanceChanges} referência(s) atualizada(s) para ${version}`);
-    } else {
-      console.log(`   ✅ Já sincronizado`);
-    }
-    totalChanges += perchanceChanges;
+    // Update files
+    const stats = {
+      totalChanges: 0,
+      filesUpdated: []
+    };
     
-    // 2. README.md
-    const readmeOriginal = fs.readFileSync(README_PATH, 'utf-8');
-    const readmeTitleMatch = readmeOriginal.match(/^(# .+\()(v?\d+\.\d+\.\d+)(\))/);
-    const readmeCurrentVersion = readmeTitleMatch ? readmeTitleMatch[2] : 'desconhecida';
-    console.log(`\n📄 README.md (título): ${readmeCurrentVersion}`);
-    
-    const { updatedContent: readmeUpdated, changesCount: readmeChanges } = updateReadme(version);
-    if (readmeChanges > 0) {
-      fs.writeFileSync(README_PATH, readmeUpdated, 'utf-8');
-      console.log(`   ✏️  Título atualizado para ${version}`);
-    } else {
-      console.log(`   ✅ Já sincronizado`);
-    }
-    totalChanges += readmeChanges;
-    
-    // 3. src/main.js
-    const mainOriginal = fs.readFileSync(MAIN_JS_PATH, 'utf-8');
-    const mainMatches = mainOriginal.match(/v?\d+\.\d+\.\d+/g) || [];
-    console.log(`\n📄 src/main.js: ${[...new Set(mainMatches)].join(', ')}`);
-    
-    const { updatedContent: mainUpdated, changesCount: mainChanges } = updateMainJs(version);
-    if (mainChanges > 0) {
-      fs.writeFileSync(MAIN_JS_PATH, mainUpdated, 'utf-8');
-      console.log(`   ✏️  ${mainChanges} referência(s) atualizada(s) para ${version}`);
-    } else {
-      console.log(`   ✅ Já sincronizado`);
-    }
-    totalChanges += mainChanges;
-    
-    // Resumo
-    console.log(`\n${'='.repeat(50)}`);
-    if (totalChanges === 0) {
-      console.log('✅ Todos os arquivos já estão sincronizados.');
-    } else {
-      console.log(`✅ ${totalChanges} alteração(ões) aplicada(s) em ${[perchanceChanges > 0 && 'for-perchance.html', readmeChanges > 0 && 'README.md', mainChanges > 0 && 'src/main.js'].filter(Boolean).join(', ')}`);
+    for (const filePath of textFiles) {
+      // Skip constants.js (source of truth)
+      if (filePath === CONSTANTS_PATH) continue;
+      
+      updateFileVersion(filePath, version, stats);
     }
     
+    // Print results
+    console.log('='.repeat(60));
+    
+    if (stats.totalChanges === 0) {
+      console.log('✅ All files are already synchronized.');
+    } else {
+      console.log(`✅ ${stats.totalChanges} change(s) applied:\n`);
+      
+      for (const file of stats.filesUpdated) {
+        const oldVersionsStr = file.oldVersions.join(', ');
+        console.log(`   📄 ${file.path}`);
+        console.log(`      ${file.count} occurrence(s): ${oldVersionsStr} → ${version}`);
+      }
+    }
+    
+    // Check git status and show warnings
+    console.log('\n' + '='.repeat(60));
+    console.log('📌 Git Status Check:\n');
+    
+    const warnings = checkGitStatus(version);
+    
+    if (warnings.length === 0) {
+      console.log('   ✅ Repository is up to date.');
+    } else {
+      for (const warning of warnings) {
+        console.log(`   ⚠️  ${warning}`);
+      }
+    }
+    
+    console.log('');
     process.exit(0);
   } catch (err) {
-    console.error(`\n❌ Erro: ${err.message}`);
+    console.error(`\n❌ Error: ${err.message}`);
     process.exit(1);
   }
 }
