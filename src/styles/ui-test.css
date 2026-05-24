@@ -14,6 +14,7 @@
   --ui-color-viz: #f39c12;
   --ui-color-data: #f87171;
   --ui-color-system: #94a3b8;
+  --ui-color-audio: #ff6b9d;
   
   /* Colors - Feedback */
   --ui-color-success: #4ade80;
@@ -145,6 +146,7 @@
 .ui-test-btn--viz { border-color: var(--ui-color-viz); }
 .ui-test-btn--data { border-color: var(--ui-color-data); }
 .ui-test-btn--system { border-color: var(--ui-color-system); }
+.ui-test-btn--audio { border-color: var(--ui-color-audio); }
 
 /* Global Controls Bar */
 .ui-test-controls {
