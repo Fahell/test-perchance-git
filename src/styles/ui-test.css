@@ -1,6 +1,5 @@
 /* src/styles/ui-test.css
  * Design tokens and styles for Perchance UI test panel
- * Extracted from inline styles in ui-test.js for maintainability
  */
 
 :root {
@@ -108,11 +107,36 @@
   border-radius: var(--ui-border-radius-sm);
   font-family: var(--ui-font-family);
   font-size: var(--ui-font-size-base);
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-spacing-xs);
 }
 
 .ui-test-btn:hover {
   opacity: 0.85;
+}
+
+/* Button Status Indicators */
+.ui-test-btn--running {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.ui-test-btn--success {
+  border-color: var(--ui-color-success);
+  box-shadow: inset 0 0 6px rgba(74, 222, 128, 0.3);
+}
+
+.ui-test-btn--error {
+  border-color: var(--ui-color-error);
+  box-shadow: inset 0 0 6px rgba(255, 107, 107, 0.3);
+}
+
+.ui-test-btn__status {
+  font-size: 10px;
+  min-width: 14px;
+  text-align: center;
 }
 
 /* Button Category Variants */
