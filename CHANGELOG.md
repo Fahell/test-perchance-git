@@ -3,7 +3,6 @@
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
 ## [Unreleased]
-
 ## [1.2.8] - 2026-05-24
 
 ### ✨ UI do Perchance — Reorganização Completa
