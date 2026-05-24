@@ -22,6 +22,11 @@ test-perchance-git/
 ├── README.md                       # Este arquivo
 ├── CHANGELOG.md                    # Histórico de versões
 ├── .gitignore                      # Configuração Git
+├── scripts/
+│   ├── sync-version.js             # Sincroniza versão manualmente
+│   ├── install-hooks.sh            # Instala git hooks
+│   └── git-hooks/
+│       └── pre-commit              # Hook de pre-commit
 └── src/
     ├── main.js                     # Entry point (importa e inicializa tudo)
     ├── constants.js                # Versão e URLs centralizadas
@@ -138,65 +143,62 @@ Abra `test-local.html` no navegador para testar sem o Perchance.
 
 ### Para Desenvolvedores
 
-Após fazer alterações:
+#### Instalação Inicial (Uma Vez)
+
+Instale os git hooks para sincronização automática:
+
+```bash
+./scripts/install-hooks.sh
+```
+
+Isso configura o hook `pre-commit` que sincroniza `for-perchance.html` automaticamente a cada commit.
+
+#### Fluxo de Desenvolvimento
 
 ```bash
 # 1. Atualize a versão em src/constants.js
 # (edite a constante VERSION)
 
-# 2. Sincronize for-perchance.html automaticamente
-node scripts/sync-version.js
-
-# 3. Commit e push
+# 2. Commit (o hook sincroniza for-perchance.html automaticamente!)
 git add .
 git commit -m "feat: descrição das mudanças"
+# 🔄 [pre-commit] for-perchance.html sincronizado para v1.2.12 (4 refs)
+
 git push
 
-# 4. Crie uma nova tag
-git tag -a v1.2.11 -m "v1.2.11 - Descrição da versão"
-git push origin v1.2.11
+# 3. Crie uma nova tag
+git tag -a v1.2.12 -m "v1.2.12 - Descrição da versão"
+git push origin v1.2.12
 ```
 
-#### 🤖 Modo Automático (Recomendado)
+#### 🪝 Git Hooks (Recomendado)
 
-Deixe o watcher rodando em um terminal separado durante o desenvolvimento:
+O projeto usa git hooks para garantir consistência automaticamente:
 
-```bash
-node scripts/watch-version.js
-```
+| Hook | Função |
+|------|--------|
+| `pre-commit` | Sincroniza `for-perchance.html` com `VERSION` de `constants.js` |
 
-O watcher:
-- 👀 Monitora `src/constants.js` em tempo real
-- 🔄 Executa `sync-version.js` automaticamente quando detecta mudanças
-- ⏱️ Debounce de 500ms (evita execuções múltiplas em saves rápidos)
-- 🛑 Ctrl+C para parar
+**Vantagens:**
+- ✅ Zero overhead (sem processos rodando em background)
+- ✅ Executa apenas quando necessário (no commit)
+- ✅ Confiável e previsível
+- ✅ Funciona em qualquer ambiente
 
-**Exemplo de uso:**
-```
-🚀 Starting version watcher...
+**Como funciona:**
+1. Você edita `src/constants.js` e altera `VERSION`
+2. Ao fazer `git commit`, o hook é executado
+3. O hook lê a nova versão e atualiza `for-perchance.html`
+4. Se houver mudanças, adiciona `for-perchance.html` ao commit automaticamente
+5. Commit é criado com todos os arquivos sincronizados
 
-✅ for-perchance.html já está sincronizado com v1.2.11
-
-👀 Watching for changes in src/constants.js...
-📄 Target: for-perchance.html
-⏱️  Debounce: 500ms
-🛑 Press Ctrl+C to stop
-
-🔔 Change detected in constants.js
-🔄 Running sync-version.js...
-
-✏️  4 referência(s) atualizada(s) para v1.2.12
-✅ for-perchance.html sincronizado com sucesso!
-
-✅ Sync complete. Watching for changes...
-```
+**Documentação completa:** Veja `scripts/git-hooks/README.md`
 
 #### Script de Sincronização Manual
 
-O script `scripts/sync-version.js` lê a versão de `src/constants.js` e atualiza automaticamente todas as referências em `for-perchance.html`. Isso evita erros manuais e garante consistência.
+Se preferir sincronizar manualmente (sem hooks):
 
 ```bash
-# Uso
 node scripts/sync-version.js
 ```
 
