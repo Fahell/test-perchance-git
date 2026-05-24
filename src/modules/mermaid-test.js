@@ -178,7 +178,7 @@ export async function renderDiagram(type, container) {
     
     // Render diagram
     const { svg } = await mermaid.render(id, diagramCode);
-    const renderDiv = diagramContainer.querySelector(`#${id}`);
+    const renderDiv = diagramDiv.querySelector(`#${id}`);
     if (renderDiv) renderDiv.innerHTML = svg;
     
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
