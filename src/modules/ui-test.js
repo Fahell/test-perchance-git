@@ -1,16 +1,28 @@
 // src/modules/ui-test.js
-// Painel de testes interativo com todos os módulos (v1.2.5)
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
+// Painel de testes interativo com todos os módulos (v1.2.8)
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.7/src/perchance-bridge.js';
+
+const VERSION = 'v1.2.8';
+const CSS_URL = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}/src/styles/ui-test.css`;
+
+function injectStylesheet() {
+  if (document.getElementById('ui-test-styles')) return;
+  const link = document.createElement('link');
+  link.id = 'ui-test-styles';
+  link.rel = 'stylesheet';
+  link.href = CSS_URL;
+  document.head.appendChild(link);
+}
 
 export function initUITest(rendererData, testModules) {
-  console.log('🎮 [UI-Test] Criando painel de testes expandido v1.2.5...');
+  console.log(`🎮 [UI-Test] Criando painel de testes expandido ${VERSION}...`);
 
-  // Captura valores do Perchance ANTES de qualquer delay
+  injectStylesheet();
+
   const capturedSeed = getVar('GAME_SEED', 'N/A');
   const capturedRoot = !!root;
   console.log('📸 [UI-Test] Valores capturados:', { seed: capturedSeed, root: capturedRoot });
 
-  // Desestrutura os módulos de teste
   const {
     imageTest,
     aiTextTest,
@@ -26,169 +38,160 @@ export function initUITest(rendererData, testModules) {
     seederTest
   } = testModules;
 
-  // Cria painel flutuante
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
-  panel.style.cssText = `
-    position: fixed; bottom: 20px; left: 20px; z-index: 9999;
-    background: rgba(0, 0, 0, 0.9); color: white; padding: 15px;
-    border-radius: 8px; font-family: monospace; font-size: 12px;
-    border: 2px solid #4ade80; box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
-    max-width: 340px; max-height: 85vh; overflow-y: auto;
-  `;
 
   panel.innerHTML = `
-    <h3 style="margin:0 0 10px 0; color:#4ade80; font-size:14px;">🧪 Painel de Testes v1.2.5</h3>
+    <h3>🧪 Painel de Testes ${VERSION}</h3>
     
-    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
-      <strong style="color:#4ade80;">🤖 IA</strong><br>
-      <button id="btn-ai-text" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🤖 AI Text</button>
-      <button id="btn-image" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🖼️ Image</button>
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-ai)">🤖 IA</strong>
+      <button id="btn-ai-text" class="ui-test-btn">🤖 AI Text</button>
+      <button id="btn-image" class="ui-test-btn">🖼️ Image</button>
     </div>
     
-    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
-      <strong style="color:#4ade80;">🎲 Perchance</strong><br>
-      <button id="btn-lists" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">📋 Listas</button>
-      <button id="btn-bridge" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🔗 Bridge</button>
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-perchance)">🎲 Perchance</strong>
+      <button id="btn-lists" class="ui-test-btn">📋 Listas</button>
+      <button id="btn-bridge" class="ui-test-btn">🔗 Bridge</button>
     </div>
     
-    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
-      <strong style="color:#4ade80;">🎨 Three.js</strong><br>
-      <button id="btn-3d" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🎲 Cor Cubo</button>
-      <button id="btn-raycaster" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🖱️ Raycaster</button>
-      <button id="btn-canvas" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #4ade80; border-radius:4px;">🎨 Canvas</button>
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-threejs)">🎨 Three.js</strong>
+      <button id="btn-3d" class="ui-test-btn">🎲 Cor Cubo</button>
+      <button id="btn-raycaster" class="ui-test-btn">🖱️ Raycaster</button>
+      <button id="btn-canvas" class="ui-test-btn">🎨 Canvas</button>
     </div>
     
-    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
-      <strong style="color:#fbbf24;">🎮 RPG</strong><br>
-      <button id="btn-dice" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #fbbf24; border-radius:4px;">🎲 Dice</button>
-      <button id="btn-rpg-icon" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #fbbf24; border-radius:4px;">⚔️ RPG Icons</button>
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-rpg)">🎮 RPG</strong>
+      <button id="btn-dice" class="ui-test-btn ui-test-btn--rpg">🎲 Dice</button>
+      <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--rpg">⚔️ RPG Icons</button>
     </div>
     
-    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
-      <strong style="color:#a78bfa;">🔊 Áudio</strong><br>
-      <button id="btn-tts" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #a78bfa; border-radius:4px;">🔊 TTS</button>
-      <button id="btn-tts-stop" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #a78bfa; border-radius:4px;">⏹️ Parar</button>
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-audio)">🔊 Áudio</strong>
+      <button id="btn-tts" class="ui-test-btn ui-test-btn--audio">🔊 TTS</button>
+      <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--audio">⏹️ Parar</button>
     </div>
     
-    <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
-      <strong style="color:#60a5fa;">🌱 Seeds</strong><br>
-      <button id="btn-seeder" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #60a5fa; border-radius:4px;">🌱 Seeder</button>
-      <button id="btn-pattern" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #60a5fa; border-radius:4px;">🎨 Pattern</button>
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-seeds)">🌱 Seeds</strong>
+      <button id="btn-seeder" class="ui-test-btn ui-test-btn--seeds">🌱 Seeder</button>
+      <button id="btn-pattern" class="ui-test-btn ui-test-btn--seeds">🎨 Pattern</button>
     </div>
     
-    <div>
-      <strong style="color:#f87171;">💾 Persistência</strong><br>
-      <button id="btn-state-save" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #f87171; border-radius:4px;">💾 Save</button>
-      <button id="btn-state-load" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #f87171; border-radius:4px;">📂 Load</button>
-      <button id="btn-kv" style="margin:2px; padding:4px 8px; cursor:pointer; background:#1a1a2e; color:white; border:1px solid #f87171; border-radius:4px;">💾 KV</button>
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-persist)">💾 Persistência</strong>
+      <button id="btn-state-save" class="ui-test-btn ui-test-btn--persist">💾 Save</button>
+      <button id="btn-state-load" class="ui-test-btn ui-test-btn--persist">📂 Load</button>
+      <button id="btn-kv" class="ui-test-btn ui-test-btn--persist">💾 KV</button>
     </div>
     
-    <div id="test-log" style="margin-top:10px; color:#aaa; font-size:11px; max-height:100px; overflow-y: auto; background:#0a0a0a; padding:8px; border-radius:4px;">Aguardando interação...</div>
+    <div id="test-log">Aguardando interação...</div>
   `;
 
-  // Anexa ao body
   document.body.appendChild(panel);
   console.log('📎 [UI-Test] Painel anexado ao document.body');
 
-  // Verifica visibilidade
   const rect = panel.getBoundingClientRect();
   console.log(`📐 [UI-Test] Painel visível: ${rect.width}x${rect.height}px em (${rect.left}, ${rect.top})`);
 
-  // Área de log
   const logDiv = document.getElementById('test-log');
-  function log(message, color = '#aaa') {
-    if (logDiv) {
-      logDiv.innerHTML += `<div style="color:${color}">${message}</div>`;
-      logDiv.scrollTop = logDiv.scrollHeight;
-    }
+  function log(message, type = 'info') {
+    if (!logDiv) return;
+    const entry = document.createElement('div');
+    entry.className = `log-entry log-entry--${type}`;
+    entry.textContent = message;
+    logDiv.appendChild(entry);
+    logDiv.scrollTop = logDiv.scrollHeight;
   }
 
   // AI Text
   document.getElementById('btn-ai-text').onclick = async () => {
-    log('🤖 Gerando texto com IA...', '#4ade80');
+    log('🤖 Gerando texto com IA...', 'info');
     if (!aiTextTest || !aiTextTest.available) {
-      log('⚠️ Plugin AI Text não disponível', '#ff6b6b');
+      log('⚠️ Plugin AI Text não disponível', 'warning');
       return;
     }
     try {
       const result = await aiTextTest.generateBasic('Escreva uma frase curta sobre um aventureiro.');
       if (result && result.generatedText) {
         const preview = result.generatedText.substring(0, 60) + '...';
-        log(`✅ AI: "${preview}"`, '#4ade80');
+        log(`✅ AI: "${preview}"`, 'success');
       } else {
-        log('❌ Erro ao gerar texto', '#ff6b6b');
+        log('❌ Erro ao gerar texto', 'error');
       }
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // Image
   document.getElementById('btn-image').onclick = async () => {
-    log('🖼️ Gerando imagem com IA...', '#4ade80');
+    log('🖼️ Gerando imagem com IA...', 'info');
     if (!imageTest || !imageTest.available) {
-      log('⚠️ Plugin Image não disponível', '#ff6b6b');
+      log('⚠️ Plugin Image não disponível', 'warning');
       return;
     }
     try {
       const result = await imageTest.testBasicImage('papercraft warrior with sword, fantasy art style', 12345);
       if (result) {
-        log('✅ Imagem gerada! Veja preview no canto inferior direito', '#4ade80');
+        log('✅ Imagem gerada! Veja preview no canto inferior direito', 'success');
       } else {
-        log('❌ Erro ao gerar imagem', '#ff6b6b');
+        log('❌ Erro ao gerar imagem', 'error');
       }
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // Listas
   document.getElementById('btn-lists').onclick = () => {
-    log('📋 Testando listas...', '#4ade80');
+    log('📋 Testando listas...', 'info');
     try {
       if (!listsTest) {
-        log('⚠️ Lists não disponível', '#ff6b6b');
+        log('⚠️ Lists não disponível', 'warning');
         return;
       }
       const item = listsTest.testSelectOne('itens');
       const heroes = listsTest.testSelectUnique('nomes_herois', 2);
       const length = listsTest.testListLength('nomes_herois');
-      log(`✅ Item: "${item}" | Heróis: ${heroes.length} | Tamanho: ${length}`, '#4ade80');
+      log(`✅ Item: "${item}" | Heróis: ${heroes.length} | Tamanho: ${length}`, 'success');
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // Bridge
   document.getElementById('btn-bridge').onclick = () => {
-    log(`📡 Seed: ${capturedSeed} | Root: ${capturedRoot}`, '#4ade80');
+    log(`📡 Seed: ${capturedSeed} | Root: ${capturedRoot}`, 'success');
   };
 
   // Cor do Cubo
   document.getElementById('btn-3d').onclick = () => {
-    log('🎲 Mudando cor do cubo...', '#4ade80');
+    log('🎲 Mudando cor do cubo...', 'info');
     if (rendererData && rendererData.cube && rendererData.cube.material) {
       rendererData.cube.material.color.setHex(Math.random() * 0xffffff);
-      log('✅ Cor do cubo alterada!', '#4ade80');
+      log('✅ Cor do cubo alterada!', 'success');
     } else {
-      log('⚠️ Cubo não disponível', '#ff6b6b');
+      log('⚠️ Cubo não disponível', 'warning');
     }
   };
 
   // Raycaster
   document.getElementById('btn-raycaster').onclick = () => {
-    log('🖱️ Raycaster: Clique nas esferas coloridas!', '#4ade80');
+    log('🖱️ Raycaster: Clique nas esferas coloridas!', 'info');
     if (raycasterTest && raycasterTest.available) {
-      log(`✅ ${raycasterTest.spheres?.length || 0} esferas adicionadas`, '#4ade80');
+      log(`✅ ${raycasterTest.spheres?.length || 0} esferas adicionadas`, 'success');
     } else {
-      log('⚠️ Raycaster não disponível', '#ff6b6b');
+      log('⚠️ Raycaster não disponível', 'warning');
     }
   };
 
   // Canvas
   document.getElementById('btn-canvas').onclick = () => {
-    log('🎨 Testando Canvas 2D...', '#4ade80');
+    log('🎨 Testando Canvas 2D...', 'info');
     if (canvasTest) {
       canvasTest.drawGradient();
       canvasTest.drawCircles(15);
@@ -196,104 +199,104 @@ export function initUITest(rendererData, testModules) {
       if (canvasTest.threeIntegration) {
         canvasTest.showThreePlane();
       }
-      log('✅ Canvas desenhado!', '#4ade80');
+      log('✅ Canvas desenhado!', 'success');
     } else {
-      log('⚠️ Canvas não disponível', '#ff6b6b');
+      log('⚠️ Canvas não disponível', 'warning');
     }
   };
 
   // Dice
   document.getElementById('btn-dice').onclick = () => {
-    log('🎲 Rolando dados...', '#fbbf24');
+    log('🎲 Rolando dados...', 'info');
     if (!diceTest || !diceTest.available) {
-      log('⚠️ Plugin Dice não disponível', '#ff6b6b');
+      log('⚠️ Plugin Dice não disponível', 'warning');
       return;
     }
     try {
       const d20 = diceTest.rollD20();
       const d6 = diceTest.roll3D6();
-      log(`✅ 1d20: ${d20.result} | 3d6: ${d6.result}`, '#4ade80');
+      log(`✅ 1d20: ${d20.result} | 3d6: ${d6.result}`, 'success');
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // RPG Icons
   document.getElementById('btn-rpg-icon').onclick = () => {
-    log('⚔️ Carregando RPG Icons...', '#fbbf24');
+    log('⚔️ Carregando RPG Icons...', 'info');
     if (!rpgIconTest || !rpgIconTest.available) {
-      log('⚠️ Plugin RPG Icon não disponível', '#ff6b6b');
+      log('⚠️ Plugin RPG Icon não disponível', 'warning');
       return;
     }
     try {
       const icons = rpgIconTest.getMultipleIcons(6);
-      log(icons ? `✅ ${icons.length} ícones carregados! Veja grid no canto superior direito` : '❌ Erro ao carregar ícones', icons ? '#4ade80' : '#ff6b6b');
+      log(icons ? `✅ ${icons.length} ícones carregados! Veja grid no canto superior direito` : '❌ Erro ao carregar ícones', icons ? 'success' : 'error');
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // TTS
   document.getElementById('btn-tts').onclick = () => {
-    log('🔊 Testando Text-to-Speech...', '#a78bfa');
+    log('🔊 Testando Text-to-Speech...', 'info');
     if (!ttsTest || !ttsTest.available) {
-      log('⚠️ Plugin TTS não disponível', '#ff6b6b');
+      log('⚠️ Plugin TTS não disponível', 'warning');
       return;
     }
     try {
       ttsTest.speakBasic('Olá! Este é um teste de síntese de voz.');
-      log('✅ Fala iniciada!', '#4ade80');
+      log('✅ Fala iniciada!', 'success');
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // TTS Stop
   document.getElementById('btn-tts-stop').onclick = () => {
-    log('⏹️ Parando fala...', '#a78bfa');
+    log('⏹️ Parando fala...', 'info');
     if (ttsTest) {
       const stopped = ttsTest.stopSpeech();
-      log(stopped ? '✅ Fala parada' : '⚠️ Nenhum método de stop disponível', stopped ? '#4ade80' : '#fbbf24');
+      log(stopped ? '✅ Fala parada' : '⚠️ Nenhum método de stop disponível', stopped ? 'success' : 'warning');
     }
   };
 
   // Seeder
   document.getElementById('btn-seeder').onclick = () => {
-    log('🌱 Testando Seeder...', '#60a5fa');
+    log('🌱 Testando Seeder...', 'info');
     if (!seederTest || !seederTest.available) {
-      log('⚠️ Plugin Seeder não disponível', '#ff6b6b');
+      log('⚠️ Plugin Seeder não disponível', 'warning');
       return;
     }
     try {
       const seed = seederTest.generateRandomSeed();
       seederTest.applySeed(seed);
-      log(`✅ Seed aplicada: ${seed}`, '#4ade80');
-      log('   Seleções agora são determinísticas!', '#4ade80');
+      log(`✅ Seed aplicada: ${seed}`, 'success');
+      log('   Seleções agora são determinísticas!', 'success');
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // Pattern
   document.getElementById('btn-pattern').onclick = async () => {
-    log('🎨 Gerando padrão procedural...', '#60a5fa');
+    log('🎨 Gerando padrão procedural...', 'info');
     if (!patternTest || !patternTest.available) {
-      log('⚠️ Plugin Pattern não disponível', '#ff6b6b');
+      log('⚠️ Plugin Pattern não disponível', 'warning');
       return;
     }
     try {
       const result = patternTest.generateEmojiPattern();
-      log(result ? '✅ Padrão gerado! Veja preview no canto inferior direito' : '❌ Erro ao gerar padrão', result ? '#4ade80' : '#ff6b6b');
+      log(result ? '✅ Padrão gerado! Veja preview no canto inferior direito' : '❌ Erro ao gerar padrão', result ? 'success' : 'error');
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
   // State Save
   document.getElementById('btn-state-save').onclick = () => {
-    log('💾 Salvando estado...', '#f87171');
+    log('💾 Salvando estado...', 'info');
     if (!stateTest) {
-      log('⚠️ State não disponível', '#ff6b6b');
+      log('⚠️ State não disponível', 'warning');
       return;
     }
     const state = stateTest.getDefaultState();
@@ -302,46 +305,46 @@ export function initUITest(rendererData, testModules) {
     state.world.bioma = 'floresta';
     const saved = stateTest.save(state);
     if (saved) {
-      log('✅ Estado salvo!', '#4ade80');
+      log('✅ Estado salvo!', 'success');
     } else {
-      log('❌ Erro ao salvar', '#ff6b6b');
+      log('❌ Erro ao salvar', 'error');
     }
   };
 
   // State Load
   document.getElementById('btn-state-load').onclick = () => {
-    log('📂 Carregando estado...', '#f87171');
+    log('📂 Carregando estado...', 'info');
     if (!stateTest) {
-      log('⚠️ State não disponível', '#ff6b6b');
+      log('⚠️ State não disponível', 'warning');
       return;
     }
     const loaded = stateTest.load();
     if (loaded) {
-      log(`✅ Carregado: ${loaded.player.name} Lv.${loaded.player.level}`, '#4ade80');
+      log(`✅ Carregado: ${loaded.player.name} Lv.${loaded.player.level}`, 'success');
     } else {
-      log('⚠️ Nenhum save encontrado', '#ff6b6b');
+      log('⚠️ Nenhum save encontrado', 'warning');
     }
   };
 
   // KV
   document.getElementById('btn-kv').onclick = async () => {
-    log('💾 Testando KV Plugin...', '#f87171');
+    log('💾 Testando KV Plugin...', 'info');
     if (!kvTest || !kvTest.available) {
-      log('⚠️ Plugin KV não disponível', '#ff6b6b');
+      log('⚠️ Plugin KV não disponível', 'warning');
       return;
     }
     try {
       const saved = await kvTest.setSimpleValue('test_key', 'test_value');
       if (saved) {
         const retrieved = await kvTest.getValue('test_key');
-        log(`✅ KV: test_key = "${retrieved}"`, '#4ade80');
+        log(`✅ KV: test_key = "${retrieved}"`, 'success');
       } else {
-        log('❌ Erro ao salvar', '#ff6b6b');
+        log('❌ Erro ao salvar', 'error');
       }
     } catch (e) {
-      log(`❌ Erro: ${e.message}`, '#ff6b6b');
+      log(`❌ Erro: ${e.message}`, 'error');
     }
   };
 
-  console.log('✅ [UI-Test] Painel de testes v1.2.5 criado e visível.');
+  console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado e visível.`);
 }
