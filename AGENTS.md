@@ -146,7 +146,7 @@ import { VERSION } from './constants.js';
 console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 
 // ❌ Wrong - requires manual update or script pattern
-console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.3.0)');
+console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.5.4v1.3.0');
 ```
 
 This approach:

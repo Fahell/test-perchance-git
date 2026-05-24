@@ -173,17 +173,27 @@ export async function renderDiagram(type, container) {
     
     container.appendChild(diagramContainer);
     
+    
     // Generate unique ID for Mermaid render (different from container)
     const renderId = `mermaid-${type}-${Date.now()}`;
     
     // Render diagram - Mermaid creates temporary element with this ID
-    const { svg } = await mermaid.render(renderId, diagramCode);
+    console.log(`🔍 [Mermaid] Rendering ${type} with ID: ${renderId}`);
+    const result = await mermaid.render(renderId, diagramCode);
+    console.log(`🔍 [Mermaid] Render result:`, { hasSvg: !!result.svg, svgLength: result.svg?.length });
+    
+    const { svg } = result;
     
     // Insert SVG into the render container
     const renderDiv = diagramContainer.querySelector('.mermaid-render');
     if (renderDiv) {
       renderDiv.innerHTML = svg;
+      console.log(`🔍 [Mermaid] SVG inserted, innerHTML length:`, renderDiv.innerHTML.length);
+    } else {
+      console.error(`❌ [Mermaid] renderDiv not found!`);
     }
+    
+    console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     return true;

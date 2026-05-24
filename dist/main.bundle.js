@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.5.3";
+const VERSION = "v1.5.4";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -4747,23 +4747,33 @@ const DIAGRAMS = {
     Playing --> [*]: Quit`
 };
 async function renderDiagram(type, container2) {
+  var _a;
   try {
     const mermaid = await getMermaid();
     const diagramCode = DIAGRAMS[type];
     if (!diagramCode) {
       throw new Error(`Unknown diagram type: ${type}`);
     }
-    const id = `mermaid-${type}-${Date.now()}`;
     const diagramContainer = document.createElement("div");
     diagramContainer.className = "mermaid-diagram";
     diagramContainer.innerHTML = `
       <h4 class="mermaid-title">${type.charAt(0).toUpperCase() + type.slice(1)} Diagram</h4>
-      <div id="${id}" class="mermaid-render"></div>
+      <div class="mermaid-render"></div>
     `;
     container2.appendChild(diagramContainer);
-    const { svg } = await mermaid.render(id, diagramCode);
-    const renderDiv = diagramContainer.querySelector(`#${id}`);
-    if (renderDiv) renderDiv.innerHTML = svg;
+    const renderId = `mermaid-${type}-${Date.now()}`;
+    console.log(`🔍 [Mermaid] Rendering ${type} with ID: ${renderId}`);
+    const result = await mermaid.render(renderId, diagramCode);
+    console.log(`🔍 [Mermaid] Render result:`, { hasSvg: !!result.svg, svgLength: (_a = result.svg) == null ? void 0 : _a.length });
+    const { svg } = result;
+    const renderDiv = diagramContainer.querySelector(".mermaid-render");
+    if (renderDiv) {
+      renderDiv.innerHTML = svg;
+      console.log(`🔍 [Mermaid] SVG inserted, innerHTML length:`, renderDiv.innerHTML.length);
+    } else {
+      console.error(`❌ [Mermaid] renderDiv not found!`);
+    }
+    console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     return true;
   } catch (error) {

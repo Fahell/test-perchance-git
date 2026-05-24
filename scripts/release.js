@@ -105,7 +105,7 @@ function main() {
   
   // Valida formato de versão (sem v)
   if (version.startsWith('v')) {
-    console.error('❌ Não inclua "v" no número da versão. Use: 1.3.0 (não v1.3.0)');
+    console.error('❌ Não inclua "v" no número da versão. Use: v1.5.31.3.0');
     process.exit(1);
   }
   

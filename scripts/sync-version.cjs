@@ -31,6 +31,8 @@ const EXCLUDED_DIRS = new Set([
 ]);
 
 const EXCLUDED_FILES = new Set([
+  "release.sh",
+  "test-local.html",
   'CHANGELOG.md',
   'package-lock.json',
   'yarn.lock',
@@ -258,6 +260,46 @@ function updateGenericFile(filePath, version, versionWithoutPrefix, stats) {
       oldVersions.add(oldVersion);
       changesCount++;
       return `${start}${version}${end}`;
+    }
+    return match;
+  });
+  
+  // Pattern 5: HTML comments in Portuguese (Versão)
+  // Example: <!-- Versão: v1.3.0 -->
+  const htmlCommentPtPattern = /(<!--\s*Versão:\s*)(v?\d+\.\d+\.\d+)(\s*-->)/g;
+  updatedContent = updatedContent.replace(htmlCommentPtPattern, (match, start, oldVersion, end) => {
+    if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
+      oldVersions.add(oldVersion);
+      changesCount++;
+      return `${start}${version}${end}`;
+    }
+    return match;
+  });
+  
+  // Pattern 6: Console logs with version mentions (generic)
+  // Example: console.log('...v1.3.0...')
+  
+  // Pattern 6: Version strings in console.log (literal strings only)
+  // Example: console.log('...bundle v1.3.0...')
+  // Only matches versions inside quotes (single or double)
+  const consoleLogPattern = /(["'])([^"']*?(?:bundle|carregando|versão|version)[^"']*?)(v?\d+\.\d+\.\d+)([^"']*?)\1/gi;
+  updatedContent = updatedContent.replace(consoleLogPattern, (match, quote, before, oldVersion, after) => {
+    if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
+      oldVersions.add(oldVersion);
+      changesCount++;
+      return `${quote}${before}${version}${after}${quote}`;
+    }
+    return match;
+  });
+  
+  // Pattern 7: Tag version in error messages (literal strings only)
+  // Example: console.log('...Tag v1.3.0...')
+  const errorMsgPattern = /(["'])([^"']*?Tag\s+)(v?\d+\.\d+\.\d+)([^"']*?)\1/gi;
+  updatedContent = updatedContent.replace(errorMsgPattern, (match, quote, before, oldVersion, after) => {
+    if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
+      oldVersions.add(oldVersion);
+      changesCount++;
+      return `${quote}${before}${version}${after}${quote}`;
     }
     return match;
   });
