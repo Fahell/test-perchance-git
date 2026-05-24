@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.5.0";
+const VERSION = "v1.5.1";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -4670,7 +4670,7 @@ function preloadMermaid() {
           htmlLabels: true
         }
       });
-      console.log(`✅ [Mermaid] Loaded from CDN (v${VERSION})`);
+      console.log(`✅ [Mermaid] Loaded from CDN (${VERSION})`);
       resolve(mermaidInstance);
     };
     script.onerror = () => {
@@ -4762,7 +4762,8 @@ async function renderDiagram(type, container2) {
     `;
     container2.appendChild(diagramContainer);
     const { svg } = await mermaid.render(id, diagramCode);
-    document.getElementById(id).innerHTML = svg;
+    const renderDiv = diagramContainer.querySelector(`#${id}`);
+    if (renderDiv) renderDiv.innerHTML = svg;
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     return true;
   } catch (error) {

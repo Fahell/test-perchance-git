@@ -49,7 +49,7 @@ function preloadMermaid() {
         }
       });
       
-      console.log(`✅ [Mermaid] Loaded from CDN (v${VERSION})`);
+      console.log(`✅ [Mermaid] Loaded from CDN (${VERSION})`);
       resolve(mermaidInstance);
     };
     
@@ -178,7 +178,8 @@ export async function renderDiagram(type, container) {
     
     // Render diagram
     const { svg } = await mermaid.render(id, diagramCode);
-    document.getElementById(id).innerHTML = svg;
+    const renderDiv = diagramContainer.querySelector(`#${id}`);
+    if (renderDiv) renderDiv.innerHTML = svg;
     
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     return true;
