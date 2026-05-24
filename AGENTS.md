@@ -131,3 +131,67 @@ O Zsh foi otimizado para startup rápido (<0.25s). NVM e pyenv usam **lazy-loadi
 |-------|-------------|--------|
 | `fd` | `fdfind` | Ubuntu nomeia o binário como `fdfind`; alias garante compatibilidade cross-distro |
 | `ff` | `fdfind --type f` | Busca rápida apenas arquivos |
+
+## 🪝 Git Pre-Commit Hook: Automação de Versionamento
+
+O projeto possui um hook de pre-commit que automatiza a atualização de versões em múltiplos arquivos.
+
+### Comportamento do Hook
+
+**O hook só atualiza as versões automaticamente se houver alterações em `src/constants.js`.**
+
+Quando `constants.js` é modificado, o hook automaticamente:
+- Atualiza a versão em `package.json`
+- Atualiza URLs de versão em `for-perchance.html`
+- Sincroniza outras referências de versão no projeto
+
+### Fluxo Correto para Releases
+
+1. **Atualize `src/constants.js`** com a nova versão:
+   ```javascript
+   export const VERSION = '1.4.0';
+   ```
+
+2. **Faça commit** - o hook detectará a mudança em `constants.js` e atualizará os outros arquivos automaticamente
+
+3. **Adicione os arquivos atualizados pelo hook** e faça o commit final:
+   ```bash
+   git add .
+   git commit -m "chore: release v1.4.0"
+   ```
+
+4. **Crie a tag e faça push**:
+   ```bash
+   git tag -a v1.4.0 -m "Release v1.4.0"
+   git push origin main --tags
+   ```
+
+### ⚠️ Importante
+
+- **Nunca** crie uma tag sem antes atualizar `constants.js`
+- Se você esquecer de atualizar `constants.js`, o hook **não** atualizará as versões nos outros arquivos
+- Sempre verifique se `constants.js`, `package.json` e `for-perchance.html` estão com a mesma versão antes de criar a tag
+- O hook é o mecanismo oficial de sincronização de versões; não edite manualmente `package.json` ou `for-perchance.html` para atualizar versões
+
+### Exemplo de Erro Comum
+
+❌ **Errado:**
+```bash
+# Atualiza apenas package.json manualmente
+npm version 1.4.0
+git tag -a v1.4.0 -m "Release v1.4.0"
+# constants.js ainda está em 1.3.0! O hook não foi acionado.
+```
+
+✅ **Correto:**
+```bash
+# Atualiza constants.js primeiro
+sed -i "s/VERSION = '1.3.0'/VERSION = '1.4.0'/" src/constants.js
+git add src/constants.js
+git commit -m "chore: release v1.4.0"
+# Hook atualiza package.json e for-perchance.html automaticamente
+git add .
+git commit --amend --no-edit
+git tag -a v1.4.0 -m "Release v1.4.0"
+git push origin main --tags
+```
