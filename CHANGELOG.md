@@ -2,6 +2,32 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [1.2.11] - 2026-05-24
+
+### 🤖 Automação Avançada
+
+#### watch-version.js Script (#12)
+- Novo script `scripts/watch-version.js` para sincronização automática em tempo real
+- Monitora `src/constants.js` via `fs.watch` nativo do Node.js
+- Executa `sync-version.js` automaticamente quando detecta mudanças
+- Debounce de 500ms para evitar execuções múltiplas em saves rápidos
+- Proteção contra execuções concorrentes
+- Graceful shutdown (Ctrl+C via handlers SIGINT/SIGTERM)
+- Initial sync ao iniciar para garantir consistência
+- Feedback visual com emojis e logs claros no terminal
+
+### 🎯 Benefícios
+- **Zero passos manuais** — Edite `constants.js` e o sync acontece automaticamente
+- **Sem dependências** — Usa apenas APIs nativas do Node.js
+- **Dev-friendly** — Deixe rodando em um terminal separado durante desenvolvimento
+- **Workflow otimizado** — Editar → Salvar → Sync automático → Commit
+
+### 📝 Documentação
+- README atualizado com seção "Modo Automático (Recomendado)"
+- Exemplos de uso e output do watcher
+- Workflow recomendado com 2 terminais (watcher + desenvolvimento)
+
+
 ## [1.2.10] - 2026-05-24
 
 ### ⚙️ Automação de Versão
