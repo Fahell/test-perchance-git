@@ -34,6 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
+const VERSION = "v1.4.1";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -191,7 +193,7 @@ async function initGame() {
   window.GAME_INITIALIZED = true;
   console.log("🔍 [Main] initGame() chamado. Verificando estado...");
   try {
-    console.log("🚀 [Main] Iniciando jogo (Vite bundle v1.3.0)");
+    console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
     const { root: root2, getVar: getVar2, getList: getList2 } = bridgeMod;
     console.log("🎨 [Main] Chamando initRenderer...");
     const rendererData = initRenderer(document.getElementById("game-container"));
@@ -240,7 +242,7 @@ async function initGame() {
     document.body.appendChild(errorDiv);
   }
 }
-console.log("📦 [Main] main.js carregado (Vite bundle). Aguardando initGame()...");
+console.log(`📦 [Main] main.js carregado (Vite bundle ${VERSION}). Aguardando initGame()...`);
 const imageTest = {
   available: !!root.image,
   containerId: "image-preview-container",
@@ -4466,8 +4468,6 @@ function requireHowler() {
   return howler;
 }
 var howlerExports = requireHowler();
-const VERSION = "v1.4.0";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 const AUDIO_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}/assets/audio`;
 const AUDIO_URLS = {
   click: `${AUDIO_BASE}/click.wav`,

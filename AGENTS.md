@@ -113,6 +113,48 @@ git tag -a v1.4.0 -m "Release v1.4.0"
 git push origin main --tags
 ```
 
+
+### Search Strategy
+
+The script uses **recursive search** with intelligent patterns to find version references:
+
+1. **Recursive file scanning** - Scans all text files in the project
+2. **Protected directories** - Excludes: `node_modules/`, `dist/`, `.git/`
+3. **Protected files** - Never modifies: `CHANGELOG.md`, `package-lock.json`, lock files
+4. **Pattern matching** - Only updates:
+   - Repository-specific CDN URLs (containing `test-perchance-git@`)
+   - Comments with explicit version markers (`// Version: vX.Y.Z`)
+   - Project constants (`BASE_URL`)
+   - HTML comments with version
+
+**Why recursive search?**
+- ✅ Automatic - no need to maintain a list of files
+- ✅ Scalable - works with any project structure
+- ✅ Defensive - patterns prevent false positives
+- ✅ Maintenance-free - new files are automatically included
+
+**To add new file types or patterns:**
+Edit `scripts/sync-version.cjs` and add patterns to the `patterns` array.
+
+### Best Practices for Version References
+
+**Use template literals with VERSION constant** for logs and dynamic strings:
+
+```javascript
+// ✅ Correct - automatically stays in sync
+import { VERSION } from './constants.js';
+console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
+
+// ❌ Wrong - requires manual update or script pattern
+console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.3.0)');
+```
+
+This approach:
+- Eliminates hardcoded versions in source code
+- Reduces dependency on sync script for logs
+- Ensures logs always reflect the current version
+- Makes code more maintainable
+
 ### Manual Sync (If Needed)
 
 You can run the sync script manually to verify or force synchronization:

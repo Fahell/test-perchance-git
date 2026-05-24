@@ -1,8 +1,9 @@
 // src/main.js
-// Entry point do jogo - v1.3.0 com Vite bundling
+// Entry point - Vite bundling
 
 // Imports estáticos para módulos críticos
 import * as bridgeMod from './perchance-bridge.js';
+import { VERSION } from './constants.js';
 import { initRenderer } from './modules/renderer.js';
 import { initLogic } from './modules/logic.js';
 
@@ -101,7 +102,7 @@ export async function initGame() {
   console.log('🔍 [Main] initGame() chamado. Verificando estado...');
 
   try {
-    console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.3.0)');
+    console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 
     const { root, getVar, getList } = bridgeMod;
 
@@ -171,4 +172,4 @@ export async function initGame() {
 }
 
 // Log para confirmar que o arquivo foi lido
-console.log('📦 [Main] main.js carregado (Vite bundle). Aguardando initGame()...');
+console.log(`📦 [Main] main.js carregado (Vite bundle ${VERSION}). Aguardando initGame()...`);
