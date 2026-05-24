@@ -1,9 +1,9 @@
 // src/modules/ui-test.js
-// Painel de testes com controles globais e log estruturado (v1.2.8)
+// Painel de testes com controles globais e log estruturado
 import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.7/src/perchance-bridge.js';
+import { VERSION, CDN_BASE } from '../constants.js';
 
-const VERSION = 'v1.2.8';
-const CSS_URL = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}/src/styles/ui-test.css`;
+const CSS_URL = `${CDN_BASE}/styles/ui-test.css`;
 
 function injectStylesheet() {
   if (document.getElementById('ui-test-styles')) return;
