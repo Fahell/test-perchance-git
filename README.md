@@ -204,9 +204,11 @@ node scripts/sync-version.js
 
 O script:
 - ✅ Detecta a versão atual em `constants.js`
-- ✅ Atualiza URLs CDN (formato `@v1.2.11`)
-- ✅ Atualiza comentários HTML (formato `1.2.10`)
-- ✅ Mostra diff das alterações
+- ✅ Atualiza URLs CDN em `for-perchance.html` (formato `@v1.2.11`)
+- ✅ Atualiza comentários HTML em `for-perchance.html` (formato `1.2.10`)
+- ✅ Atualiza título do `README.md` (linha 1)
+- ✅ Atualiza comentário e BASE_URL em `src/main.js`
+- ✅ Mostra resumo das alterações
 - ✅ Idempotente (não faz nada se já estiver sincronizado)
 
 ### Para Usuários
