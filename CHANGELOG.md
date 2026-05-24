@@ -2,6 +2,36 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [Unreleased]
+
+### 🐛 Correções
+- **pattern-test.js**: Checks defensivos de DOM, try/catch em todos os métodos de geração e preview com fallback seguro (#1)
+
+### 📝 Documentação
+- Adicionado `AGENTS.md` com contexto operacional completo para agentes de IA
+- Documentado inventário de ferramentas (Docker, fzf, direnv, ripgrep, fd, bat, eza)
+- Documentada otimização de startup do zsh e alias `fd`
+- Adicionada referência de controles de segurança
+
+### 🔧 Refatoração
+- Removidos wrappers `.bat`, `dev-server.sh` agora usa Python HTTP Server
+- Scripts documentados no AGENTS.md
+
+## [1.2.7] - 2025-01-22
+
+### 📝 Documentação
+- Atualizada versão no README para 1.2.7
+
+### 🔧 Chore
+- Bump de versão para 1.2.7
+- Automação de ambiente de desenvolvimento
+
+## [1.2.6] - 2025-01-22
+
+### 📝 Documentação
+- Documentada limitação conhecida do pattern plugin (erro de `dataset` fora do DOM Perchance)
+- Melhorados logs de diagnóstico
+
 ## [1.2.5] - 2025-01-22
 
 ### 🐛 Correções Críticas de API
