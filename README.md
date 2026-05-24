@@ -1,4 +1,4 @@
-# 🎮 Test Perchance Git (v1.2.8)
+# 🎮 Test Perchance Git (v1.2.9)
 
 Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN.
 
@@ -10,6 +10,7 @@ Este projeto demonstra como modularizar código JavaScript para uso no Perchance
 - ✅ Cache-busting via tags de versão
 - ✅ Debug facilitado com logs detalhados
 - ✅ Testes de plugins do Perchance
+- ✅ Integração com bibliotecas de terceiros via CDN
 
 ## 🏗️ Estrutura do Projeto
 
@@ -19,10 +20,14 @@ test-perchance-git/
 ├── for-perchance-list-panel.txt    # List Panel para copiar/colar no Perchance
 ├── test-local.html                 # Teste local no navegador
 ├── README.md                       # Este arquivo
+├── CHANGELOG.md                    # Histórico de versões
 ├── .gitignore                      # Configuração Git
 └── src/
     ├── main.js                     # Entry point (importa e inicializa tudo)
+    ├── constants.js                # Versão e URLs centralizadas
     ├── perchance-bridge.js         # Ponte segura para root/listas do Perchance
+    ├── styles/
+    │   └── ui-test.css             # Design tokens e estilos do painel
     └── modules/
         ├── renderer.js             # Three.js: cena, câmera, loop
         ├── logic.js                # Lógica do jogo (seed, bioma, eventos)
@@ -38,7 +43,8 @@ test-perchance-git/
         ├── rpg-icon-test.js        # Teste do plugin RPG Icon
         ├── pattern-test.js         # Teste do plugin Pattern Maker
         ├── kv-test.js              # Teste do plugin KV (key-value)
-        └── seeder-test.js          # Teste do plugin Seeder
+        ├── seeder-test.js          # Teste do plugin Seeder
+        └── apexcharts-test.js      # Gráficos SVG (bar, line, donut, radar)
 ```
 
 ## 🚀 Como Usar
@@ -100,31 +106,31 @@ Abra `test-local.html` no navegador para testar sem o Perchance.
 
 ## 🧪 Módulos de Teste Disponíveis
 
-### 🤖 IA
-- **AI Text**: Geração de texto via IA (streaming, startWith, stopSequences)
-- **Image**: Geração de imagem com preview visual (seed, removeBackground, resolução)
-
-### 🎲 Perchance
-- **Listas**: selectOne, selectUnique, selectMany, length
-- **Bridge**: Acesso a root, variáveis e listas
-
-### 🎨 Three.js
-- **Cor Cubo**: Mudar cor do cubo 3D
-- **Raycaster**: Clique em objetos 3D (esferas coloridas)
-- **Canvas**: Canvas 2D + integração com Three.js (CanvasTexture)
-
-### 🎮 RPG
+### 🎲 Geração & Aleatoriedade
 - **Dice**: Rolagem de dados RPG (1d20, 3d6, 2d8+5, etc.)
-- **RPG Icons**: ~500 ícones RPG temáticos com grid de preview
-
-### 🔊 Áudio
-- **TTS**: Text-to-Speech com controle de velocidade, pitch e volume
-
-### 🌱 Seeds
 - **Seeder**: Geração de seeds copiáveis para reprodutibilidade
 - **Pattern**: Geração de padrões procedurais com preview
 
-### 💾 Persistência
+### 🤖 IA & Conteúdo
+- **AI Text**: Geração de texto via IA (streaming, startWith, stopSequences)
+- **Image**: Geração de imagem com preview visual (seed, removeBackground, resolução)
+- **TTS**: Text-to-Speech com controle de velocidade, pitch e volume
+
+### 🎨 Renderização
+- **Cor Cubo**: Mudar cor do cubo 3D
+- **Raycaster**: Clique em objetos 3D (esferas coloridas)
+- **Canvas**: Canvas 2D + integração com Three.js (CanvasTexture)
+- **RPG Icons**: ~500 ícones RPG temáticos com grid de preview
+
+### 📊 Visualização (Novo!)
+- **Bar Chart**: Stats de RPG com cores distribuídas
+- **Line Chart**: HP Player vs Enemy ao longo de turnos
+- **Donut Chart**: Distribuição de classes de personagem
+- **Radar Chart**: Comparação de atributos Player vs NPC
+
+### 💾 Dados & Estado
+- **Listas**: selectOne, selectUnique, selectMany, length
+- **Bridge**: Acesso a root, variáveis e listas
 - **Save/Load**: localStorage para save/load de estado
 - **KV**: Key-value storage persistente (sobrevive reloads)
 
@@ -141,8 +147,8 @@ git commit -m "feat: descrição das mudanças"
 git push
 
 # 2. Crie uma nova tag
-git tag -a v1.2.1 -m "v1.2.1 - Descrição da versão"
-git push origin v1.2.1
+git tag -a v1.2.9 -m "v1.2.9 - Descrição da versão"
+git push origin v1.2.9
 ```
 
 ### Para Usuários
@@ -151,10 +157,10 @@ No `for-perchance.html`, atualize a URL:
 
 ```javascript
 // De:
-const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.0/src/main.js");
+const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/main.js");
 
 // Para:
-const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.1/src/main.js");
+const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.9/src/main.js");
 ```
 
 ## 🐛 Troubleshooting
@@ -166,8 +172,8 @@ const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perch
 **Solução**:
 1. Verifique se a tag existe: `git tag -l`
 2. Verifique se o push foi feito: `git log`
-3. Crie a tag: `git tag -a v1.2.0 -m "v1.2.0"`
-4. Push da tag: `git push origin v1.2.0`
+3. Crie a tag: `git tag -a v1.2.9 -m "v1.2.9"`
+4. Push da tag: `git push origin v1.2.9`
 
 ### Erro: "Module not found"
 
@@ -183,7 +189,7 @@ const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perch
 **Causa**: O jsDelivr pode cachear arquivos antigos.
 
 **Solução**:
-1. Sempre use tags de versão (ex: `@v1.2.0`)
+1. Sempre use tags de versão (ex: `@v1.2.9`)
 2. Para forçar atualização, crie uma nova tag
 3. Limpe o cache do navegador (Ctrl+Shift+Del)
 
@@ -222,6 +228,7 @@ Uncaught TypeError: Cannot read properties of null (reading 'dataset')
 - [Perchance Plugins](https://perchance.org/plugins)
 - [jsDelivr CDN](https://www.jsdelivr.com/)
 - [Three.js Documentation](https://threejs.org/docs/)
+- [ApexCharts](https://apexcharts.com/)
 
 ## 📝 Licença
 

@@ -1,6 +1,6 @@
 // src/modules/ui-test.js
 // Painel de testes com controles globais e log estruturado
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/perchance-bridge.js';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.9/src/perchance-bridge.js';
 import { VERSION, CDN_BASE } from '../constants.js';
 
 const CSS_URL = `${CDN_BASE}/styles/ui-test.css`;
@@ -359,7 +359,7 @@ export function initUITest(rendererData, testModules) {
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:#f39c12">📊 Visualização</strong>
+      <strong style="color:var(--ui-color-viz)">📊 Visualização</strong>
       <button id="btn-chart-bar" class="ui-test-btn ui-test-btn--viz">📊 Bar</button>
       <button id="btn-chart-line" class="ui-test-btn ui-test-btn--viz">📈 Line</button>
       <button id="btn-chart-pie" class="ui-test-btn ui-test-btn--viz">🍩 Donut</button>

@@ -2,6 +2,31 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [1.2.9] - 2026-05-24
+
+### ✨ Nova Categoria: Visualização de Dados
+
+#### ApexCharts Integration (#7)
+- Novo módulo `src/modules/apexcharts-test.js` com 4 tipos de gráficos SVG
+- **Bar Chart**: Stats de RPG (STR, DEX, CON, etc.) com cores distribuídas
+- **Area Chart**: HP Player vs Enemy ao longo de 20 turnos
+- **Donut Chart**: Distribuição de classes (Warrior, Mage, Rogue, etc.)
+- **Radar Chart**: Comparação de atributos Player vs NPC
+- Carregamento lazy via CDN (apenas quando solicitado)
+- Container modal com tema dark e animações suaves
+- Nova categoria "📊 Visualização" no painel de testes
+
+#### Integração (#8)
+- Adicionado `apexchartsTest` ao mapeamento `TEST_MODULES` no main.js
+- CSS atualizado com nova cor `--ui-color-viz` (#f39c12)
+- 4 novos handlers no ui-test.js para gráficos
+
+### 📊 Stress Test Objetivos
+- Carregamento dinâmico de libs de terceiros via CDN
+- Renderização SVG pesada dentro do Perchance
+- Modais overlay sobre o painel de testes
+- Integração com design system existente
+
 ## [1.2.8] - 2026-05-24
 
 ### ✨ UI do Perchance — Reorganização Completa
