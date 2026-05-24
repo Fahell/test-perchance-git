@@ -20,7 +20,8 @@ const TEST_MODULES = {
   patternTest: () => import('./modules/pattern-test.js'),
   kvTest: () => import('./modules/kv-test.js'),
   seederTest: () => import('./modules/seeder-test.js'),
-  apexchartsTest: () => import('./modules/apexcharts-test.js')
+  apexchartsTest: () => import('./modules/apexcharts-test.js'),
+  audioTest: () => import('./modules/audio-test.js')
 };
 
 // Cache de módulos carregados
