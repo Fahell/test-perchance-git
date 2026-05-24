@@ -1,7 +1,7 @@
 // src/main.js
-// Entry point do jogo - v1.2.5 com APIs corrigidas (KV, Seeder, Pattern, RPG Icon, TTS)
+// Entry point do jogo - v1.2.8 com APIs corrigidas (KV, Seeder, Pattern, RPG Icon, TTS)
 
-const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src';
+const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src';
 
 // Mapeamento de módulos de teste
 const TEST_MODULES = {

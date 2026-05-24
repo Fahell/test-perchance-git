@@ -1,6 +1,6 @@
 // src/modules/ui-test.js
 // Painel de testes com controles globais e log estruturado
-import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.7/src/perchance-bridge.js';
+import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/perchance-bridge.js';
 import { VERSION, CDN_BASE } from '../constants.js';
 
 const CSS_URL = `${CDN_BASE}/styles/ui-test.css`;

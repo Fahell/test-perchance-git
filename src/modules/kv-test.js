@@ -1,7 +1,7 @@
 // src/modules/kv-test.js
 // Testa o plugin kv-plugin do Perchance (IndexedDB key-value storage)
 // Documentação: https://perchance.org/kv-plugin
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/perchance-bridge.js';
 
 export const kvTest = {
   available: !!root.kv,

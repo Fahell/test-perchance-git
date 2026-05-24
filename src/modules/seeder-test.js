@@ -1,7 +1,7 @@
 // src/modules/seeder-test.js
 // Testa o plugin seeder-plugin do Perchance (randomização determinística)
 // Documentação: https://perchance.org/seeder-plugin
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/perchance-bridge.js';
 
 export const seederTest = {
   available: !!root.seeder,

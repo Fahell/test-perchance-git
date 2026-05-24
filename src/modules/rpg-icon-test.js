@@ -1,7 +1,7 @@
 // src/modules/rpg-icon-test.js
 // Testa o plugin rpg-icon-plugin do Perchance (~500 ícones RPG)
 // Documentação: https://perchance.org/rpg-icon-plugin
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
+import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/perchance-bridge.js';
 
 export const rpgIconTest = {
   available: !!root.rpgIcon,
