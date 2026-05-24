@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.4.1";
+const VERSION = "v1.5.0";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -132,7 +132,8 @@ const TEST_MODULES = {
   kvTest: () => Promise.resolve().then(() => kvTest$1),
   seederTest: () => Promise.resolve().then(() => seederTest$1),
   apexchartsTest: () => Promise.resolve().then(() => apexchartsTest$1),
-  audioTest: () => Promise.resolve().then(() => audioTest)
+  audioTest: () => Promise.resolve().then(() => audioTest),
+  mermaidTest: () => Promise.resolve().then(() => mermaidTest$1)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -201,6 +202,11 @@ async function initGame() {
     const bioma = getList2("biomas", ["planície"]).selectOne;
     initLogic(seed, bioma);
     const testModules = await loadAllTestModules();
+    console.log("📊 [Main] Starting Mermaid background preload...");
+    const mermaidModule = await TEST_MODULES.mermaidTest();
+    if (mermaidModule && mermaidModule.mermaidTest && mermaidModule.mermaidTest.preloadMermaid) {
+      mermaidModule.mermaidTest.preloadMermaid();
+    }
     initTestModules(testModules, rendererData);
     console.log("🔍 [Main] Carregando módulo ui-test.js...");
     const uiTestMod = await Promise.resolve().then(() => uiTest);
@@ -4604,7 +4610,7 @@ function checkAvailability() {
     code: "audio-test"
   };
 }
-function cleanup() {
+function cleanup$1() {
   stopAll();
   Object.keys(sounds).forEach((key) => {
     sounds[key].unload();
@@ -4621,7 +4627,7 @@ const info = {
 const audioTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   checkAvailability,
-  cleanup,
+  cleanup: cleanup$1,
   getVolume,
   info,
   playMusic,
@@ -4630,6 +4636,191 @@ const audioTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   stopAll,
   testSprite,
   toggleMusic
+}, Symbol.toStringTag, { value: "Module" }));
+const MERMAID_CDN_URL = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
+let mermaidPromise = null;
+let mermaidReady = false;
+let mermaidInstance = null;
+function preloadMermaid() {
+  if (mermaidPromise) {
+    return mermaidPromise;
+  }
+  mermaidPromise = new Promise((resolve, reject) => {
+    console.log(`📊 [Mermaid] Starting background load from CDN...`);
+    if (window.mermaid) {
+      mermaidReady = true;
+      mermaidInstance = window.mermaid;
+      console.log(`✅ [Mermaid] Already loaded in window`);
+      resolve(window.mermaid);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = MERMAID_CDN_URL;
+    script.async = true;
+    script.onload = () => {
+      mermaidReady = true;
+      mermaidInstance = window.mermaid;
+      mermaidInstance.initialize({
+        startOnLoad: false,
+        theme: "dark",
+        securityLevel: "loose",
+        fontFamily: "inherit",
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true
+        }
+      });
+      console.log(`✅ [Mermaid] Loaded from CDN (v${VERSION})`);
+      resolve(mermaidInstance);
+    };
+    script.onerror = () => {
+      const error = new Error("Failed to load Mermaid from CDN");
+      console.error(`❌ [Mermaid] ${error.message}`);
+      reject(error);
+    };
+    document.head.appendChild(script);
+  });
+  return mermaidPromise;
+}
+async function getMermaid() {
+  if (mermaidReady && mermaidInstance) {
+    return mermaidInstance;
+  }
+  if (!mermaidPromise) {
+    preloadMermaid();
+  }
+  console.log(`⏳ [Mermaid] Waiting for load to complete...`);
+  return await mermaidPromise;
+}
+function isReady() {
+  return mermaidReady;
+}
+function isLoading() {
+  return mermaidPromise !== null && !mermaidReady;
+}
+const DIAGRAMS = {
+  flowchart: `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[End]`,
+  sequence: `sequenceDiagram
+    participant User
+    participant Perchance
+    participant CDN
+    
+    User->>Perchance: Load Game
+    Perchance->>CDN: Fetch Bundle
+    CDN-->>Perchance: main.bundle.js
+    Perchance->>Perchance: initGame()
+    Perchance-->>User: Game Ready`,
+  pie: `pie title Project Structure
+    "Modules" : 60
+    "Styles" : 15
+    "Assets" : 20
+    "Config" : 5`,
+  class: `classDiagram
+    class Game {
+      +init()
+      +update()
+      +render()
+    }
+    class Renderer {
+      +scene
+      +camera
+      +render()
+    }
+    class Logic {
+      +seed
+      +biome
+      +update()
+    }
+    Game --> Renderer
+    Game --> Logic`,
+  state: `stateDiagram-v2
+    [*] --> Loading
+    Loading --> Ready: Assets Loaded
+    Ready --> Playing: Start Game
+    Playing --> Paused: Pause
+    Paused --> Playing: Resume
+    Playing --> [*]: Quit`
+};
+async function renderDiagram(type, container2) {
+  try {
+    const mermaid = await getMermaid();
+    const diagramCode = DIAGRAMS[type];
+    if (!diagramCode) {
+      throw new Error(`Unknown diagram type: ${type}`);
+    }
+    const id = `mermaid-${type}-${Date.now()}`;
+    const diagramContainer = document.createElement("div");
+    diagramContainer.className = "mermaid-diagram";
+    diagramContainer.innerHTML = `
+      <h4 class="mermaid-title">${type.charAt(0).toUpperCase() + type.slice(1)} Diagram</h4>
+      <div id="${id}" class="mermaid-render"></div>
+    `;
+    container2.appendChild(diagramContainer);
+    const { svg } = await mermaid.render(id, diagramCode);
+    document.getElementById(id).innerHTML = svg;
+    console.log(`✅ [Mermaid] Rendered ${type} diagram`);
+    return true;
+  } catch (error) {
+    console.error(`❌ [Mermaid] Failed to render ${type}:`, error.message);
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "mermaid-error";
+    errorDiv.innerHTML = `
+      <strong>❌ Error rendering ${type}:</strong><br>
+      ${error.message}
+    `;
+    container2.appendChild(errorDiv);
+    return false;
+  }
+}
+async function renderAllExamples(container2) {
+  console.log(`📊 [Mermaid] Rendering all example diagrams...`);
+  const results = {};
+  const types = Object.keys(DIAGRAMS);
+  for (const type of types) {
+    results[type] = await renderDiagram(type, container2);
+  }
+  const successCount = Object.values(results).filter(Boolean).length;
+  console.log(`✅ [Mermaid] Rendered ${successCount}/${types.length} diagrams`);
+  return results;
+}
+async function setTheme(themeName) {
+  const mermaid = await getMermaid();
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: themeName,
+    securityLevel: "loose",
+    fontFamily: "inherit"
+  });
+  console.log(`🎨 [Mermaid] Theme changed to: ${themeName}`);
+}
+function cleanup() {
+  console.log(`🧹 [Mermaid] Cleanup (note: CDN script remains in DOM for reuse)`);
+}
+const mermaidTest = {
+  preloadMermaid,
+  getMermaid,
+  isReady,
+  isLoading,
+  renderDiagram,
+  renderAllExamples,
+  setTheme,
+  cleanup,
+  DIAGRAMS
+};
+const mermaidTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  cleanup,
+  isLoading,
+  isReady,
+  mermaidTest,
+  renderAllExamples,
+  renderDiagram,
+  setTheme
 }, Symbol.toStringTag, { value: "Module" }));
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 function injectStylesheet() {
@@ -4752,7 +4943,8 @@ function initUITest(rendererData, testModules) {
     kvTest: kvTest2,
     seederTest: seederTest2,
     apexchartsTest: apexchartsTest2,
-    audioTest: audioTest2
+    audioTest: audioTest2,
+    mermaidTest: mermaidTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -4778,7 +4970,8 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-audio-music", name: "Audio Music", fn: () => audioMusicHandler() },
     { btnId: "btn-audio-sprite", name: "Audio Sprite", fn: () => audioSpriteHandler() },
     { btnId: "btn-audio-volume", name: "Audio Volume", fn: () => audioVolumeHandler() },
-    { btnId: "btn-audio-stop", name: "Audio Stop", fn: () => audioStopHandler() }
+    { btnId: "btn-audio-stop", name: "Audio Stop", fn: () => audioStopHandler() },
+    { btnId: "btn-mermaid", name: "Mermaid", fn: () => mermaidHandler() }
   ];
   async function diceHandler() {
     log("🎲 Rolando dados...", "info");
@@ -4950,6 +5143,27 @@ function initUITest(rendererData, testModules) {
     audioTest2.setVolume(newVolume);
     log(`✅ Volume: ${(newVolume * 100).toFixed(0)}%`, "success");
   }
+  async function mermaidHandler() {
+    log("📊 Testando Mermaid.js...", "info");
+    if (!mermaidTest2) throw new Error("Mermaid not available");
+    if (mermaidTest2.isLoading && mermaidTest2.isLoading()) {
+      log("⏳ Mermaid ainda carregando, aguarde...", "warning");
+      await mermaidTest2.getMermaid();
+    }
+    let diagramContainer = document.getElementById("mermaid-diagrams");
+    if (!diagramContainer) {
+      diagramContainer = document.createElement("div");
+      diagramContainer.id = "mermaid-diagrams";
+      diagramContainer.className = "mermaid-container";
+      document.body.appendChild(diagramContainer);
+    } else {
+      diagramContainer.innerHTML = "";
+    }
+    const results = await mermaidTest2.renderAllExamples(diagramContainer);
+    const successCount = Object.values(results).filter(Boolean).length;
+    const totalCount = Object.keys(results).length;
+    log(`✅ Mermaid: ${successCount}/${totalCount} diagramas renderizados`, "success");
+  }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
   panel.innerHTML = `
@@ -5002,6 +5216,11 @@ function initUITest(rendererData, testModules) {
     </div>
     
     <div class="ui-test-category">
+      <strong style="color:var(--ui-color-viz)">📊 Diagramas</strong>
+      <button id="btn-mermaid" class="ui-test-btn ui-test-btn--viz">📊 Mermaid</button>
+    </div>
+    
+    <div class="ui-test-category">
       <strong style="color:var(--ui-color-data)">💾 Dados & Estado</strong>
       <button id="btn-lists" class="ui-test-btn ui-test-btn--data">📋 Listas</button>
       <button id="btn-bridge" class="ui-test-btn ui-test-btn--data">🔗 Bridge</button>
@@ -5050,6 +5269,7 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-audio-sprite").onclick = () => runTest("btn-audio-sprite", "Audio Sprite", audioSpriteHandler);
   document.getElementById("btn-audio-volume").onclick = () => runTest("btn-audio-volume", "Audio Volume", audioVolumeHandler);
   document.getElementById("btn-audio-stop").onclick = () => runTest("btn-audio-stop", "Audio Stop", audioStopHandler);
+  document.getElementById("btn-mermaid").onclick = () => runTest("btn-mermaid", "Mermaid", mermaidHandler);
   console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado com controles globais.`);
 }
 const uiTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({

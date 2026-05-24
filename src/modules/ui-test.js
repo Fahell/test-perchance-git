@@ -145,7 +145,8 @@ export function initUITest(rendererData, testModules) {
     kvTest,
     seederTest,
     apexchartsTest,
-    audioTest
+    audioTest,
+    mermaidTest
   } = testModules;
 
   // Test definitions for Run All
@@ -174,6 +175,7 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-audio-sprite', name: 'Audio Sprite', fn: () => audioSpriteHandler() },
     { btnId: 'btn-audio-volume', name: 'Audio Volume', fn: () => audioVolumeHandler() },
     { btnId: 'btn-audio-stop', name: 'Audio Stop', fn: () => audioStopHandler() },
+    { btnId: 'btn-mermaid', name: 'Mermaid', fn: () => mermaidHandler() },
   ];
 
   // Handler functions (extracted for reuse in Run All)
@@ -369,6 +371,38 @@ export function initUITest(rendererData, testModules) {
     audioTest.setVolume(newVolume);
     log(`✅ Volume: ${(newVolume * 100).toFixed(0)}%`, 'success');
   }
+  async function mermaidHandler() {
+    log('📊 Testando Mermaid.js...', 'info');
+    if (!mermaidTest) throw new Error('Mermaid not available');
+    
+    // Check if still loading
+    if (mermaidTest.isLoading && mermaidTest.isLoading()) {
+      log('⏳ Mermaid ainda carregando, aguarde...', 'warning');
+      // Wait for it to finish
+      await mermaidTest.getMermaid();
+    }
+    
+    // Create or get diagram container
+    let diagramContainer = document.getElementById('mermaid-diagrams');
+    if (!diagramContainer) {
+      diagramContainer = document.createElement('div');
+      diagramContainer.id = 'mermaid-diagrams';
+      diagramContainer.className = 'mermaid-container';
+      document.body.appendChild(diagramContainer);
+    } else {
+      // Clear existing diagrams
+      diagramContainer.innerHTML = '';
+    }
+    
+    // Render all examples
+    const results = await mermaidTest.renderAllExamples(diagramContainer);
+    const successCount = Object.values(results).filter(Boolean).length;
+    const totalCount = Object.keys(results).length;
+    
+    log(`✅ Mermaid: ${successCount}/${totalCount} diagramas renderizados`, 'success');
+  }
+
+
 
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
@@ -420,6 +454,11 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-audio-sprite" class="ui-test-btn ui-test-btn--audio">🎵 Sprite</button>
       <button id="btn-audio-volume" class="ui-test-btn ui-test-btn--audio">🔊 Volume</button>
       <button id="btn-audio-stop" class="ui-test-btn ui-test-btn--audio">🔇 Stop</button>
+    </div>
+    
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-viz)">📊 Diagramas</strong>
+      <button id="btn-mermaid" class="ui-test-btn ui-test-btn--viz">📊 Mermaid</button>
     </div>
     
     <div class="ui-test-category">
@@ -478,6 +517,7 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-audio-sprite').onclick = () => runTest('btn-audio-sprite', 'Audio Sprite', audioSpriteHandler);
   document.getElementById('btn-audio-volume').onclick = () => runTest('btn-audio-volume', 'Audio Volume', audioVolumeHandler);
   document.getElementById('btn-audio-stop').onclick = () => runTest('btn-audio-stop', 'Audio Stop', audioStopHandler);
+  document.getElementById('btn-mermaid').onclick = () => runTest('btn-mermaid', 'Mermaid', mermaidHandler);
 
   console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado com controles globais.`);
 }

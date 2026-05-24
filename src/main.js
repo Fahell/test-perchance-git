@@ -22,7 +22,8 @@ const TEST_MODULES = {
   kvTest: () => import('./modules/kv-test.js'),
   seederTest: () => import('./modules/seeder-test.js'),
   apexchartsTest: () => import('./modules/apexcharts-test.js'),
-  audioTest: () => import('./modules/audio-test.js')
+  audioTest: () => import('./modules/audio-test.js'),
+  mermaidTest: () => import('./modules/mermaid-test.js')
 };
 
 // Cache de módulos carregados
@@ -117,6 +118,13 @@ export async function initGame() {
 
     // 3. Carrega todos os módulos de teste em paralelo
     const testModules = await loadAllTestModules();
+
+    // 3.5. Start preloading Mermaid in background (non-blocking)
+    console.log('📊 [Main] Starting Mermaid background preload...');
+    const mermaidModule = await TEST_MODULES.mermaidTest();
+    if (mermaidModule && mermaidModule.mermaidTest && mermaidModule.mermaidTest.preloadMermaid) {
+      mermaidModule.mermaidTest.preloadMermaid();
+    }
 
     // 4. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
     initTestModules(testModules, rendererData);
