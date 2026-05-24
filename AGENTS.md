@@ -77,11 +77,26 @@ Este documento define o contexto operacional obrigatório para qualquer agente d
 - O jsDelivr cacheia por tag; nunca confie em URLs sem versão (`@main`) para produção
 - Valide `git status` antes de qualquer operação de merge/rebase
 
+## Scripts do Projeto
+
+Todos os scripts estão em `scripts/` e devem ser executados diretamente no WSL2:
+
+| Script | Função | Uso |
+|---|---|---|
+| `scripts/dev-server.sh` | Servidor HTTP local para testes | `./scripts/dev-server.sh [porta]` |
+| `scripts/sync.sh` | Sincroniza com repositório remoto | `./scripts/sync.sh` |
+| `scripts/setup.sh` | Configura hooks e verifica ferramentas | `./scripts/setup.sh` |
+| `scripts/release.sh` | Cria tag, atualiza versão e push | `./scripts/release.sh vX.Y.Z` |
+| `scripts/check-cdn.sh` | Verifica disponibilidade na CDN jsDelivr | `./scripts/check-cdn.sh vX.Y.Z` |
+
+> ⚠️ **Nota:** Os wrappers `.bat` foram removidos. Execute os scripts `.sh` diretamente.
+> O `dev-server.sh` usa `python` (pyenv shim), não `python3`.
+
 ## Comandos Úteis
 
 ```bash
 find src/ -name '*.js' | head -20
-npx serve .
+./scripts/dev-server.sh
 git tag -l --sort=-v:refname
 ```
 
