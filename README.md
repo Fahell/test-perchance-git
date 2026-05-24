@@ -40,33 +40,52 @@ npm run preview
 
 ## 📤 Release (Deploy)
 
-Para criar uma nova release:
+O projeto utiliza um **hook de pre-commit** para automatizar a sincronização de versões.
 
-```bash
-npm run release 1.3.1
-```
+### Fluxo de Release
 
-Este comando:
-1. Atualiza a versão em `package.json`, `constants.js` e `for-perchance.html`
-2. Executa o build do Vite
-3. Faz commit automático
-4. Cria tag Git (`v1.3.1`)
-5. Faz push para o GitHub
+1. **Atualize `src/constants.js`** com a nova versão:
+   ```javascript
+   export const VERSION = '1.4.1';
+   ```
+
+2. **Faça commit** - o hook detectará a mudança em `constants.js` e atualizará automaticamente:
+   - `package.json`
+   - `for-perchance.html`
+
+3. **Adicione os arquivos atualizados pelo hook** e faça o commit final:
+   ```bash
+   git add .
+   git commit -m "chore: release v1.4.1"
+   ```
+
+4. **Crie a tag e faça push**:
+   ```bash
+   git tag -a v1.4.1 -m "Release v1.4.1"
+   git push origin main --tags
+   ```
 
 ⏱️ **Aguarde ~10 minutos** para o CDN jsDelivr processar a nova versão.
+
+### ⚠️ Importante
+
+- **Nunca** crie uma tag sem antes atualizar `constants.js`
+- O hook **só funciona** quando `constants.js` é modificado
+- Não edite manualmente `package.json` ou `for-perchance.html` para atualizar versões
+- Sempre verifique se todos os arquivos estão com a mesma versão antes de criar a tag
 
 ## 🎮 Uso no Perchance
 
 Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 
-**Exemplo para v1.3.0:**
+**Exemplo para v1.4.0:**
 ```html
 <div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" type="module"></script>
 
 <script type="module">
-  import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.3.0/dist/main.bundle.js")
+  import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.4.0/dist/main.bundle.js")
     .then(module => module.initGame())
     .catch(err => console.error('Erro:', err));
 </script>
@@ -83,7 +102,7 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 │       ├── renderer.js      # Renderizador Three.js
 │       ├── logic.js         # Lógica do jogo
 │       ├── ui-test.js       # UI de teste
-│       └── *-test.js        # Módulos de teste (13 módulos)
+│       └── *-test.js        # Módulos de teste (14 módulos)
 ├── dist/
 │   ├── main.bundle.js       # Bundle único (gerado pelo Vite)
 │   └── main.bundle.js.map   # Source map
@@ -100,6 +119,7 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 
 - **Vite** - Bundler e dev server
 - **Three.js** - Renderização 3D (carregado externamente via CDN)
+- **Howler.js** - Sistema de áudio (SFX, música, sprites)
 - **ES6 Modules** - Módulos JavaScript nativos
 - **jsDelivr CDN** - Distribuição via GitHub
 
@@ -111,9 +131,11 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 3. Faça commits seguindo Conventional Commits (`feat:`, `fix:`, etc.)
 
 ### Deploy
-1. Execute `npm run release X.Y.Z`
-2. Aguarde ~10 minutos para o CDN processar
-3. Atualize a versão no HTML Panel do Perchance
+1. Atualize `src/constants.js` com a nova versão
+2. Faça commit (hook atualiza outros arquivos automaticamente)
+3. Crie tag anotada e faça push
+4. Aguarde ~10 minutos para o CDN processar
+5. Atualize a versão no HTML Panel do Perchance
 
 ## 🐛 Debug
 
