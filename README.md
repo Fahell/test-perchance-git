@@ -1,4 +1,4 @@
-# 🎮 Test Perchance Git (v1.2.11)
+# 🎮 Test Perchance Git (v1.2.12)
 
 Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN.
 
@@ -204,8 +204,8 @@ node scripts/sync-version.js
 
 O script:
 - ✅ Detecta a versão atual em `constants.js`
-- ✅ Atualiza URLs CDN em `for-perchance.html` (formato `@v1.2.11`)
-- ✅ Atualiza comentários HTML em `for-perchance.html` (formato `1.2.10`)
+- ✅ Atualiza URLs CDN em `for-perchance.html` (formato `@v1.2.12`)
+- ✅ Atualiza comentários HTML em `for-perchance.html` (formato `1.2.12`)
 - ✅ Atualiza título do `README.md` (linha 1)
 - ✅ Atualiza comentário e BASE_URL em `src/main.js`
 - ✅ Mostra resumo das alterações
@@ -220,7 +220,7 @@ No `for-perchance.html`, atualize a URL:
 const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/main.js");
 
 // Para:
-const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.11/src/main.js");
+const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.12/src/main.js");
 ```
 
 ## 🐛 Troubleshooting
@@ -232,8 +232,8 @@ const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perch
 **Solução**:
 1. Verifique se a tag existe: `git tag -l`
 2. Verifique se o push foi feito: `git log`
-3. Crie a tag: `git tag -a v1.2.11 -m "v1.2.11"`
-4. Push da tag: `git push origin v1.2.11`
+3. Crie a tag: `git tag -a v1.2.12 -m "v1.2.12"`
+4. Push da tag: `git push origin v1.2.12`
 
 ### Erro: "Module not found"
 
@@ -249,7 +249,7 @@ const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perch
 **Causa**: O jsDelivr pode cachear arquivos antigos.
 
 **Solução**:
-1. Sempre use tags de versão (ex: `@v1.2.11`)
+1. Sempre use tags de versão (ex: `@v1.2.12`)
 2. Para forçar atualização, crie uma nova tag
 3. Limpe o cache do navegador (Ctrl+Shift+Del)
 
