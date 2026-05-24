@@ -157,7 +157,41 @@ git tag -a v1.2.10 -m "v1.2.10 - Descrição da versão"
 git push origin v1.2.10
 ```
 
-#### Script de Sincronização Automática
+#### 🤖 Modo Automático (Recomendado)
+
+Deixe o watcher rodando em um terminal separado durante o desenvolvimento:
+
+```bash
+node scripts/watch-version.js
+```
+
+O watcher:
+- 👀 Monitora `src/constants.js` em tempo real
+- 🔄 Executa `sync-version.js` automaticamente quando detecta mudanças
+- ⏱️ Debounce de 500ms (evita execuções múltiplas em saves rápidos)
+- 🛑 Ctrl+C para parar
+
+**Exemplo de uso:**
+```
+🚀 Starting version watcher...
+
+✅ for-perchance.html já está sincronizado com v1.2.10
+
+👀 Watching for changes in src/constants.js...
+📄 Target: for-perchance.html
+⏱️  Debounce: 500ms
+🛑 Press Ctrl+C to stop
+
+🔔 Change detected in constants.js
+🔄 Running sync-version.js...
+
+✏️  4 referência(s) atualizada(s) para v1.2.11
+✅ for-perchance.html sincronizado com sucesso!
+
+✅ Sync complete. Watching for changes...
+```
+
+#### Script de Sincronização Manual
 
 O script `scripts/sync-version.js` lê a versão de `src/constants.js` e atualiza automaticamente todas as referências em `for-perchance.html`. Isso evita erros manuais e garante consistência.
 
