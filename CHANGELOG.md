@@ -2,6 +2,36 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [1.2.12] - 2026-05-24
+
+### 🔄 Expansão do Script de Sincronização
+
+#### sync-version.js Expandido
+- Script agora sincroniza **3 arquivos** (antes apenas 1):
+  - `for-perchance.html` — URLs CDN e comentários HTML
+  - `README.md` — Título do projeto (linha 1)
+  - `src/main.js` — Comentário de versão e BASE_URL
+- Detecção e atualização automática de múltiplos formatos de versão
+- Output detalhado mostrando quais arquivos foram atualizados
+- Idempotente: só altera o que está desatualizado
+
+#### Git Hook Pre-commit
+- Hook executa `sync-version.js` automaticamente antes de cada commit
+- Garante que todos os arquivos estejam sincronizados com `constants.js`
+- Zero overhead: só executa no momento do commit
+- Documentação atualizada em `scripts/git-hooks/README.md`
+
+### 🎯 Benefícios
+- **Single source of truth** — Altere apenas `constants.js` e tudo é atualizado
+- **Consistência garantida** — README, main.js e for-perchance.html sempre alinhados
+- **Zero trabalho manual** — Hook automático elimina passos esquecidos
+- **Feedback claro** — Script mostra exatamente o que foi alterado
+
+### 📝 Documentação
+- README.md atualizado com lista completa de arquivos sincronizados
+- Exemplos de output do script expandido
+
+## [1.2.11] - 2026-05-24
 ## [1.2.11] - 2026-05-24
 
 ### 🤖 Automação Avançada
