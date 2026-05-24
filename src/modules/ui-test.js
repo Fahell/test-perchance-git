@@ -1,5 +1,5 @@
 // src/modules/ui-test.js
-// Painel de testes interativo com todos os módulos (v1.2.8)
+// Painel de testes interativo com status indicators por botão (v1.2.8)
 import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.7/src/perchance-bridge.js';
 
 const VERSION = 'v1.2.8';
@@ -12,6 +12,42 @@ function injectStylesheet() {
   link.rel = 'stylesheet';
   link.href = CSS_URL;
   document.head.appendChild(link);
+}
+
+const buttonStatus = new Map();
+
+function setButtonStatus(btnId, status) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+
+  btn.classList.remove('ui-test-btn--running', 'ui-test-btn--success', 'ui-test-btn--error');
+
+  const existingStatus = btn.querySelector('.ui-test-btn__status');
+  if (existingStatus) existingStatus.remove();
+
+  if (status === 'idle') {
+    buttonStatus.delete(btnId);
+    return;
+  }
+
+  btn.classList.add(`ui-test-btn--${status}`);
+  buttonStatus.set(btnId, status);
+
+  const statusSpan = document.createElement('span');
+  statusSpan.className = 'ui-test-btn__status';
+  const icons = { running: '⏳', success: '✅', error: '❌' };
+  statusSpan.textContent = icons[status] || '';
+  btn.appendChild(statusSpan);
+}
+
+async function runTest(btnId, testFn) {
+  setButtonStatus(btnId, 'running');
+  try {
+    await testFn();
+    setButtonStatus(btnId, 'success');
+  } catch {
+    setButtonStatus(btnId, 'error');
+  }
 }
 
 export function initUITest(rendererData, testModules) {
@@ -108,89 +144,81 @@ export function initUITest(rendererData, testModules) {
   }
 
   // AI Text
-  document.getElementById('btn-ai-text').onclick = async () => {
+  document.getElementById('btn-ai-text').onclick = () => runTest('btn-ai-text', async () => {
     log('🤖 Gerando texto com IA...', 'info');
     if (!aiTextTest || !aiTextTest.available) {
       log('⚠️ Plugin AI Text não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      const result = await aiTextTest.generateBasic('Escreva uma frase curta sobre um aventureiro.');
-      if (result && result.generatedText) {
-        const preview = result.generatedText.substring(0, 60) + '...';
-        log(`✅ AI: "${preview}"`, 'success');
-      } else {
-        log('❌ Erro ao gerar texto', 'error');
-      }
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
+    const result = await aiTextTest.generateBasic('Escreva uma frase curta sobre um aventureiro.');
+    if (result && result.generatedText) {
+      const preview = result.generatedText.substring(0, 60) + '...';
+      log(`✅ AI: "${preview}"`, 'success');
+    } else {
+      log('❌ Erro ao gerar texto', 'error');
+      throw new Error('Generation failed');
     }
-  };
+  });
 
   // Image
-  document.getElementById('btn-image').onclick = async () => {
+  document.getElementById('btn-image').onclick = () => runTest('btn-image', async () => {
     log('🖼️ Gerando imagem com IA...', 'info');
     if (!imageTest || !imageTest.available) {
       log('⚠️ Plugin Image não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      const result = await imageTest.testBasicImage('papercraft warrior with sword, fantasy art style', 12345);
-      if (result) {
-        log('✅ Imagem gerada! Veja preview no canto inferior direito', 'success');
-      } else {
-        log('❌ Erro ao gerar imagem', 'error');
-      }
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
+    const result = await imageTest.testBasicImage('papercraft warrior with sword, fantasy art style', 12345);
+    if (result) {
+      log('✅ Imagem gerada! Veja preview no canto inferior direito', 'success');
+    } else {
+      log('❌ Erro ao gerar imagem', 'error');
+      throw new Error('Generation failed');
     }
-  };
+  });
 
   // Listas
-  document.getElementById('btn-lists').onclick = () => {
+  document.getElementById('btn-lists').onclick = () => runTest('btn-lists', () => {
     log('📋 Testando listas...', 'info');
-    try {
-      if (!listsTest) {
-        log('⚠️ Lists não disponível', 'warning');
-        return;
-      }
-      const item = listsTest.testSelectOne('itens');
-      const heroes = listsTest.testSelectUnique('nomes_herois', 2);
-      const length = listsTest.testListLength('nomes_herois');
-      log(`✅ Item: "${item}" | Heróis: ${heroes.length} | Tamanho: ${length}`, 'success');
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
+    if (!listsTest) {
+      log('⚠️ Lists não disponível', 'warning');
+      throw new Error('Lists not available');
     }
-  };
+    const item = listsTest.testSelectOne('itens');
+    const heroes = listsTest.testSelectUnique('nomes_herois', 2);
+    const length = listsTest.testListLength('nomes_herois');
+    log(`✅ Item: "${item}" | Heróis: ${heroes.length} | Tamanho: ${length}`, 'success');
+  });
 
   // Bridge
-  document.getElementById('btn-bridge').onclick = () => {
+  document.getElementById('btn-bridge').onclick = () => runTest('btn-bridge', () => {
     log(`📡 Seed: ${capturedSeed} | Root: ${capturedRoot}`, 'success');
-  };
+  });
 
   // Cor do Cubo
-  document.getElementById('btn-3d').onclick = () => {
+  document.getElementById('btn-3d').onclick = () => runTest('btn-3d', () => {
     log('🎲 Mudando cor do cubo...', 'info');
     if (rendererData && rendererData.cube && rendererData.cube.material) {
       rendererData.cube.material.color.setHex(Math.random() * 0xffffff);
       log('✅ Cor do cubo alterada!', 'success');
     } else {
       log('⚠️ Cubo não disponível', 'warning');
+      throw new Error('Cube not available');
     }
-  };
+  });
 
   // Raycaster
-  document.getElementById('btn-raycaster').onclick = () => {
+  document.getElementById('btn-raycaster').onclick = () => runTest('btn-raycaster', () => {
     log('🖱️ Raycaster: Clique nas esferas coloridas!', 'info');
     if (raycasterTest && raycasterTest.available) {
       log(`✅ ${raycasterTest.spheres?.length || 0} esferas adicionadas`, 'success');
     } else {
       log('⚠️ Raycaster não disponível', 'warning');
+      throw new Error('Raycaster not available');
     }
-  };
+  });
 
   // Canvas
-  document.getElementById('btn-canvas').onclick = () => {
+  document.getElementById('btn-canvas').onclick = () => runTest('btn-canvas', () => {
     log('🎨 Testando Canvas 2D...', 'info');
     if (canvasTest) {
       canvasTest.drawGradient();
@@ -202,102 +230,100 @@ export function initUITest(rendererData, testModules) {
       log('✅ Canvas desenhado!', 'success');
     } else {
       log('⚠️ Canvas não disponível', 'warning');
+      throw new Error('Canvas not available');
     }
-  };
+  });
 
   // Dice
-  document.getElementById('btn-dice').onclick = () => {
+  document.getElementById('btn-dice').onclick = () => runTest('btn-dice', () => {
     log('🎲 Rolando dados...', 'info');
     if (!diceTest || !diceTest.available) {
       log('⚠️ Plugin Dice não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      const d20 = diceTest.rollD20();
-      const d6 = diceTest.roll3D6();
-      log(`✅ 1d20: ${d20.result} | 3d6: ${d6.result}`, 'success');
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
-    }
-  };
+    const d20 = diceTest.rollD20();
+    const d6 = diceTest.roll3D6();
+    log(`✅ 1d20: ${d20.result} | 3d6: ${d6.result}`, 'success');
+  });
 
   // RPG Icons
-  document.getElementById('btn-rpg-icon').onclick = () => {
+  document.getElementById('btn-rpg-icon').onclick = () => runTest('btn-rpg-icon', () => {
     log('⚔️ Carregando RPG Icons...', 'info');
     if (!rpgIconTest || !rpgIconTest.available) {
       log('⚠️ Plugin RPG Icon não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      const icons = rpgIconTest.getMultipleIcons(6);
-      log(icons ? `✅ ${icons.length} ícones carregados! Veja grid no canto superior direito` : '❌ Erro ao carregar ícones', icons ? 'success' : 'error');
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
+    const icons = rpgIconTest.getMultipleIcons(6);
+    if (icons) {
+      log(`✅ ${icons.length} ícones carregados! Veja grid no canto superior direito`, 'success');
+    } else {
+      log('❌ Erro ao carregar ícones', 'error');
+      throw new Error('Icon loading failed');
     }
-  };
+  });
 
   // TTS
-  document.getElementById('btn-tts').onclick = () => {
+  document.getElementById('btn-tts').onclick = () => runTest('btn-tts', () => {
     log('🔊 Testando Text-to-Speech...', 'info');
     if (!ttsTest || !ttsTest.available) {
       log('⚠️ Plugin TTS não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      ttsTest.speakBasic('Olá! Este é um teste de síntese de voz.');
-      log('✅ Fala iniciada!', 'success');
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
-    }
-  };
+    ttsTest.speakBasic('Olá! Este é um teste de síntese de voz.');
+    log('✅ Fala iniciada!', 'success');
+  });
 
   // TTS Stop
-  document.getElementById('btn-tts-stop').onclick = () => {
+  document.getElementById('btn-tts-stop').onclick = () => runTest('btn-tts-stop', () => {
     log('⏹️ Parando fala...', 'info');
     if (ttsTest) {
       const stopped = ttsTest.stopSpeech();
-      log(stopped ? '✅ Fala parada' : '⚠️ Nenhum método de stop disponível', stopped ? 'success' : 'warning');
+      if (stopped) {
+        log('✅ Fala parada', 'success');
+      } else {
+        log('⚠️ Nenhum método de stop disponível', 'warning');
+        throw new Error('Stop not available');
+      }
+    } else {
+      throw new Error('TTS not available');
     }
-  };
+  });
 
   // Seeder
-  document.getElementById('btn-seeder').onclick = () => {
+  document.getElementById('btn-seeder').onclick = () => runTest('btn-seeder', () => {
     log('🌱 Testando Seeder...', 'info');
     if (!seederTest || !seederTest.available) {
       log('⚠️ Plugin Seeder não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      const seed = seederTest.generateRandomSeed();
-      seederTest.applySeed(seed);
-      log(`✅ Seed aplicada: ${seed}`, 'success');
-      log('   Seleções agora são determinísticas!', 'success');
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
-    }
-  };
+    const seed = seederTest.generateRandomSeed();
+    seederTest.applySeed(seed);
+    log(`✅ Seed aplicada: ${seed}`, 'success');
+    log('   Seleções agora são determinísticas!', 'success');
+  });
 
   // Pattern
-  document.getElementById('btn-pattern').onclick = async () => {
+  document.getElementById('btn-pattern').onclick = () => runTest('btn-pattern', () => {
     log('🎨 Gerando padrão procedural...', 'info');
     if (!patternTest || !patternTest.available) {
       log('⚠️ Plugin Pattern não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      const result = patternTest.generateEmojiPattern();
-      log(result ? '✅ Padrão gerado! Veja preview no canto inferior direito' : '❌ Erro ao gerar padrão', result ? 'success' : 'error');
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
+    const result = patternTest.generateEmojiPattern();
+    if (result) {
+      log('✅ Padrão gerado! Veja preview no canto inferior direito', 'success');
+    } else {
+      log('❌ Erro ao gerar padrão', 'error');
+      throw new Error('Pattern generation failed');
     }
-  };
+  });
 
   // State Save
-  document.getElementById('btn-state-save').onclick = () => {
+  document.getElementById('btn-state-save').onclick = () => runTest('btn-state-save', () => {
     log('💾 Salvando estado...', 'info');
     if (!stateTest) {
       log('⚠️ State não disponível', 'warning');
-      return;
+      throw new Error('State not available');
     }
     const state = stateTest.getDefaultState();
     state.player.name = 'Herói Testador';
@@ -308,43 +334,42 @@ export function initUITest(rendererData, testModules) {
       log('✅ Estado salvo!', 'success');
     } else {
       log('❌ Erro ao salvar', 'error');
+      throw new Error('Save failed');
     }
-  };
+  });
 
   // State Load
-  document.getElementById('btn-state-load').onclick = () => {
+  document.getElementById('btn-state-load').onclick = () => runTest('btn-state-load', () => {
     log('📂 Carregando estado...', 'info');
     if (!stateTest) {
       log('⚠️ State não disponível', 'warning');
-      return;
+      throw new Error('State not available');
     }
     const loaded = stateTest.load();
     if (loaded) {
       log(`✅ Carregado: ${loaded.player.name} Lv.${loaded.player.level}`, 'success');
     } else {
       log('⚠️ Nenhum save encontrado', 'warning');
+      throw new Error('No save found');
     }
-  };
+  });
 
   // KV
-  document.getElementById('btn-kv').onclick = async () => {
+  document.getElementById('btn-kv').onclick = () => runTest('btn-kv', async () => {
     log('💾 Testando KV Plugin...', 'info');
     if (!kvTest || !kvTest.available) {
       log('⚠️ Plugin KV não disponível', 'warning');
-      return;
+      throw new Error('Plugin not available');
     }
-    try {
-      const saved = await kvTest.setSimpleValue('test_key', 'test_value');
-      if (saved) {
-        const retrieved = await kvTest.getValue('test_key');
-        log(`✅ KV: test_key = "${retrieved}"`, 'success');
-      } else {
-        log('❌ Erro ao salvar', 'error');
-      }
-    } catch (e) {
-      log(`❌ Erro: ${e.message}`, 'error');
+    const saved = await kvTest.setSimpleValue('test_key', 'test_value');
+    if (saved) {
+      const retrieved = await kvTest.getValue('test_key');
+      log(`✅ KV: test_key = "${retrieved}"`, 'success');
+    } else {
+      log('❌ Erro ao salvar', 'error');
+      throw new Error('KV save failed');
     }
-  };
+  });
 
   console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado e visível.`);
 }
