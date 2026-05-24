@@ -144,7 +144,8 @@ export function initUITest(rendererData, testModules) {
     patternTest,
     kvTest,
     seederTest,
-    apexchartsTest
+    apexchartsTest,
+    audioTest
   } = testModules;
 
   // Test definitions for Run All
@@ -168,6 +169,11 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-chart-line', name: 'Line Chart', fn: () => chartLineHandler() },
     { btnId: 'btn-chart-pie', name: 'Pie Chart', fn: () => chartPieHandler() },
     { btnId: 'btn-chart-radar', name: 'Radar Chart', fn: () => chartRadarHandler() },
+    { btnId: 'btn-audio-sfx', name: 'Audio SFX', fn: () => audioSFXHandler() },
+    { btnId: 'btn-audio-music', name: 'Audio Music', fn: () => audioMusicHandler() },
+    { btnId: 'btn-audio-sprite', name: 'Audio Sprite', fn: () => audioSpriteHandler() },
+    { btnId: 'btn-audio-volume', name: 'Audio Volume', fn: () => audioVolumeHandler() },
+    { btnId: 'btn-audio-stop', name: 'Audio Stop', fn: () => audioStopHandler() },
   ];
 
   // Handler functions (extracted for reuse in Run All)
@@ -323,6 +329,47 @@ export function initUITest(rendererData, testModules) {
     log(`✅ Radar Chart: ${result.axes} eixos`, 'success');
   }
 
+  async function audioSFXHandler() {
+    log('🔊 Testando SFX...', 'info');
+    if (!audioTest) throw new Error('Audio not available');
+    const result = audioTest.playSFX('click');
+    if (!result) throw new Error('SFX failed');
+    log('✅ SFX: click', 'success');
+  }
+
+  async function audioMusicHandler() {
+    log('🎵 Testando música com loop...', 'info');
+    if (!audioTest) throw new Error('Audio not available');
+    const result = audioTest.playMusic('music');
+    if (!result) throw new Error('Music failed');
+    log('✅ Música iniciada (loop)', 'success');
+  }
+
+  async function audioStopHandler() {
+    log('🔇 Parando todos os sons...', 'info');
+    if (!audioTest) throw new Error('Audio not available');
+    const result = audioTest.stopAll();
+    if (!result) throw new Error('Stop failed');
+    log('✅ Todos os sons parados', 'success');
+  }
+
+  async function audioSpriteHandler() {
+    log('🎵 Testando audio sprite...', 'info');
+    if (!audioTest) throw new Error('Audio not available');
+    const result = audioTest.testSprite();
+    if (!result) throw new Error('Sprite failed');
+    log('✅ Sprite: middle (2-4s)', 'success');
+  }
+
+  async function audioVolumeHandler() {
+    log('🔊 Testando volume...', 'info');
+    if (!audioTest) throw new Error('Audio not available');
+    const current = audioTest.getVolume();
+    const newVolume = current > 0.5 ? 0.2 : 0.8;
+    audioTest.setVolume(newVolume);
+    log(`✅ Volume: ${(newVolume * 100).toFixed(0)}%`, 'success');
+  }
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -364,6 +411,15 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-chart-line" class="ui-test-btn ui-test-btn--viz">📈 Line</button>
       <button id="btn-chart-pie" class="ui-test-btn ui-test-btn--viz">🍩 Donut</button>
       <button id="btn-chart-radar" class="ui-test-btn ui-test-btn--viz">🕸️ Radar</button>
+    </div>
+    
+    <div class="ui-test-category">
+      <strong style="color:#ff6b9d">🔊 Áudio</strong>
+      <button id="btn-audio-sfx" class="ui-test-btn ui-test-btn--audio">🔊 SFX</button>
+      <button id="btn-audio-music" class="ui-test-btn ui-test-btn--audio">🎵 Music</button>
+      <button id="btn-audio-sprite" class="ui-test-btn ui-test-btn--audio">🎵 Sprite</button>
+      <button id="btn-audio-volume" class="ui-test-btn ui-test-btn--audio">🔊 Volume</button>
+      <button id="btn-audio-stop" class="ui-test-btn ui-test-btn--audio">🔇 Stop</button>
     </div>
     
     <div class="ui-test-category">
@@ -417,6 +473,11 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-chart-line').onclick = () => runTest('btn-chart-line', 'Line Chart', chartLineHandler);
   document.getElementById('btn-chart-pie').onclick = () => runTest('btn-chart-pie', 'Pie Chart', chartPieHandler);
   document.getElementById('btn-chart-radar').onclick = () => runTest('btn-chart-radar', 'Radar Chart', chartRadarHandler);
+  document.getElementById('btn-audio-sfx').onclick = () => runTest('btn-audio-sfx', 'Audio SFX', audioSFXHandler);
+  document.getElementById('btn-audio-music').onclick = () => runTest('btn-audio-music', 'Audio Music', audioMusicHandler);
+  document.getElementById('btn-audio-sprite').onclick = () => runTest('btn-audio-sprite', 'Audio Sprite', audioSpriteHandler);
+  document.getElementById('btn-audio-volume').onclick = () => runTest('btn-audio-volume', 'Audio Volume', audioVolumeHandler);
+  document.getElementById('btn-audio-stop').onclick = () => runTest('btn-audio-stop', 'Audio Stop', audioStopHandler);
 
   console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado com controles globais.`);
 }
