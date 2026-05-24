@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * sync-version.js - Sincroniza a versão de constants.js com for-perchance.html
+ * sync-version.js - Sincroniza a versão de constants.js com múltiplos arquivos
  * 
  * Uso: node scripts/sync-version.js
  * 
- * Este script:
- * 1. Lê src/constants.js e extrai o valor de VERSION
- * 2. Atualiza todas as referências de versão em for-perchance.html
- * 3. Mostra um resumo das alterações
+ * Arquivos sincronizados:
+ * 1. for-perchance.html - URLs CDN e comentários HTML
+ * 2. README.md - Linha 1 (título do projeto)
+ * 3. src/main.js - Comentário de versão e BASE_URL
  */
 
 const fs = require('fs');
@@ -16,6 +16,8 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const CONSTANTS_PATH = path.join(ROOT, 'src', 'constants.js');
 const PERCHANCE_HTML_PATH = path.join(ROOT, 'for-perchance.html');
+const README_PATH = path.join(ROOT, 'README.md');
+const MAIN_JS_PATH = path.join(ROOT, 'src', 'main.js');
 
 function extractVersion() {
   const content = fs.readFileSync(CONSTANTS_PATH, 'utf-8');
@@ -28,28 +30,49 @@ function extractVersion() {
 
 function updatePerchanceHtml(version) {
   const content = fs.readFileSync(PERCHANCE_HTML_PATH, 'utf-8');
-  
-  // Remove o prefixo 'v' para capturar ambos os formatos
   const versionNumber = version.replace(/^v/, '');
-  
-  // Padrões de versão a serem substituídos:
-  // 1. <!-- Versão: 1.2.9 --> (sem v)
-  // 2. @v1.2.9 (em URLs CDN, com v)
-  // 3. v1.2.9 (em mensagens de log, com v)
   const versionPattern = /v?\d+\.\d+\.\d+/g;
   
   let updatedContent = content;
   let changesCount = 0;
   
-  // Substitui todas as ocorrências de versão
   updatedContent = updatedContent.replace(versionPattern, (match) => {
-    // Determina se a versão original tinha 'v' prefix
     const hadPrefix = match.startsWith('v');
     const newVersion = hadPrefix ? version : versionNumber;
-    
-    if (match !== newVersion) {
-      changesCount++;
-    }
+    if (match !== newVersion) changesCount++;
+    return newVersion;
+  });
+  
+  return { updatedContent, changesCount };
+}
+
+function updateReadme(version) {
+  const content = fs.readFileSync(README_PATH, 'utf-8');
+  const lines = content.split('\n');
+  let changesCount = 0;
+  
+  // Linha 1: Título do projeto "# 🎮 Test Perchance Git (vX.Y.Z)"
+  const titlePattern = /^(# .+\()(v?\d+\.\d+\.\d+)(\))$/;
+  if (titlePattern.test(lines[0])) {
+    const oldLine = lines[0];
+    lines[0] = lines[0].replace(titlePattern, `$1${version}$3`);
+    if (oldLine !== lines[0]) changesCount++;
+  }
+  
+  return { updatedContent: lines.join('\n'), changesCount };
+}
+
+function updateMainJs(version) {
+  const content = fs.readFileSync(MAIN_JS_PATH, 'utf-8');
+  const versionPattern = /v?\d+\.\d+\.\d+/g;
+  
+  let updatedContent = content;
+  let changesCount = 0;
+  
+  updatedContent = updatedContent.replace(versionPattern, (match) => {
+    const hadPrefix = match.startsWith('v');
+    const newVersion = hadPrefix ? version : version.replace(/^v/, '');
+    if (match !== newVersion) changesCount++;
     return newVersion;
   });
   
@@ -60,41 +83,61 @@ function main() {
   try {
     console.log('🔄 Sincronizando versão...\n');
     
-    // Extrai versão de constants.js
     const version = extractVersion();
-    console.log(`📋 Versão detectada em constants.js: ${version}`);
+    console.log(`📋 Versão detectada em constants.js: ${version}\n`);
     
-    // Lê for-perchance.html atual
-    const originalContent = fs.readFileSync(PERCHANCE_HTML_PATH, 'utf-8');
-    const originalMatches = originalContent.match(/v?\d+\.\d+\.\d+/g) || [];
-    console.log(`📄 Versões encontradas em for-perchance.html: ${[...new Set(originalMatches)].join(', ')}`);
+    let totalChanges = 0;
     
-    // Atualiza conteúdo
-    const { updatedContent, changesCount } = updatePerchanceHtml(version);
+    // 1. for-perchance.html
+    const perchanceOriginal = fs.readFileSync(PERCHANCE_HTML_PATH, 'utf-8');
+    const perchanceMatches = perchanceOriginal.match(/v?\d+\.\d+\.\d+/g) || [];
+    console.log(`📄 for-perchance.html: ${[...new Set(perchanceMatches)].join(', ')}`);
     
-    if (changesCount === 0) {
-      console.log('\n✅ for-perchance.html já está sincronizado com a versão atual.');
-      process.exit(0);
+    const { updatedContent: perchanceUpdated, changesCount: perchanceChanges } = updatePerchanceHtml(version);
+    if (perchanceChanges > 0) {
+      fs.writeFileSync(PERCHANCE_HTML_PATH, perchanceUpdated, 'utf-8');
+      console.log(`   ✏️  ${perchanceChanges} referência(s) atualizada(s) para ${version}`);
+    } else {
+      console.log(`   ✅ Já sincronizado`);
     }
+    totalChanges += perchanceChanges;
     
-    // Escreve arquivo atualizado
-    fs.writeFileSync(PERCHANCE_HTML_PATH, updatedContent, 'utf-8');
+    // 2. README.md
+    const readmeOriginal = fs.readFileSync(README_PATH, 'utf-8');
+    const readmeTitleMatch = readmeOriginal.match(/^(# .+\()(v?\d+\.\d+\.\d+)(\))/);
+    const readmeCurrentVersion = readmeTitleMatch ? readmeTitleMatch[2] : 'desconhecida';
+    console.log(`\n📄 README.md (título): ${readmeCurrentVersion}`);
     
-    console.log(`\n✏️  ${changesCount} referência(s) atualizada(s) para ${version}`);
-    console.log('✅ for-perchance.html sincronizado com sucesso!');
+    const { updatedContent: readmeUpdated, changesCount: readmeChanges } = updateReadme(version);
+    if (readmeChanges > 0) {
+      fs.writeFileSync(README_PATH, readmeUpdated, 'utf-8');
+      console.log(`   ✏️  Título atualizado para ${version}`);
+    } else {
+      console.log(`   ✅ Já sincronizado`);
+    }
+    totalChanges += readmeChanges;
     
-    // Mostra diff das linhas alteradas
-    const originalLines = originalContent.split('\n');
-    const updatedLines = updatedContent.split('\n');
+    // 3. src/main.js
+    const mainOriginal = fs.readFileSync(MAIN_JS_PATH, 'utf-8');
+    const mainMatches = mainOriginal.match(/v?\d+\.\d+\.\d+/g) || [];
+    console.log(`\n📄 src/main.js: ${[...new Set(mainMatches)].join(', ')}`);
     
-    console.log('\n📝 Alterações:');
-    originalLines.forEach((line, i) => {
-      if (line !== updatedLines[i]) {
-        const lineNum = String(i + 1).padStart(3, ' ');
-        console.log(`  ${lineNum} - ${line.trim()}`);
-        console.log(`  ${lineNum} + ${updatedLines[i].trim()}`);
-      }
-    });
+    const { updatedContent: mainUpdated, changesCount: mainChanges } = updateMainJs(version);
+    if (mainChanges > 0) {
+      fs.writeFileSync(MAIN_JS_PATH, mainUpdated, 'utf-8');
+      console.log(`   ✏️  ${mainChanges} referência(s) atualizada(s) para ${version}`);
+    } else {
+      console.log(`   ✅ Já sincronizado`);
+    }
+    totalChanges += mainChanges;
+    
+    // Resumo
+    console.log(`\n${'='.repeat(50)}`);
+    if (totalChanges === 0) {
+      console.log('✅ Todos os arquivos já estão sincronizados.');
+    } else {
+      console.log(`✅ ${totalChanges} alteração(ões) aplicada(s) em ${[perchanceChanges > 0 && 'for-perchance.html', readmeChanges > 0 && 'README.md', mainChanges > 0 && 'src/main.js'].filter(Boolean).join(', ')}`);
+    }
     
     process.exit(0);
   } catch (err) {
