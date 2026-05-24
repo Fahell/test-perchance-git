@@ -4,6 +4,36 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
 ## [Unreleased]
 
+## [1.2.8] - 2026-05-24
+
+### ✨ UI do Perchance — Reorganização Completa
+
+#### Design System & CSS (#2)
+- Extraídos todos os estilos inline para `src/styles/ui-test.css`
+- Criados design tokens em variáveis CSS (`:root`) para cores, espaçamento, tipografia, bordas e sombras
+- Classes semânticas substituem inline styles (`.ui-test-btn`, `.ui-test-category`, `.ui-test-log-entry`)
+- Stylesheet injetado dinamicamente via jsDelivr CDN com deduplicação
+- Log estruturado com elementos DOM e classes de tipo (`--success`, `--error`, `--warning`, `--info`)
+
+#### Status por Botão (#3)
+- Wrapper universal `runTest(btnId, testFn)` gerencia estado automaticamente
+- Cada botão exibe indicador visual: ⏳ executando, ✅ sucesso, ❌ erro
+- Classes CSS dedicadas: `--running` (dimmed), `--success` (green glow), `--error` (red glow)
+- Todos os 17 handlers refatorados para usar `runTest()` com feedback visual imediato
+
+#### Controles Globais & Log Estruturado (#4)
+- **▶ Todos**: Executa todos os 15 testes sequencialmente (300ms delay entre cada)
+- **🗑 Limpar**: Reseta log e status de todos os botões
+- **📋 Exportar**: Copia resultados formatados com timestamps para clipboard
+- Log com timestamps `[HH:MM:SS]`, cores por tipo e histórico em `testResults[]`
+- Categorias reorganizadas por domínio funcional: Geração, IA, Renderização, Dados & Estado
+
+#### Versão Dinâmica (#5)
+- Criado `src/constants.js` como fonte única de verdade para versionamento
+- `VERSION` e `CDN_BASE` exportados centralizadamente
+- `ui-test.js` importa versão dinamicamente, eliminando strings hardcoded
+- `CSS_URL` derivado automaticamente de `CDN_BASE`
+
 ### 🐛 Correções
 - **pattern-test.js**: Checks defensivos de DOM, try/catch em todos os métodos de geração e preview com fallback seguro (#1)
 
