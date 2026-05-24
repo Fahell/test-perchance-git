@@ -1,0 +1,167 @@
+/* src/styles/ui-test.css
+ * Design tokens and styles for Perchance UI test panel
+ * Extracted from inline styles in ui-test.js for maintainability
+ */
+
+:root {
+  /* Colors - Primary */
+  --ui-color-primary: #4ade80;
+  --ui-color-primary-dim: rgba(74, 222, 128, 0.3);
+  
+  /* Colors - Categories */
+  --ui-color-ai: #4ade80;
+  --ui-color-perchance: #4ade80;
+  --ui-color-threejs: #4ade80;
+  --ui-color-rpg: #fbbf24;
+  --ui-color-audio: #a78bfa;
+  --ui-color-seeds: #60a5fa;
+  --ui-color-persist: #f87171;
+  
+  /* Colors - Feedback */
+  --ui-color-success: #4ade80;
+  --ui-color-error: #ff6b6b;
+  --ui-color-warning: #fbbf24;
+  --ui-color-info: #aaa;
+  
+  /* Colors - Backgrounds */
+  --ui-bg-panel: rgba(0, 0, 0, 0.9);
+  --ui-bg-button: #1a1a2e;
+  --ui-bg-log: #0a0a0a;
+  
+  /* Spacing */
+  --ui-spacing-xs: 2px;
+  --ui-spacing-sm: 4px;
+  --ui-spacing-md: 8px;
+  --ui-spacing-lg: 10px;
+  --ui-spacing-xl: 15px;
+  
+  /* Typography */
+  --ui-font-family: monospace;
+  --ui-font-size-base: 12px;
+  --ui-font-size-title: 14px;
+  --ui-font-size-log: 11px;
+  
+  /* Borders & Radius */
+  --ui-border-width: 2px;
+  --ui-border-radius: 8px;
+  --ui-border-radius-sm: 4px;
+  
+  /* Shadows */
+  --ui-shadow-panel: 0 4px 20px var(--ui-color-primary-dim);
+  
+  /* Dimensions */
+  --ui-panel-max-width: 340px;
+  --ui-panel-max-height: 85vh;
+  --ui-log-max-height: 100px;
+}
+
+/* Panel Container */
+#ui-test-panel {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 9999;
+  background: var(--ui-bg-panel);
+  color: white;
+  padding: var(--ui-spacing-xl);
+  border-radius: var(--ui-border-radius);
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-base);
+  border: var(--ui-border-width) solid var(--ui-color-primary);
+  box-shadow: var(--ui-shadow-panel);
+  max-width: var(--ui-panel-max-width);
+  max-height: var(--ui-panel-max-height);
+  overflow-y: auto;
+}
+
+/* Panel Title */
+#ui-test-panel h3 {
+  margin: 0 0 var(--ui-spacing-lg) 0;
+  color: var(--ui-color-primary);
+  font-size: var(--ui-font-size-title);
+}
+
+/* Category Sections */
+.ui-test-category {
+  border-bottom: 1px solid #333;
+  padding-bottom: var(--ui-spacing-md);
+  margin-bottom: var(--ui-spacing-md);
+}
+
+.ui-test-category:last-of-type {
+  border-bottom: none;
+}
+
+.ui-test-category strong {
+  display: block;
+  margin-bottom: var(--ui-spacing-sm);
+}
+
+/* Buttons */
+.ui-test-btn {
+  margin: var(--ui-spacing-xs);
+  padding: var(--ui-spacing-sm) var(--ui-spacing-md);
+  cursor: pointer;
+  background: var(--ui-bg-button);
+  color: white;
+  border: 1px solid var(--ui-color-primary);
+  border-radius: var(--ui-border-radius-sm);
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-base);
+  transition: opacity 0.2s ease;
+}
+
+.ui-test-btn:hover {
+  opacity: 0.85;
+}
+
+/* Button Category Variants */
+.ui-test-btn--rpg {
+  border-color: var(--ui-color-rpg);
+}
+
+.ui-test-btn--audio {
+  border-color: var(--ui-color-audio);
+}
+
+.ui-test-btn--seeds {
+  border-color: var(--ui-color-seeds);
+}
+
+.ui-test-btn--persist {
+  border-color: var(--ui-color-persist);
+}
+
+/* Log Area */
+#test-log {
+  margin-top: var(--ui-spacing-lg);
+  color: var(--ui-color-info);
+  font-size: var(--ui-font-size-log);
+  max-height: var(--ui-log-max-height);
+  overflow-y: auto;
+  background: var(--ui-bg-log);
+  padding: var(--ui-spacing-md);
+  border-radius: var(--ui-border-radius-sm);
+}
+
+/* Log Entry Types */
+.log-entry {
+  margin-bottom: var(--ui-spacing-xs);
+  word-break: break-word;
+}
+
+.log-entry--success {
+  color: var(--ui-color-success);
+}
+
+.log-entry--error {
+  color: var(--ui-color-error);
+}
+
+.log-entry--warning {
+  color: var(--ui-color-warning);
+}
+
+.log-entry--info {
+  color: var(--ui-color-info);
+}
