@@ -1,7 +1,7 @@
 // src/main.js
-// Entry point do jogo - v1.2.14 com ApexCharts integration
+// Entry point do jogo - v1.2.15 com ApexCharts integration
 
-const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.14/src';
+const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.15/src';
 
 // Mapeamento de módulos de teste
 const TEST_MODULES = {

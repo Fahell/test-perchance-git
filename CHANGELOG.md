@@ -314,3 +314,12 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 - Integração com Three.js
 - Ponte para Perchance (perchance-bridge.js)
 - 6 módulos de teste iniciais
+
+## [v1.2.15] - 2026-05-24
+
+### Fixed
+- Fixed CSS path in ui-test.js (added /src/ to CDN URL)
+  - CSS was not loading because path was missing /src/ directory
+  - Panel styles (position, z-index, colors) now apply correctly
+  - Panel should now be visible in Perchance
+

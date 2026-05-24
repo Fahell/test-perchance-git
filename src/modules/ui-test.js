@@ -3,7 +3,7 @@
 import { root, getVar, getList } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.13/src/perchance-bridge.js';
 import { VERSION, CDN_BASE } from '../constants.js';
 
-const CSS_URL = `${CDN_BASE}/styles/ui-test.css`;
+const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 
 function injectStylesheet() {
   if (document.getElementById('ui-test-styles')) return;

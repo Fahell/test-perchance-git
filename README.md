@@ -1,4 +1,4 @@
-# 🎮 Test Perchance Git (v1.2.14)
+# 🎮 Test Perchance Git (v1.2.15)
 
 Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN.
 
