@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { transformWithEsbuild } from 'vite';
 
 export default defineConfig({
   build: {
@@ -37,5 +38,28 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     }
-  }
+  },
+  // Configuração para desenvolvimento (HMR)
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx'
+      }
+    }
+  },
+  // Plugin para transformar arquivos .js como JSX durante o build
+  plugins: [
+    {
+      name: 'load-js-files-as-jsx',
+      async transform(code, id) {
+        // Aplica apenas a arquivos .js na pasta src/
+        if (!id.match(/src\/.*\.js$/)) return null;
+        
+        return transformWithEsbuild(code, id, {
+          loader: 'jsx',
+          jsx: 'automatic'
+        });
+      }
+    }
+  ]
 });
