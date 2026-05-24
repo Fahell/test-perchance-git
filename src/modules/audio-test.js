@@ -1,15 +1,18 @@
 // src/modules/audio-test.js
 // Howler.js audio test module for Perchance environment
 import { Howl } from 'howler';
+import { VERSION } from '../constants.js';
 
-// Public domain audio URLs (free to use)
+// Base URL for audio files (hosted on GitHub, served via jsDelivr CDN with CORS)
+const AUDIO_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}/assets/audio`;
+
+// Audio files hosted in the repository
 const AUDIO_URLS = {
-  click: 'https://www.soundjay.com/buttons/sounds/button-09.mp3',
-  coin: 'https://www.soundjay.com/misc/sounds/coin-flip-1.mp3',
-  explosion: 'https://www.soundjay.com/misc/sounds/explosion-01.mp3',
-  music: 'https://www.bensound.com/bensound-music/bensound-sunny.mp3',
-  // Audio sprite example (multiple sounds in one file)
-  sprite: 'https://www.soundjay.com/human/sounds/crowd-applause-01.mp3'
+  click: `${AUDIO_BASE}/click.wav`,
+  coin: `${AUDIO_BASE}/coin.wav`,
+  explosion: `${AUDIO_BASE}/explosion.wav`,
+  music: `${AUDIO_BASE}/music.wav`,
+  sprite: `${AUDIO_BASE}/music.wav` // Using music as sprite example
 };
 
 // Sound instances cache
@@ -27,6 +30,13 @@ function createSound(name, options = {}) {
     preload: true,
     onerror: (id, error) => {
       console.error(`🔊 [Audio] Error loading ${name}:`, error);
+      console.error(`   URL: ${AUDIO_URLS[name]}`);
+    },
+    onload: () => {
+      console.log(`✅ [Audio] Loaded: ${name}`);
+    },
+    onplay: () => {
+      console.log(`▶️ [Audio] Playing: ${name}`);
     }
   };
   
@@ -127,7 +137,9 @@ export function testSprite() {
           end: [4000, 6000]      // 4-6s
         },
         volume: globalVolume,
-        html5: true
+        html5: true,
+        onload: () => console.log('✅ [Audio] Sprite loaded'),
+        onerror: (id, error) => console.error('❌ [Audio] Sprite error:', error)
       });
     }
     
