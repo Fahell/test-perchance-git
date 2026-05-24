@@ -8,6 +8,7 @@
  * - Validates semver format (vMAJOR.MINOR.PATCH)
  * - Scans project for version occurrences with smart patterns
  * - Protects sensitive files (CHANGELOG, package-lock.json)
+ * - Only updates project-specific references (not external libraries)
  * - Warns about missing tags and unpushed changes
  */
 
@@ -17,6 +18,7 @@ const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const CONSTANTS_PATH = path.join(ROOT, 'src', 'constants.js');
+const REPO_NAME = 'test-perchance-git';
 
 // Files/directories to exclude from scanning
 const EXCLUDED_DIRS = new Set([
@@ -201,6 +203,7 @@ function updateReadme(filePath, version, stats) {
 
 /**
  * Updates version in other files (CDN URLs, comments, etc.)
+ * Only updates references to this specific repository
  */
 function updateGenericFile(filePath, version, versionWithoutPrefix, stats) {
   const content = fs.readFileSync(filePath, 'utf-8');
@@ -208,19 +211,23 @@ function updateGenericFile(filePath, version, versionWithoutPrefix, stats) {
   let changesCount = 0;
   const oldVersions = new Set();
   
-  // Pattern 1: CDN URLs with @vX.Y.Z (most specific, highest priority)
-  // Example: @v1.3.0/main.bundle.js
-  const cdnPattern = /@(v?\d+\.\d+\.\d+)\//g;
-  updatedContent = updatedContent.replace(cdnPattern, (match, oldVersion) => {
+  // Pattern 1: CDN URLs pointing to this repository
+  // Example: cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.3.0/...
+  const repoCdnPattern = new RegExp(
+    `(cdn\\.jsdelivr\\.net/gh/[^/]+/${REPO_NAME})@(v?\\d+\\.\\d+\\.\\d+)/`,
+    'g'
+  );
+  
+  updatedContent = updatedContent.replace(repoCdnPattern, (match, repoPath, oldVersion) => {
     if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
       oldVersions.add(oldVersion);
       changesCount++;
-      return `@${version}/`;
+      return `${repoPath}@${version}/`;
     }
     return match;
   });
   
-  // Pattern 2: Comments with version context
+  // Pattern 2: Comments with version context (only if near repository references)
   // Example: // Version: v1.3.0 or /* v1.3.0 */
   const commentPattern = /(\/\/|\/\*|\*)\s*Version:\s*(v?\d+\.\d+\.\d+)/g;
   updatedContent = updatedContent.replace(commentPattern, (match, commentStart, oldVersion) => {
@@ -239,6 +246,18 @@ function updateGenericFile(filePath, version, versionWithoutPrefix, stats) {
       oldVersions.add(oldVersion);
       changesCount++;
       return match.replace(oldVersion, version);
+    }
+    return match;
+  });
+  
+  // Pattern 4: HTML comments with version
+  // Example: <!-- Version: v1.3.0 -->
+  const htmlCommentPattern = /(<!--\s*Version:\s*)(v?\d+\.\d+\.\d+)(\s*-->)/g;
+  updatedContent = updatedContent.replace(htmlCommentPattern, (match, start, oldVersion, end) => {
+    if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
+      oldVersions.add(oldVersion);
+      changesCount++;
+      return `${start}${version}${end}`;
     }
     return match;
   });
