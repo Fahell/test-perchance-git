@@ -3,6 +3,8 @@
 // Documentação: https://perchance.org/pattern-maker-plugin
 import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.5/src/perchance-bridge.js';
 
+const hasDOM = typeof document !== 'undefined' && !!document.body;
+
 export const patternTest = {
   available: !!root.pattern,
 
@@ -16,16 +18,15 @@ export const patternTest = {
     try {
       console.log('🎨 [Pattern] Gerando padrão com grid de emojis...');
       
-      // Opções de exemplo da documentação oficial
       const patternOptions = {
         inputTextGrid: [
           '🌳🟩🟩🟩🌲🟩🟩🟩🟩🟩🟩🌾',
           '🟩🟩🟩🟦🟩🟩🟩🔲🔲🔲🔲🟩',
-          '🟩🟦🟦🟦🟩🟩🟩🔲🟫🪑🔲🟩',
-          '🟩🟦🟦🟦🌲🌷🌷🔲🟫🟫🔲🟩',
+          '🟩🟦🟦🟦🟩🟩🟩🔲🏫🪑🔲🟩',
+          '🟩🟦🟦🟦🌲🌷🌷🔲🏫🏫🔲🟩',
           '🟩🟩🟦🟦🟩🟩🟩🔲🚪🔲🔲🟩',
           '🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩',
-          '🟩🌳🌳🟩🟩🟩🟩🟩🟩🟩🟩🟩',
+          '🟩🌳🌳🟩🟩🟩🟩🟩🟩🟩🟩',
           '🟩🟩🌳🟦🟦🟦🟩🟩🌷🟩🟦🟦',
           '🟩🌳🟦🟦🟦🟩🟩🪨🟩🟩🟦🟩',
           '🌾🟩🟦🟦🟦🟩🟩🌳🟦🟦🟦🟩',
@@ -40,24 +41,23 @@ export const patternTest = {
         }
       };
 
-      // Chama o plugin com as opções
       const result = root.pattern(patternOptions);
       
       console.log('✅ [Pattern] Padrão gerado com sucesso!');
       console.log('   Tipo do resultado:', typeof result);
       
-      // Mostra o resultado (pode ser HTML com imagem ou texto)
       if (typeof result === 'string') {
         console.log('   Tamanho:', result.length, 'caracteres');
         
-        // Se for uma imagem (data URL), mostra no container
         if (result.startsWith('data:image/')) {
           this._showPatternPreview(result);
         } else {
-          // Padrão gerado mas renderização automática pode falhar
-          // Isso é esperado - o plugin tenta renderizar em elementos DOM que não existem
           console.log('   ℹ️ Padrão gerado como string HTML');
-          console.log('   ⚠️ Renderização automática pode falhar (limitação conhecida do plugin)');
+          if (!hasDOM) {
+            console.warn('   ⚠️ Renderização automática indisponível: ambiente sem DOM');
+          } else {
+            console.warn('   ⚠️ Renderização automática pode falhar (limitação conhecida do plugin)');
+          }
           console.log('   💡 Para uso real, considere gerar padrões com Canvas 2D puro');
         }
       }
@@ -121,7 +121,7 @@ export const patternTest = {
         inputTextGrid: [
           '🌲🌲🌳🌲🌲',
           '🌲🌳🌳🌳🌲',
-          '🌳🌳🟫🌳🌳',
+          '🌳🌳🏫🌳🌳',
           '🌲🌳🌳🌳🌲',
           '🌲🌲🌳🌲🌲'
         ],
@@ -130,7 +130,7 @@ export const patternTest = {
           height: 30,
           n: 2,
           symmetry: 4,
-          periodic: 1, // Padrão tileable
+          periodic: 1,
           magnify: 0.7
         }
       };
@@ -149,11 +149,14 @@ export const patternTest = {
 
   // Mostra preview do padrão gerado
   _showPatternPreview(dataUrl) {
-    // Remove preview anterior se existir
+    if (!hasDOM) {
+      console.warn('⚠️ [Pattern] Preview indisponível: ambiente sem DOM');
+      return;
+    }
+
     const existing = document.getElementById('pattern-preview');
     if (existing) existing.remove();
 
-    // Cria container para o padrão
     const container = document.createElement('div');
     container.id = 'pattern-preview';
     container.style.cssText = `
@@ -183,7 +186,6 @@ export const patternTest = {
 
     console.log('🖼️ [Pattern] Preview exibido no canto inferior direito');
 
-    // Auto-remove após 10 segundos
     setTimeout(() => {
       if (container.parentNode) {
         container.remove();
@@ -206,7 +208,6 @@ export const patternTest = {
   }
 };
 
-// Log de inicialização
 console.log('🎨 [Pattern] Inicializando teste do plugin pattern-maker...');
 if (patternTest.available) {
   console.log('✅ [Pattern] Plugin pattern-maker-plugin disponível');
