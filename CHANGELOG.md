@@ -2,7 +2,6 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
-## [Unreleased]
 ## [1.2.8] - 2026-05-24
 
 ### ✨ UI do Perchance — Reorganização Completa
@@ -32,6 +31,11 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 - `VERSION` e `CDN_BASE` exportados centralizadamente
 - `ui-test.js` importa versão dinamicamente, eliminando strings hardcoded
 - `CSS_URL` derivado automaticamente de `CDN_BASE`
+
+#### Templates do Perchance (#6)
+- Atualizadas referências hardcoded em `for-perchance.html` e `for-perchance-list-panel.txt` para v1.2.8
+- URLs da CDN atualizadas de `@v1.2.7` para `@v1.2.8`
+
 
 ### 🐛 Correções
 - **pattern-test.js**: Checks defensivos de DOM, try/catch em todos os métodos de geração e preview com fallback seguro (#1)
