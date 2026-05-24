@@ -1,58 +1,30 @@
 // src/main.js
-// Entry point do jogo - v1.2.15 com ApexCharts integration
+// Entry point do jogo - v1.3.0 com Vite bundling
 
-const BASE_URL = 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.15/src';
+// Imports estáticos para módulos críticos
+import * as bridgeMod from './perchance-bridge.js';
+import { initRenderer } from './modules/renderer.js';
+import { initLogic } from './modules/logic.js';
 
-// Mapeamento de módulos de teste
+// Mapeamento de módulos de teste (dynamic imports)
 const TEST_MODULES = {
-  imageTest: 'image-test.js',
-  aiTextTest: 'ai-text-test.js',
-  listsTest: 'lists-test.js',
-  stateTest: 'state-test.js',
-  raycasterTest: 'raycaster-test.js',
-  canvasTest: 'canvas-test.js',
-  ttsTest: 'tts-test.js',
-  diceTest: 'dice-test.js',
-  rpgIconTest: 'rpg-icon-test.js',
-  patternTest: 'pattern-test.js',
-  kvTest: 'kv-test.js',
-  seederTest: 'seeder-test.js',
-  apexchartsTest: 'apexcharts-test.js'
+  imageTest: () => import('./modules/image-test.js'),
+  aiTextTest: () => import('./modules/ai-text-test.js'),
+  listsTest: () => import('./modules/lists-test.js'),
+  stateTest: () => import('./modules/state-test.js'),
+  raycasterTest: () => import('./modules/raycaster-test.js'),
+  canvasTest: () => import('./modules/canvas-test.js'),
+  ttsTest: () => import('./modules/tts-test.js'),
+  diceTest: () => import('./modules/dice-test.js'),
+  rpgIconTest: () => import('./modules/rpg-icon-test.js'),
+  patternTest: () => import('./modules/pattern-test.js'),
+  kvTest: () => import('./modules/kv-test.js'),
+  seederTest: () => import('./modules/seeder-test.js'),
+  apexchartsTest: () => import('./modules/apexcharts-test.js')
 };
 
 // Cache de módulos carregados
 const loadedModules = {};
-
-// Carrega um módulo dinamicamente com tratamento de erro detalhado
-async function loadModule(path, moduleName = 'módulo') {
-  const url = `${BASE_URL}/${path}`;
-  try {
-    console.log(`🔍 [Main] Tentando carregar ${moduleName}...`);
-    const module = await import(url);
-    console.log(`✅ [Main] ${moduleName} carregado com sucesso`);
-    return module;
-  } catch (error) {
-    console.error(`❌ [Main] Falha ao carregar ${moduleName}`);
-    console.error(`   URL: ${url}`);
-    console.error(`   Erro: ${error.message}`);
-    console.error(`   Stack:`, error.stack);
-    
-    // Tenta diagnosticar o problema
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        console.error(`   HTTP Status: ${response.status}`);
-      } else {
-        const text = await response.text();
-        console.error(`   Arquivo existe (${text.length} bytes), mas tem erro de sintaxe ou import quebrado`);
-      }
-    } catch (fetchError) {
-      console.error(`   Falha ao buscar arquivo: ${fetchError.message}`);
-    }
-    
-    return null;
-  }
-}
 
 // Carrega um módulo de teste dinamicamente
 async function loadTestModule(moduleName) {
@@ -60,20 +32,31 @@ async function loadTestModule(moduleName) {
     return loadedModules[moduleName];
   }
   
-  const mod = await loadModule(`modules/${TEST_MODULES[moduleName]}`, moduleName);
-  if (mod) {
+  try {
+    console.log(`🔍 [Main] Carregando ${moduleName}...`);
+    const mod = await TEST_MODULES[moduleName]();
     loadedModules[moduleName] = mod;
+    console.log(`✅ [Main] ${moduleName} carregado`);
+    return mod;
+  } catch (error) {
+    console.error(`❌ [Main] Falha ao carregar ${moduleName}:`, error.message);
+    return null;
   }
-  return mod;
 }
 
-// Carrega todos os módulos de teste
+// Carrega todos os módulos de teste em paralelo
 async function loadAllTestModules() {
-  console.log('📦 [Main] Carregando módulos de teste...');
+  console.log('📦 [Main] Carregando módulos de teste em paralelo...');
   
-  const modules = {};
-  for (const [key, file] of Object.entries(TEST_MODULES)) {
+  const promises = Object.keys(TEST_MODULES).map(async (key) => {
     const mod = await loadTestModule(key);
+    return { key, mod };
+  });
+  
+  const results = await Promise.all(promises);
+  const modules = {};
+  
+  for (const { key, mod } of results) {
     if (mod) {
       modules[key] = mod[key] || mod;
     }
@@ -117,43 +100,28 @@ export async function initGame() {
   console.log('🔍 [Main] initGame() chamado. Verificando estado...');
 
   try {
-    console.log('🚀 [Main] Iniciando jogo modularizado (primeira execução)');
-
-    // 1. Carrega módulos críticos SEQUENCIALMENTE (para identificar qual falha)
-    console.log('📦 [Main] Carregando perchance-bridge.js...');
-    const bridgeMod = await loadModule('perchance-bridge.js', 'perchance-bridge');
-    if (!bridgeMod) throw new Error('Falha ao carregar perchance-bridge.js');
-
-    console.log('📦 [Main] Carregando renderer.js...');
-    const rendererMod = await loadModule('modules/renderer.js', 'renderer');
-    if (!rendererMod) throw new Error('Falha ao carregar renderer.js (provavelmente Three.js não carregou)');
-
-    console.log('📦 [Main] Carregando logic.js...');
-    const logicMod = await loadModule('modules/logic.js', 'logic');
-    if (!logicMod) throw new Error('Falha ao carregar logic.js');
+    console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.3.0)');
 
     const { root, getVar, getList } = bridgeMod;
-    const { initRenderer } = rendererMod;
-    const { initLogic } = logicMod;
 
-    // 2. Inicializa Renderizador (Three.js)
+    // 1. Inicializa Renderizador (Three.js)
     console.log('🎨 [Main] Chamando initRenderer...');
     const rendererData = initRenderer(document.getElementById('game-container'));
 
-    // 3. Inicializa Lógica (Dados do Perchance)
+    // 2. Inicializa Lógica (Dados do Perchance)
     const seed = getVar('GAME_SEED', 999);
     const bioma = getList('biomas', ['planície']).selectOne;
     initLogic(seed, bioma);
 
-    // 4. Carrega todos os módulos de teste dinamicamente
+    // 3. Carrega todos os módulos de teste em paralelo
     const testModules = await loadAllTestModules();
 
-    // 5. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
+    // 4. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
     initTestModules(testModules, rendererData);
 
-    // 6. Carrega e inicializa UI de Teste
+    // 5. Carrega e inicializa UI de Teste
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
-    const uiTestMod = await loadModule('modules/ui-test.js', 'ui-test');
+    const uiTestMod = await import('./modules/ui-test.js');
     
     if (uiTestMod && uiTestMod.initUITest) {
       console.log('🎮 [Main] Chamando initUITest...');
@@ -183,7 +151,7 @@ export async function initGame() {
 
     // Mostra mensagem de erro na tela
     const errorDiv = document.createElement('div');
-    errorDiv.style.cssText = `
+    errorDiv.style.cssText = ` 
       position: fixed; bottom: 20px; left: 20px; z-index: 9999;
       background: #ff0000; color: white; padding: 20px;
       border-radius: 8px; font-family: monospace; font-size: 14px;
@@ -202,4 +170,4 @@ export async function initGame() {
 }
 
 // Log para confirmar que o arquivo foi lido
-console.log('📦 [Main] main.js carregado. Aguardando initGame()...');
+console.log('📦 [Main] main.js carregado (Vite bundle). Aguardando initGame()...');

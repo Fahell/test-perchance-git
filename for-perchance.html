@@ -1,29 +1,34 @@
 <!-- For Perchance - HTML Panel -->
-<!-- Versão: 1.2.15 -->
+<!-- Versão: 1.3.0 (Vite Bundle) -->
 <!-- Cole este conteúdo no HTML Panel do seu gerador Perchance -->
 
 <div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;"></div>
 
-<script>
+<!-- Three.js deve ser carregado antes do bundle (dependência externa) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" type="module"></script>
+
+<script type="module">
   // Protege contra execução dupla
   if (window.__RPG_INITIALIZED) {
     console.log('⏭️ Jogo já inicializado. Ignorando re-execução.');
   } else {
     window.__RPG_INITIALIZED = true;
-    console.log('📄 HTML Panel injetado, chamando initGame()...');
+    console.log('📄 HTML Panel injetado, carregando bundle v1.3.0...');
     
-    // Importa o ponto de entrada direto do GitHub via jsDelivr CDN
-    // ⚠️ SEMPRE use tags de versão (ex: @v1.2.15) para evitar cache do CDN
-    import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.15/src/main.js")
+    // Importa o bundle único do GitHub via jsDelivr CDN
+    // ⚠️ SEMPRE use tags de versão (ex: @v1.3.0) para evitar cache do CDN
+    import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.3.0/dist/main.bundle.js")
       .then(module => {
+        console.log('✅ Bundle carregado, chamando initGame()...');
         module.initGame();
       })
       .catch(err => {
-        console.error('❌ Falha ao carregar main.js:', err);
+        console.error('❌ Falha ao carregar bundle:', err);
         console.log('💡 Possíveis causas:');
-        console.log('   1. Tag v1.2.15 não existe no GitHub');
+        console.log('   1. Tag v1.3.0 não existe no GitHub');
         console.log('   2. Cache do CDN jsDelivr (aguarde 10 min ou mude a versão)');
         console.log('   3. Problema de CORS ou rede');
+        console.log('   4. Three.js não carregou (verifique se o script do Three.js está acima)');
       });
   }
 </script>

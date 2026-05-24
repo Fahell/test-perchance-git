@@ -1,0 +1,34 @@
+{
+  "name": "test-perchance-git",
+  "version": "1.3.0",
+  "description": "Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN. Agora com Vite bundling para performance otimizada.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "release": "node scripts/release.js",
+    "refactor-imports": "node scripts/refactor-imports.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fahell/test-perchance-git.git"
+  },
+  "keywords": [
+    "perchance",
+    "threejs",
+    "es6-modules",
+    "vite",
+    "game"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fahell/test-perchance-git/issues"
+  },
+  "homepage": "https://github.com/Fahell/test-perchance-git#readme",
+  "devDependencies": {
+    "terser": "^5.39.0",
+    "vite": "^6.0.0"
+  }
+}

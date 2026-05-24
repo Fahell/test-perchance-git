@@ -1,299 +1,134 @@
-# 🎮 Test Perchance Git (v1.2.15)
+# Test Perchance Git
 
 Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN.
 
-## 📋 Visão Geral
+## 🚀 Performance Otimizada com Vite
 
-Este projeto demonstra como modularizar código JavaScript para uso no Perchance, permitindo:
-- ✅ Código organizado em múltiplos arquivos
-- ✅ Versionamento com Git/GitHub
-- ✅ Cache-busting via tags de versão
-- ✅ Debug facilitado com logs detalhados
-- ✅ Testes de plugins do Perchance
-- ✅ Integração com bibliotecas de terceiros via CDN
+A partir da versão **v1.3.0**, o projeto utiliza **Vite** para gerar um bundle único, reduzindo drasticamente o tempo de carregamento:
 
-## 🏗️ Estrutura do Projeto
+| Antes (v1.2.x) | Depois (v1.3.0+) |
+|----------------|------------------|
+| 16 requisições HTTP | 1 requisição HTTP |
+| ~10-15s carregamento | ~1-2s carregamento |
+| 70KB+ (múltiplos arquivos) | 70KB (1 arquivo minificado) |
+| Carregamento sequencial | Carregamento paralelo |
 
-```
-test-perchance-git/
-├── for-perchance.html              # HTML Panel para copiar/colar no Perchance
-├── for-perchance-list-panel.txt    # List Panel para copiar/colar no Perchance
-├── test-local.html                 # Teste local no navegador
-├── README.md                       # Este arquivo
-├── CHANGELOG.md                    # Histórico de versões
-├── .gitignore                      # Configuração Git
-├── scripts/
-│   ├── sync-version.js             # Sincroniza versão manualmente
-│   ├── install-hooks.sh            # Instala git hooks
-│   └── git-hooks/
-│       └── pre-commit              # Hook de pre-commit
-└── src/
-    ├── main.js                     # Entry point (importa e inicializa tudo)
-    ├── constants.js                # Versão e URLs centralizadas
-    ├── perchance-bridge.js         # Ponte segura para root/listas do Perchance
-    ├── styles/
-    │   └── ui-test.css             # Design tokens e estilos do painel
-    └── modules/
-        ├── renderer.js             # Three.js: cena, câmera, loop
-        ├── logic.js                # Lógica do jogo (seed, bioma, eventos)
-        ├── ui-test.js              # Painel de testes interativo
-        ├── ai-text-test.js         # Teste do plugin AI Text
-        ├── image-test.js           # Teste do plugin Image
-        ├── lists-test.js           # Teste de listas avançadas
-        ├── state-test.js           # Teste de persistência (localStorage)
-        ├── raycaster-test.js       # Teste de clique em objetos 3D
-        ├── canvas-test.js          # Teste de Canvas 2D + Three.js
-        ├── tts-test.js             # Teste do plugin Text-to-Speech
-        ├── dice-test.js            # Teste do plugin Dice
-        ├── rpg-icon-test.js        # Teste do plugin RPG Icon
-        ├── pattern-test.js         # Teste do plugin Pattern Maker
-        ├── kv-test.js              # Teste do plugin KV (key-value)
-        ├── seeder-test.js          # Teste do plugin Seeder
-        └── apexcharts-test.js      # Gráficos SVG (bar, line, donut, radar)
-```
-
-## 🚀 Como Usar
-
-### 1. Clone o Repositório
+## 📦 Instalação
 
 ```bash
-git clone https://github.com/Fahell/test-perchance-git.git
-cd test-perchance-git
+npm install
 ```
 
-### 2. Configure o Perchance
+## 🛠️ Desenvolvimento
 
-#### HTML Panel
+### Modo Desenvolvimento (HMR)
+```bash
+npm run dev
+```
+
+### Build para Produção
+```bash
+npm run build
+```
+
+O bundle será gerado em `dist/main.bundle.js`.
+
+### Preview do Build
+```bash
+npm run preview
+```
+
+## 📤 Release (Deploy)
+
+Para criar uma nova release:
+
+```bash
+npm run release 1.3.1
+```
+
+Este comando:
+1. Atualiza a versão em `package.json`, `constants.js` e `for-perchance.html`
+2. Executa o build do Vite
+3. Faz commit automático
+4. Cria tag Git (`v1.3.1`)
+5. Faz push para o GitHub
+
+⏱️ **Aguarde ~10 minutos** para o CDN jsDelivr processar a nova versão.
+
+## 🎮 Uso no Perchance
+
 Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 
-#### List Panel
-Cole o conteúdo de `for-perchance-list-panel.txt` no List Panel:
+**Exemplo para v1.3.0:**
+```html
+<div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;"></div>
 
-```perchance
-GAME_SEED = 12345
-biomas
-  tundra
-  floresta
-  montanha
-  planície
-itens
-  espada mágica
-  poção de cura
-  mapa antigo
-nomes_herois
-  Aldric
-  Seraphina
-  Thorin
-  Elara
-  Kael
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" type="module"></script>
 
-// Plugins (adicione os que quiser testar)
-ai = {import:ai-text-plugin}
-image = {import:text-to-image-plugin}
-speak = {import:text-to-speech-plugin}
-dice = {import:dice-plugin}
-rpgIcon = {import:rpg-icon-plugin}
-pattern = {import:pattern-maker-plugin}
-kv = {import:kv-plugin}
-seeder = {import:seeder-plugin}
+<script type="module">
+  import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.3.0/dist/main.bundle.js")
+    .then(module => module.initGame())
+    .catch(err => console.error('Erro:', err));
+</script>
 ```
 
-### 3. Teste Localmente (Opcional)
+## 📁 Estrutura do Projeto
 
-Abra `test-local.html` no navegador para testar sem o Perchance.
-
-### 4. Teste no Perchance
-
-1. Cole o HTML Panel no Perchance
-2. Cole o List Panel no Perchance
-3. Clique em "Preview"
-4. Use os botões do painel de testes
-
-## 🧪 Módulos de Teste Disponíveis
-
-### 🎲 Geração & Aleatoriedade
-- **Dice**: Rolagem de dados RPG (1d20, 3d6, 2d8+5, etc.)
-- **Seeder**: Geração de seeds copiáveis para reprodutibilidade
-- **Pattern**: Geração de padrões procedurais com preview
-
-### 🤖 IA & Conteúdo
-- **AI Text**: Geração de texto via IA (streaming, startWith, stopSequences)
-- **Image**: Geração de imagem com preview visual (seed, removeBackground, resolução)
-- **TTS**: Text-to-Speech com controle de velocidade, pitch e volume
-
-### 🎨 Renderização
-- **Cor Cubo**: Mudar cor do cubo 3D
-- **Raycaster**: Clique em objetos 3D (esferas coloridas)
-- **Canvas**: Canvas 2D + integração com Three.js (CanvasTexture)
-- **RPG Icons**: ~500 ícones RPG temáticos com grid de preview
-
-### 📊 Visualização (Novo!)
-- **Bar Chart**: Stats de RPG com cores distribuídas
-- **Line Chart**: HP Player vs Enemy ao longo de turnos
-- **Donut Chart**: Distribuição de classes de personagem
-- **Radar Chart**: Comparação de atributos Player vs NPC
-
-### 💾 Dados & Estado
-- **Listas**: selectOne, selectUnique, selectMany, length
-- **Bridge**: Acesso a root, variáveis e listas
-- **Save/Load**: localStorage para save/load de estado
-- **KV**: Key-value storage persistente (sobrevive reloads)
-
-## 🔄 Atualizando a Versão
-
-### Para Desenvolvedores
-
-#### Instalação Inicial (Uma Vez)
-
-Instale os git hooks para sincronização automática:
-
-```bash
-./scripts/install-hooks.sh
+```
+├── src/
+│   ├── main.js              # Entry point (imports estáticos + dynamic imports)
+│   ├── perchance-bridge.js  # Ponte segura para API do Perchance
+│   ├── constants.js         # Constantes globais (versão, CDN)
+│   └── modules/
+│       ├── renderer.js      # Renderizador Three.js
+│       ├── logic.js         # Lógica do jogo
+│       ├── ui-test.js       # UI de teste
+│       └── *-test.js        # Módulos de teste (13 módulos)
+├── dist/
+│   ├── main.bundle.js       # Bundle único (gerado pelo Vite)
+│   └── main.bundle.js.map   # Source map
+├── scripts/
+│   ├── release.js           # Script de release automatizado
+│   └── refactor-imports.js  # Refatora imports CDN para relativos
+├── for-perchance.html       # HTML Panel para Perchance
+├── test-local.html          # Teste local fora do Perchance
+├── vite.config.js           # Configuração do Vite
+└── package.json
 ```
 
-Isso configura o hook `pre-commit` que sincroniza `for-perchance.html` automaticamente a cada commit.
+## 🔧 Tecnologias
 
-#### Fluxo de Desenvolvimento
+- **Vite** - Bundler e dev server
+- **Three.js** - Renderização 3D (carregado externamente via CDN)
+- **ES6 Modules** - Módulos JavaScript nativos
+- **jsDelivr CDN** - Distribuição via GitHub
 
-```bash
-# 1. Atualize a versão em src/constants.js
-# (edite a constante VERSION)
+## 📝 Fluxo de Trabalho
 
-# 2. Commit (o hook sincroniza for-perchance.html automaticamente!)
-git add .
-git commit -m "feat: descrição das mudanças"
-# 🔄 [pre-commit] for-perchance.html sincronizado para v1.2.12 (4 refs)
+### Desenvolvimento
+1. Edite os arquivos em `src/`
+2. Teste localmente com `npm run dev`
+3. Faça commits seguindo Conventional Commits (`feat:`, `fix:`, etc.)
 
-git push
+### Deploy
+1. Execute `npm run release X.Y.Z`
+2. Aguarde ~10 minutos para o CDN processar
+3. Atualize a versão no HTML Panel do Perchance
 
-# 3. Crie uma nova tag
-git tag -a v1.2.12 -m "v1.2.12 - Descrição da versão"
-git push origin v1.2.12
-```
+## 🐛 Debug
 
-#### 🪝 Git Hooks (Recomendado)
-
-O projeto usa git hooks para garantir consistência automaticamente:
-
-| Hook | Função |
-|------|--------|
-| `pre-commit` | Sincroniza `for-perchance.html` com `VERSION` de `constants.js` |
-
-**Vantagens:**
-- ✅ Zero overhead (sem processos rodando em background)
-- ✅ Executa apenas quando necessário (no commit)
-- ✅ Confiável e previsível
-- ✅ Funciona em qualquer ambiente
-
-**Como funciona:**
-1. Você edita `src/constants.js` e altera `VERSION`
-2. Ao fazer `git commit`, o hook é executado
-3. O hook lê a nova versão e atualiza `for-perchance.html`
-4. Se houver mudanças, adiciona `for-perchance.html` ao commit automaticamente
-5. Commit é criado com todos os arquivos sincronizados
-
-**Documentação completa:** Veja `scripts/git-hooks/README.md`
-
-#### Script de Sincronização Manual
-
-Se preferir sincronizar manualmente (sem hooks):
-
-```bash
-node scripts/sync-version.js
-```
-
-O script:
-- ✅ Detecta a versão atual em `constants.js`
-- ✅ Atualiza URLs CDN em `for-perchance.html` (formato `@v1.2.12`)
-- ✅ Atualiza comentários HTML em `for-perchance.html` (formato `1.2.12`)
-- ✅ Atualiza título do `README.md` (linha 1)
-- ✅ Atualiza comentário e BASE_URL em `src/main.js`
-- ✅ Mostra resumo das alterações
-- ✅ Idempotente (não faz nada se já estiver sincronizado)
-
-### Para Usuários
-
-No `for-perchance.html`, atualize a URL:
-
+### Console do Navegador
+Após o carregamento, o objeto `window.RPG` está disponível:
 ```javascript
-// De:
-const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/main.js");
-
-// Para:
-const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.12/src/main.js");
+window.RPG.renderer  // Dados do renderizador Three.js
+window.RPG.seed      // Seed do jogo
+window.RPG.bioma     // Bioma selecionado
+window.RPG.tests     // Módulos de teste carregados
 ```
 
-## 🐛 Troubleshooting
+### Source Maps
+O bundle inclui source maps (`main.bundle.js.map`) para debug no DevTools.
 
-### Erro: "Failed to fetch dynamically imported module"
+## 📄 Licença
 
-**Causa**: A tag de versão não foi criada ou o push não foi feito.
-
-**Solução**:
-1. Verifique se a tag existe: `git tag -l`
-2. Verifique se o push foi feito: `git log`
-3. Crie a tag: `git tag -a v1.2.12 -m "v1.2.12"`
-4. Push da tag: `git push origin v1.2.12`
-
-### Erro: "Module not found"
-
-**Causa**: URL incorreta ou arquivo não existe no repositório.
-
-**Solução**:
-1. Verifique a URL no console do navegador
-2. Acesse a URL diretamente no navegador para ver se o arquivo existe
-3. Verifique se o nome do arquivo está correto (case-sensitive)
-
-### Cache do CDN não atualiza
-
-**Causa**: O jsDelivr pode cachear arquivos antigos.
-
-**Solução**:
-1. Sempre use tags de versão (ex: `@v1.2.12`)
-2. Para forçar atualização, crie uma nova tag
-3. Limpe o cache do navegador (Ctrl+Shift+Del)
-
-### Plugins não funcionam
-
-**Causa**: Plugins não foram importados no List Panel.
-
-**Solução**:
-Adicione no List Panel:
-```perchance
-ai = {import:ai-text-plugin}
-image = {import:text-to-image-plugin}
-```
-
-### Pattern Plugin: Erro de renderização
-
-**Sintoma**: O padrão é gerado com sucesso (log mostra "Padrão gerado com sucesso!"), mas ocorre erro:
-```
-Uncaught TypeError: Cannot read properties of null (reading 'dataset')
-```
-
-**Causa**: O plugin `pattern-maker-plugin` espera um contexto DOM específico do Perchance (elementos `<output>` com atributos `data-*`) que não existe quando chamamos via JavaScript puro. O padrão é gerado internamente, mas a renderização automática falha.
-
-**Solução**:
-- O teste continua válido para demonstrar que o plugin funciona
-- Para uso real no seu projeto, considere:
-  1. Usar o plugin diretamente no List Panel (contexto padrão do Perchance)
-  2. Gerar padrões com Canvas 2D puro (mais controle)
-  3. Implementar algoritmo Wave Function Collapse manualmente
-
-**Status**: Limitação conhecida do plugin. O teste é mantido para fins de documentação e validação da API.
-
-## 📚 Recursos Úteis
-
-- [Perchance Official](https://perchance.org/)
-- [Perchance Plugins](https://perchance.org/plugins)
-- [jsDelivr CDN](https://www.jsdelivr.com/)
-- [Three.js Documentation](https://threejs.org/docs/)
-- [ApexCharts](https://apexcharts.com/)
-
-## 📝 Licença
-
-Este projeto é de código aberto e pode ser usado livremente para aprendizado e desenvolvimento.
-
-## 🤝 Contribuindo
-
-Sinta-se à vontade para abrir issues ou pull requests com melhorias, novos testes de plugins ou correções de bugs.
+ISC

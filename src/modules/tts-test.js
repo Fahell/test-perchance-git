@@ -1,7 +1,7 @@
 // src/modules/tts-test.js
 // Testa o plugin text-to-speech-plugin do Perchance
 // Documentação: https://perchance.org/text-to-speech-plugin
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/perchance-bridge.js';
+import { root } from '../perchance-bridge.js';
 
 export const ttsTest = {
   available: !!root.speak,

@@ -1,7 +1,7 @@
 // src/modules/pattern-test.js
 // Testa o plugin pattern-maker-plugin do Perchance (Wave Function Collapse)
 // Documentação: https://perchance.org/pattern-maker-plugin
-import { root } from 'https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/perchance-bridge.js';
+import { root } from '../perchance-bridge.js';
 
 const hasDOM = typeof document !== 'undefined' && !!document.body;
 
