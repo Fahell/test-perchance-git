@@ -163,23 +163,27 @@ export async function renderDiagram(type, container) {
       throw new Error(`Unknown diagram type: ${type}`);
     }
 
-    // Generate unique ID
-    const id = `mermaid-${type}-${Date.now()}`;
-    
     // Create container for this diagram
     const diagramContainer = document.createElement('div');
     diagramContainer.className = 'mermaid-diagram';
     diagramContainer.innerHTML = `
       <h4 class="mermaid-title">${type.charAt(0).toUpperCase() + type.slice(1)} Diagram</h4>
-      <div id="${id}" class="mermaid-render"></div>
+      <div class="mermaid-render"></div>
     `;
     
     container.appendChild(diagramContainer);
     
-    // Render diagram
-    const { svg } = await mermaid.render(id, diagramCode);
-    const renderDiv = diagramContainer.querySelector(`#${id}`);
-    if (renderDiv) renderDiv.innerHTML = svg;
+    // Generate unique ID for Mermaid render (different from container)
+    const renderId = `mermaid-${type}-${Date.now()}`;
+    
+    // Render diagram - Mermaid creates temporary element with this ID
+    const { svg } = await mermaid.render(renderId, diagramCode);
+    
+    // Insert SVG into the render container
+    const renderDiv = diagramContainer.querySelector('.mermaid-render');
+    if (renderDiv) {
+      renderDiv.innerHTML = svg;
+    }
     
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     return true;
