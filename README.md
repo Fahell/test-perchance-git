@@ -1,4 +1,4 @@
-# 🎮 Test Perchance Git (v1.2.9)
+# 🎮 Test Perchance Git (v1.2.10)
 
 Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN.
 
@@ -153,8 +153,8 @@ git commit -m "feat: descrição das mudanças"
 git push
 
 # 4. Crie uma nova tag
-git tag -a v1.2.9 -m "v1.2.9 - Descrição da versão"
-git push origin v1.2.9
+git tag -a v1.2.10 -m "v1.2.10 - Descrição da versão"
+git push origin v1.2.10
 ```
 
 #### Script de Sincronização Automática
@@ -168,7 +168,7 @@ node scripts/sync-version.js
 
 O script:
 - ✅ Detecta a versão atual em `constants.js`
-- ✅ Atualiza URLs CDN (formato `@v1.2.9`)
+- ✅ Atualiza URLs CDN (formato `@v1.2.10`)
 - ✅ Atualiza comentários HTML (formato `1.2.9`)
 - ✅ Mostra diff das alterações
 - ✅ Idempotente (não faz nada se já estiver sincronizado)
@@ -182,7 +182,7 @@ No `for-perchance.html`, atualize a URL:
 const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/main.js");
 
 // Para:
-const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.9/src/main.js");
+const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.10/src/main.js");
 ```
 
 ## 🐛 Troubleshooting
@@ -194,8 +194,8 @@ const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perch
 **Solução**:
 1. Verifique se a tag existe: `git tag -l`
 2. Verifique se o push foi feito: `git log`
-3. Crie a tag: `git tag -a v1.2.9 -m "v1.2.9"`
-4. Push da tag: `git push origin v1.2.9`
+3. Crie a tag: `git tag -a v1.2.10 -m "v1.2.10"`
+4. Push da tag: `git push origin v1.2.10`
 
 ### Erro: "Module not found"
 
@@ -211,7 +211,7 @@ const { initGame } = await import("https://cdn.jsdelivr.net/gh/Fahell/test-perch
 **Causa**: O jsDelivr pode cachear arquivos antigos.
 
 **Solução**:
-1. Sempre use tags de versão (ex: `@v1.2.9`)
+1. Sempre use tags de versão (ex: `@v1.2.10`)
 2. Para forçar atualização, crie uma nova tag
 3. Limpe o cache do navegador (Ctrl+Shift+Del)
 

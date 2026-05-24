@@ -2,6 +2,24 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [1.2.10] - 2026-05-24
+
+### ⚙️ Automação de Versão
+
+#### sync-version.js Script (#10)
+- Novo script `scripts/sync-version.js` para sincronização automática de versões
+- Lê `VERSION` de `src/constants.js` e atualiza `for-perchance.html`
+- Suporta formatos com e sem prefixo `v` (`v1.2.10` e `1.2.10`)
+- Idempotente: não faz alterações se já estiver sincronizado
+- Mostra diff das alterações quando atualizações são feitas
+- Documentação completa adicionada ao README.md
+
+### 🎯 Benefícios
+- Elimina erros manuais de sincronização de versão CDN
+- Consistência garantida entre `constants.js` e `for-perchance.html`
+- Workflow de release simplificado: editar `constants.js` → rodar script → commit
+
+
 ## [1.2.9] - 2026-05-24
 
 ### ✨ Nova Categoria: Visualização de Dados
