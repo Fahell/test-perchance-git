@@ -1,51 +1,17 @@
 #!/usr/bin/env node
-// Git pre-commit hook: auto-sync version in for-perchance.html from constants.js
+// Git pre-commit hook: always run sync-version.js (idempotent) to guarantee consistency
 
-const fs = require('fs');
-const path = require('path');
 const { execSync } = require('child_process');
+const path = require('path');
 
-const CONSTANTS_PATH = path.join(__dirname, '../../src/constants.js');
-const TARGET_PATH = path.join(__dirname, '../../for-perchance.html');
-
-function extractVersion(content) {
-  const match = content.match(/VERSION\s*=\s*['"](v[0-9]+\.[0-9]+\.[0-9]+)['"]/);
-  return match ? match[1] : null;
-}
-
-function syncVersion(targetContent, newVersion) {
-  const versionWithoutPrefix = newVersion.replace(/^v/, '');
-  let count = 0;
-  let updated = targetContent;
-  updated = updated.replace(/@[\d.]+\//g, () => { count++; return `@${versionWithoutPrefix}/`; });
-  updated = updated.replace(/@[\d.]+\.js/g, () => { count++; return `@${newVersion}.js`; });
-  return { content: updated, count };
-}
+// __dirname = .git/hooks, so we need to go up 2 levels to reach repo root
+const SYNC_SCRIPT = path.join(__dirname, '../../scripts/sync-version.js');
 
 try {
-  if (!fs.existsSync(CONSTANTS_PATH) || !fs.existsSync(TARGET_PATH)) {
-    process.exit(0);
-  }
-
-  const constantsContent = fs.readFileSync(CONSTANTS_PATH, 'utf8');
-  const targetContent = fs.readFileSync(TARGET_PATH, 'utf8');
-  const version = extractVersion(constantsContent);
-
-  if (!version) {
-    console.warn('⚠️  Não foi possível extrair versão de constants.js');
-    process.exit(0);
-  }
-
-  const { content: updatedContent, count } = syncVersion(targetContent, version);
-
-  if (count > 0) {
-    fs.writeFileSync(TARGET_PATH, updatedContent, 'utf8');
-    execSync('git add for-perchance.html', { stdio: 'inherit' });
-    console.log(`🔄 [pre-commit] for-perchance.html sincronizado para ${version} (${count} refs)`);
-  }
-
+  // Always execute sync (idempotent, ~50ms, guarantees correctness)
+  execSync(`node "${SYNC_SCRIPT}"`, { stdio: 'inherit' });
   process.exit(0);
 } catch (err) {
-  console.error('❌ Erro no pre-commit hook:', err.message);
+  console.error('❌ [pre-commit] sync-version.js falhou:', err.message);
   process.exit(1);
 }
