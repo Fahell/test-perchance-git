@@ -1,3 +1,28 @@
+
+### 🐛 Correções
+
+#### constants.js
+- Adicionada exportação `CDN_BASE` (estava faltando)
+- `CDN_BASE` é derivado dinamicamente de `VERSION`
+
+#### ui-test.js
+- Import do `perchance-bridge.js` atualizado de v1.2.9 para v1.2.13
+- Correção de erro: "The requested module '../constants.js' does not provide an export named 'CDN_BASE'"
+
+## [1.2.13] - 2026-05-24
+
+### 🔄 Simplificação do Git Hook
+
+#### Pre-commit Hook
+- Refatorado para **sempre executar** `sync-version.js` (idempotente)
+- Código simplificado de 42 linhas para 15 linhas
+- Elimina risco de drift de versão (consistência absoluta garantida)
+- Overhead mínimo (~50ms por commit)
+
+#### Decisão Arquitetural
+- Correctness > Efficiency
+- Hook idempotente é mais confiável que detecção condicional
+
 # Changelog
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
