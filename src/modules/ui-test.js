@@ -143,7 +143,8 @@ export function initUITest(rendererData, testModules) {
     rpgIconTest,
     patternTest,
     kvTest,
-    seederTest
+    seederTest,
+    apexchartsTest
   } = testModules;
 
   // Test definitions for Run All
@@ -163,6 +164,10 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-state-save', name: 'Save', fn: () => stateSaveHandler() },
     { btnId: 'btn-state-load', name: 'Load', fn: () => stateLoadHandler() },
     { btnId: 'btn-kv', name: 'KV', fn: () => kvHandler() },
+    { btnId: 'btn-chart-bar', name: 'Bar Chart', fn: () => chartBarHandler() },
+    { btnId: 'btn-chart-line', name: 'Line Chart', fn: () => chartLineHandler() },
+    { btnId: 'btn-chart-pie', name: 'Pie Chart', fn: () => chartPieHandler() },
+    { btnId: 'btn-chart-radar', name: 'Radar Chart', fn: () => chartRadarHandler() },
   ];
 
   // Handler functions (extracted for reuse in Run All)
@@ -286,6 +291,38 @@ export function initUITest(rendererData, testModules) {
     log(`✅ KV: test_key = "${retrieved}"`, 'success');
   }
 
+  async function chartBarHandler() {
+    log('📊 Renderizando Bar Chart...', 'info');
+    if (!apexchartsTest) throw new Error('ApexCharts not available');
+    const result = await apexchartsTest.renderBarChart();
+    if (!result?.success) throw new Error('Chart render failed');
+    log(`✅ Bar Chart: ${result.categories} categorias`, 'success');
+  }
+
+  async function chartLineHandler() {
+    log('📈 Renderizando Line Chart...', 'info');
+    if (!apexchartsTest) throw new Error('ApexCharts not available');
+    const result = await apexchartsTest.renderLineChart();
+    if (!result?.success) throw new Error('Chart render failed');
+    log(`✅ Line Chart: ${result.points} pontos`, 'success');
+  }
+
+  async function chartPieHandler() {
+    log('🍩 Renderizando Donut Chart...', 'info');
+    if (!apexchartsTest) throw new Error('ApexCharts not available');
+    const result = await apexchartsTest.renderPieChart();
+    if (!result?.success) throw new Error('Chart render failed');
+    log(`✅ Donut Chart: ${result.slices} fatias`, 'success');
+  }
+
+  async function chartRadarHandler() {
+    log('🕸️ Renderizando Radar Chart...', 'info');
+    if (!apexchartsTest) throw new Error('ApexCharts not available');
+    const result = await apexchartsTest.renderRadarChart();
+    if (!result?.success) throw new Error('Chart render failed');
+    log(`✅ Radar Chart: ${result.axes} eixos`, 'success');
+  }
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -319,6 +356,14 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-raycaster" class="ui-test-btn ui-test-btn--render">🖱️ Raycaster</button>
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
+    </div>
+    
+    <div class="ui-test-category">
+      <strong style="color:#f39c12">📊 Visualização</strong>
+      <button id="btn-chart-bar" class="ui-test-btn ui-test-btn--viz">📊 Bar</button>
+      <button id="btn-chart-line" class="ui-test-btn ui-test-btn--viz">📈 Line</button>
+      <button id="btn-chart-pie" class="ui-test-btn ui-test-btn--viz">🍩 Donut</button>
+      <button id="btn-chart-radar" class="ui-test-btn ui-test-btn--viz">🕸️ Radar</button>
     </div>
     
     <div class="ui-test-category">
@@ -368,6 +413,10 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-state-save').onclick = () => runTest('btn-state-save', 'Save', stateSaveHandler);
   document.getElementById('btn-state-load').onclick = () => runTest('btn-state-load', 'Load', stateLoadHandler);
   document.getElementById('btn-kv').onclick = () => runTest('btn-kv', 'KV', kvHandler);
+  document.getElementById('btn-chart-bar').onclick = () => runTest('btn-chart-bar', 'Bar Chart', chartBarHandler);
+  document.getElementById('btn-chart-line').onclick = () => runTest('btn-chart-line', 'Line Chart', chartLineHandler);
+  document.getElementById('btn-chart-pie').onclick = () => runTest('btn-chart-pie', 'Pie Chart', chartPieHandler);
+  document.getElementById('btn-chart-radar').onclick = () => runTest('btn-chart-radar', 'Radar Chart', chartRadarHandler);
 
   console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado com controles globais.`);
 }

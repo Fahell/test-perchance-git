@@ -11,6 +11,7 @@
   --ui-color-generation: #fbbf24;
   --ui-color-ai: #a78bfa;
   --ui-color-render: #60a5fa;
+  --ui-color-viz: #f39c12;
   --ui-color-data: #f87171;
   --ui-color-system: #94a3b8;
   
@@ -141,6 +142,7 @@
 .ui-test-btn--generation { border-color: var(--ui-color-generation); }
 .ui-test-btn--ai { border-color: var(--ui-color-ai); }
 .ui-test-btn--render { border-color: var(--ui-color-render); }
+.ui-test-btn--viz { border-color: var(--ui-color-viz); }
 .ui-test-btn--data { border-color: var(--ui-color-data); }
 .ui-test-btn--system { border-color: var(--ui-color-system); }
 
