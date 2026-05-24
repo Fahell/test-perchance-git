@@ -29,21 +29,28 @@ function extractVersion() {
 function updatePerchanceHtml(version) {
   const content = fs.readFileSync(PERCHANCE_HTML_PATH, 'utf-8');
   
+  // Remove o prefixo 'v' para capturar ambos os formatos
+  const versionNumber = version.replace(/^v/, '');
+  
   // Padrões de versão a serem substituídos:
-  // 1. <!-- Versão: v1.2.9 -->
-  // 2. @v1.2.9 (em URLs CDN)
-  // 3. v1.2.9 (em mensagens de log)
-  const versionPattern = /v\d+\.\d+\.\d+/g;
+  // 1. <!-- Versão: 1.2.9 --> (sem v)
+  // 2. @v1.2.9 (em URLs CDN, com v)
+  // 3. v1.2.9 (em mensagens de log, com v)
+  const versionPattern = /v?\d+\.\d+\.\d+/g;
   
   let updatedContent = content;
   let changesCount = 0;
   
   // Substitui todas as ocorrências de versão
   updatedContent = updatedContent.replace(versionPattern, (match) => {
-    if (match !== version) {
+    // Determina se a versão original tinha 'v' prefix
+    const hadPrefix = match.startsWith('v');
+    const newVersion = hadPrefix ? version : versionNumber;
+    
+    if (match !== newVersion) {
       changesCount++;
     }
-    return version;
+    return newVersion;
   });
   
   return { updatedContent, changesCount };
@@ -59,7 +66,7 @@ function main() {
     
     // Lê for-perchance.html atual
     const originalContent = fs.readFileSync(PERCHANCE_HTML_PATH, 'utf-8');
-    const originalMatches = originalContent.match(/v\d+\.\d+\.\d+/g) || [];
+    const originalMatches = originalContent.match(/v?\d+\.\d+\.\d+/g) || [];
     console.log(`📄 Versões encontradas em for-perchance.html: ${[...new Set(originalMatches)].join(', ')}`);
     
     // Atualiza conteúdo
