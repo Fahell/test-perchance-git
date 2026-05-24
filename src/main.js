@@ -16,7 +16,8 @@ const TEST_MODULES = {
   rpgIconTest: 'rpg-icon-test.js',
   patternTest: 'pattern-test.js',
   kvTest: 'kv-test.js',
-  seederTest: 'seeder-test.js'
+  seederTest: 'seeder-test.js',
+  apexchartsTest: 'apexcharts-test.js'
 };
 
 // Cache de módulos carregados
@@ -116,7 +117,7 @@ export async function initGame() {
   console.log('🔍 [Main] initGame() chamado. Verificando estado...');
 
   try {
-    console.log('🚀 [Main] Iniciando jogo modularizado (primeira execução)...');
+    console.log('🚀 [Main] Iniciando jogo modularizado (primeira execução)');
 
     // 1. Carrega módulos críticos SEQUENCIALMENTE (para identificar qual falha)
     console.log('📦 [Main] Carregando perchance-bridge.js...');
