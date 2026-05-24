@@ -115,3 +115,19 @@ This project inherits all global security controls from `~/.ai-agent-instruction
 - **Git pre-commit hook is active** — Blocks `.env`, `.pem`, `.key`, `.credentials` files and hardcoded secrets
 - **Escape hatch**: `command rm` only with explicit user confirmation and logged intent
 - For full security policy, run: `agent-help` or read `$AI_AGENT_INSTRUCTIONS`
+
+## ⚡ Startup Otimizado (Lazy-Loading)
+
+O Zsh foi otimizado para startup rápido (<0.25s). NVM e pyenv usam **lazy-loading**: os binários `node`, `npm`, `npx`, `python`, `pip` são funções shell que carregam o runtime apenas na primeira invocação. Isso é transparente para uso normal, mas esteja ciente:
+
+- A **primeira** chamada a `node`/`python` em uma sessão terá ~300ms adicionais (carregamento do runtime)
+- Chamadas subsequentes são instantâneas
+- Se precisar do runtime carregado explicitamente: `__load_nvm` ou `__load_pyenv`
+- Oh My Zsh auto-update está desativado (`zstyle ':omz:update' mode disabled`)
+
+## 🔧 Aliases de Portabilidade
+
+| Alias | Aponta Para | Motivo |
+|-------|-------------|--------|
+| `fd` | `fdfind` | Ubuntu nomeia o binário como `fdfind`; alias garante compatibilidade cross-distro |
+| `ff` | `fdfind --type f` | Busca rápida apenas arquivos |
