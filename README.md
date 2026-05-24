@@ -141,15 +141,37 @@ Abra `test-local.html` no navegador para testar sem o Perchance.
 Após fazer alterações:
 
 ```bash
-# 1. Commit e push
+# 1. Atualize a versão em src/constants.js
+# (edite a constante VERSION)
+
+# 2. Sincronize for-perchance.html automaticamente
+node scripts/sync-version.js
+
+# 3. Commit e push
 git add .
 git commit -m "feat: descrição das mudanças"
 git push
 
-# 2. Crie uma nova tag
+# 4. Crie uma nova tag
 git tag -a v1.2.9 -m "v1.2.9 - Descrição da versão"
 git push origin v1.2.9
 ```
+
+#### Script de Sincronização Automática
+
+O script `scripts/sync-version.js` lê a versão de `src/constants.js` e atualiza automaticamente todas as referências em `for-perchance.html`. Isso evita erros manuais e garante consistência.
+
+```bash
+# Uso
+node scripts/sync-version.js
+```
+
+O script:
+- ✅ Detecta a versão atual em `constants.js`
+- ✅ Atualiza URLs CDN (formato `@v1.2.9`)
+- ✅ Atualiza comentários HTML (formato `1.2.9`)
+- ✅ Mostra diff das alterações
+- ✅ Idempotente (não faz nada se já estiver sincronizado)
 
 ### Para Usuários
 

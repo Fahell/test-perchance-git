@@ -1,5 +1,5 @@
 <!-- For Perchance - HTML Panel -->
-<!-- Versão: 1.2.8 -->
+<!-- Versão: 1.2.9 -->
 <!-- Cole este conteúdo no HTML Panel do seu gerador Perchance -->
 
 <div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;"></div>
@@ -13,15 +13,15 @@
     console.log('📄 HTML Panel injetado, chamando initGame()...');
     
     // Importa o ponto de entrada direto do GitHub via jsDelivr CDN
-    // ⚠️ SEMPRE use tags de versão (ex: @v1.2.8) para evitar cache do CDN
-    import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.8/src/main.js")
+    // ⚠️ SEMPRE use tags de versão (ex: @v1.2.9) para evitar cache do CDN
+    import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.2.9/src/main.js")
       .then(module => {
         module.initGame();
       })
       .catch(err => {
         console.error('❌ Falha ao carregar main.js:', err);
         console.log('💡 Possíveis causas:');
-        console.log('   1. Tag v1.2.8 não existe no GitHub');
+        console.log('   1. Tag v1.2.9 não existe no GitHub');
         console.log('   2. Cache do CDN jsDelivr (aguarde 10 min ou mude a versão)');
         console.log('   3. Problema de CORS ou rede');
       });
