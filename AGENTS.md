@@ -34,6 +34,9 @@ Este documento define o contexto operacional obrigatório para qualquer agente d
 | tmux | 3.6a | Multiplexador de terminal |
 | httpie | 3.2.4 | Cliente HTTP human-friendly |
 | pass | 1.7.4 | Gerenciador de senhas GPG |
+| docker | 29.5.2 | Containers isolados + docker compose |
+| fzf | 0.67.0 | Busca fuzzy (Ctrl+R historico, Ctrl+T arquivos, Alt+C dirs) |
+| direnv | 2.37.1 | Variaveis de ambiente por projeto automatico (.envrc) |
 
 ### Aliases de Workflow
 
