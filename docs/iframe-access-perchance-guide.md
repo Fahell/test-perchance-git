@@ -1,5 +1,6 @@
 Use openbrowser mcp for this task.
 
+
 ---
 
 ## Guide: Direct Access to Cross-Origin Iframes on Perchance
@@ -182,3 +183,144 @@ result = await cdp.send_raw("Runtime.evaluate", params={
 **Note:** `click()` and other synchronous DOM methods are unaffected by `awaitPromise`. For plugin results triggered by clicks, use: click (sync) + monitor console logs.
 
 ---
+
+#### Console logs vs. return value: the async gap
+
+When a button click triggers an async function inside Perchance (e.g., AI Text, Dice roll, Image generation), `Runtime.evaluate` returns **immediately** with `undefined` or the click confirmation — **not** the actual result. The real result appears in **console logs** or in the **DOM** (e.g., `#test-log`).
+
+**Example:**
+```python
+# Click returns immediately, no result:
+result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "document.querySelector('#btn-dice')?.click()",
+    "returnByValue": True
+}, session_id=sid)
+print(result["result"])  # {'type': 'undefined'}
+
+# But the dice result appears in console logs (captured via interceptor):
+await wait(3)
+logs = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "JSON.stringify(window._logs || [])"
+}, session_id=sid)
+print(logs["result"]["value"])  # '[{"fn":"log","args":["✅ [Dice] Resultado: 15"]}]'
+```
+
+**Why this happens:**
+- `click()` is synchronous — it returns immediately
+- The click handler calls an async function (e.g., `aiText.generate()`)
+- That async function logs its result via `console.log()` or updates the DOM
+- `evaluate` does not wait for or capture those logs
+
+**Correct patterns for plugin interactions:**
+
+**Option 1: Console log interceptor**
+1. Install console interceptor (see "Reusable Function" section)
+2. Click the button (sync, returns undefined)
+3. `wait(5-10)` for async operation to complete
+4. Read `window._logs` to get the actual result
+
+**Option 2: Read from DOM**
+```python
+# After clicking and waiting:
+dom_result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        (function() {
+            const log = document.querySelector('#test-log');
+            if (!log) return 'not found';
+            const entries = Array.from(log.querySelectorAll('.log-entry')).map(el => ({
+                time: el.querySelector('.log-entry__time')?.textContent || '',
+                msg: el.querySelector('.log-entry__msg')?.textContent || ''
+            }));
+            return JSON.stringify(entries);
+        })()
+    """,
+    "returnByValue": True
+}, session_id=sid)
+print(dom_result["result"]["value"])
+```
+
+**Option 3: Use `Console.messageAdded` events**
+For real-time log capture, but the interceptor pattern is simpler for most cases.
+
+---
+
+#### IIFE wrapper required for `return` statements
+
+When using `Runtime.evaluate` with complex expressions that use `return`, wrap them in an IIFE (Immediately Invoked Function Expression) to avoid `SyntaxError: Illegal return statement`:
+
+```python
+# ❌ Wrong: top-level return causes SyntaxError
+result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        const log = document.querySelector('#test-log');
+        return log.textContent;
+    """
+}, session_id=sid)
+
+# ✅ Correct: wrap in IIFE
+result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        (function() {
+            const log = document.querySelector('#test-log');
+            return log.textContent;
+        })()
+    """,
+    "returnByValue": True
+}, session_id=sid)
+```
+
+---
+
+#### DOM discovery snippet
+
+Perchance generators have inconsistent HTML structures. Before interacting, discover available elements:
+
+```python
+# Find all buttons
+buttons = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        Array.from(document.querySelectorAll('button')).map(b => ({
+            text: b.textContent.trim().substring(0, 50),
+            id: b.id,
+            className: b.className
+        }))
+    """,
+    "returnByValue": True
+}, session_id=sid)
+
+# Find log/output elements
+log_elements = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        Array.from(document.querySelectorAll('[class*="log"], [id*="log"], [class*="output"], [id*="output"]')).map(el => ({
+            tag: el.tagName,
+            id: el.id,
+            class: el.className.substring(0, 60),
+            childCount: el.children.length,
+            text: el.textContent.substring(0, 100)
+        }))
+    """,
+    "returnByValue": True
+}, session_id=sid)
+```
+
+---
+
+#### Error-safe evaluate pattern
+
+Wrap code in `try/catch` to capture errors as strings instead of failing silently:
+
+```python
+result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        (function() {
+            try {
+                // Your code here
+                return document.querySelector('#nonexistent').textContent;
+            } catch(e) {
+                return 'ERROR: ' + e.message;
+            }
+        })()
+    """,
+    "returnByValue": True
+}, session_id=sid)
+```
