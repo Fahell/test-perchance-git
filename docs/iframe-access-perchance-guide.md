@@ -182,3 +182,38 @@ result = await cdp.send_raw("Runtime.evaluate", params={
 **Note:** `click()` and other synchronous DOM methods are unaffected by `awaitPromise`. For plugin results triggered by clicks, use: click (sync) + monitor console logs.
 
 ---
+
+#### Console logs vs. return value: the async gap
+
+When a button click triggers an async function inside Perchance (e.g., AI Text, Dice roll, Image generation), `Runtime.evaluate` returns **immediately** with `undefined` or the click confirmation — **not** the actual result. The real result appears in **console logs**.
+
+**Example:**
+```python
+# Click returns immediately, no result:
+result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "document.querySelector('#diceBtn')?.click()",
+    "returnByValue": True
+}, session_id=sid)
+print(result["result"]["value"])  # "undefined" or null
+
+# But the dice result appears in console logs (captured via interceptor):
+await wait(3)
+logs = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "JSON.stringify(window._logs || [])"
+}, session_id=sid)
+print(logs["result"]["value"])  # '[{"fn":"log","args":["🎲 Dice result: 15"]}]'
+```
+
+**Why this happens:**
+- `click()` is synchronous — it returns immediately
+- The click handler calls an async function (e.g., `aiText.generate()`)
+- That async function logs its result via `console.log()`
+- `evaluate` does not wait for or capture those logs
+
+**Correct pattern for plugin interactions:**
+1. Install console interceptor (see "Reusable Function" section)
+2. Click the button (sync, returns undefined)
+3. `wait(5-10)` for async operation to complete
+4. Read `window._logs` to get the actual result
+
+**Alternative:** Use `Console.messageAdded` events for real-time log capture, but the interceptor pattern is simpler for most cases.
