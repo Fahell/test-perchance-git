@@ -27,3 +27,23 @@ npm-debug.log*
 # Cache
 .cache/
 .parcel-cache/
+
+# Agent context
+.agent-notes/
+.agent-context.md
+WIP_*.md
+
+# Vite
+.vite/
+
+# Coverage
+coverage/
+*.lcov
+
+# Temp files
+*.tmp
+*.temp
+debug.log
+
+# TypeScript (future-proof)
+*.tsbuildinfo
