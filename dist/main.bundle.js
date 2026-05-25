@@ -133,7 +133,8 @@ const TEST_MODULES = {
   seederTest: () => Promise.resolve().then(() => seederTest$1),
   apexchartsTest: () => Promise.resolve().then(() => apexchartsTest$1),
   audioTest: () => Promise.resolve().then(() => audioTest),
-  mermaidTest: () => Promise.resolve().then(() => mermaidTest$1)
+  mermaidTest: () => Promise.resolve().then(() => mermaidTest$1),
+  matterTest: () => Promise.resolve().then(() => matterTest)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -206,6 +207,11 @@ async function initGame() {
     const mermaidModule = await TEST_MODULES.mermaidTest();
     if (mermaidModule && mermaidModule.mermaidTest && mermaidModule.mermaidTest.preloadMermaid) {
       mermaidModule.mermaidTest.preloadMermaid();
+    }
+    console.log("⚛️ [Main] Starting Matter.js background preload...");
+    const matterModule = await TEST_MODULES.matterTest();
+    if (matterModule && matterModule.matterTest && matterModule.matterTest.preloadMatter) {
+      matterModule.matterTest.preloadMatter();
     }
     initTestModules(testModules, rendererData);
     console.log("🔍 [Main] Carregando módulo ui-test.js...");
@@ -4610,7 +4616,7 @@ function checkAvailability() {
     code: "audio-test"
   };
 }
-function cleanup$1() {
+function cleanup$2() {
   stopAll();
   Object.keys(sounds).forEach((key) => {
     sounds[key].unload();
@@ -4627,7 +4633,7 @@ const info = {
 const audioTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   checkAvailability,
-  cleanup: cleanup$1,
+  cleanup: cleanup$2,
   getVolume,
   info,
   playMusic,
@@ -4692,10 +4698,10 @@ async function getMermaid() {
   console.log(`⏳ [Mermaid] Waiting for load to complete...`);
   return await mermaidPromise;
 }
-function isReady() {
+function isReady$1() {
   return mermaidReady;
 }
-function isLoading() {
+function isLoading$1() {
   return mermaidPromise !== null && !mermaidReady;
 }
 const DIAGRAMS = {
@@ -4809,29 +4815,248 @@ async function setTheme(themeName) {
   });
   console.log(`🎨 [Mermaid] Theme changed to: ${themeName}`);
 }
-function cleanup() {
+function cleanup$1() {
   console.log(`🧹 [Mermaid] Cleanup (note: CDN script remains in DOM for reuse)`);
 }
 const mermaidTest = {
   preloadMermaid,
   getMermaid,
-  isReady,
-  isLoading,
+  isReady: isReady$1,
+  isLoading: isLoading$1,
   renderDiagram,
   renderAllExamples,
   setTheme,
-  cleanup,
+  cleanup: cleanup$1,
   DIAGRAMS
 };
 const mermaidTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  cleanup,
-  isLoading,
-  isReady,
+  cleanup: cleanup$1,
+  isLoading: isLoading$1,
+  isReady: isReady$1,
   mermaidTest,
   renderAllExamples,
   renderDiagram,
   setTheme
+}, Symbol.toStringTag, { value: "Module" }));
+let matterPromise = null;
+let matterReady = false;
+let engine = null;
+let render = null;
+let runner = null;
+let matterContainer = null;
+let canvasContainer = null;
+let ballCount = 0;
+function preloadMatter() {
+  if (matterPromise) return;
+  matterPromise = new Promise((resolve, reject) => {
+    console.log("⚛️ [Matter] Starting background load from CDN...");
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js";
+    script.onload = () => {
+      matterReady = true;
+      console.log(`✅ [Matter] Loaded from CDN (${VERSION})`);
+      resolve(window.Matter);
+    };
+    script.onerror = () => {
+      console.error("❌ [Matter] Failed to load from CDN");
+      reject(new Error("Failed to load Matter.js"));
+    };
+    document.head.appendChild(script);
+  });
+}
+function isReady() {
+  return matterReady;
+}
+function isLoading() {
+  return matterPromise !== null && !matterReady;
+}
+async function getMatter() {
+  if (matterReady) {
+    return window.Matter;
+  }
+  if (!matterPromise) {
+    preloadMatter();
+  }
+  console.log("⏳ [Matter] Waiting for load to complete...");
+  return await matterPromise;
+}
+function createPhysicsContainer() {
+  matterContainer = document.createElement("div");
+  matterContainer.id = "matter-physics";
+  matterContainer.className = "matter-container";
+  matterContainer.innerHTML = `
+    <button class="matter-close-btn" id="matter-close">✕</button>
+    <h3 class="matter-title">⚛️ Matter.js Physics Test</h3>
+    <div class="matter-controls">
+      <button id="btn-add-balls" class="matter-btn matter-btn--add">Adicionar 10 Bolas</button>
+      <button id="btn-reset" class="matter-btn matter-btn--reset">Reset</button>
+      <button id="btn-gravity" class="matter-btn matter-btn--gravity">Toggle Gravity</button>
+    </div>
+    <div id="matter-canvas" class="matter-canvas"></div>
+    <div class="matter-info">
+      <span id="ball-counter">Bolas: 0</span>
+      <span>Clique no canvas para adicionar bolas</span>
+    </div>
+  `;
+  document.body.appendChild(matterContainer);
+  canvasContainer = document.getElementById("matter-canvas");
+  document.getElementById("matter-close").addEventListener("click", cleanup);
+  document.getElementById("btn-add-balls").addEventListener("click", () => addBalls(10));
+  document.getElementById("btn-reset").addEventListener("click", resetSimulation);
+  document.getElementById("btn-gravity").addEventListener("click", toggleGravity);
+  canvasContainer.addEventListener("click", (e) => {
+    const rect = canvasContainer.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    addBall(x, y);
+  });
+}
+async function initPhysics() {
+  try {
+    const Matter2 = await getMatter();
+    createPhysicsContainer();
+    engine = Matter2.Engine.create();
+    engine.world.gravity.y = 1;
+    render = Matter2.Render.create({
+      element: canvasContainer,
+      engine,
+      options: {
+        width: 800,
+        height: 600,
+        wireframes: false,
+        background: "#1a1a1a",
+        pixelRatio: window.devicePixelRatio || 1
+      }
+    });
+    const ground = Matter2.Bodies.rectangle(400, 590, 810, 20, {
+      isStatic: true,
+      render: { fillStyle: "#4a4a4a" }
+    });
+    const leftWall = Matter2.Bodies.rectangle(0, 300, 20, 600, {
+      isStatic: true,
+      render: { fillStyle: "#4a4a4a" }
+    });
+    const rightWall = Matter2.Bodies.rectangle(800, 300, 20, 600, {
+      isStatic: true,
+      render: { fillStyle: "#4a4a4a" }
+    });
+    const obstacle1 = Matter2.Bodies.rectangle(300, 400, 200, 20, {
+      isStatic: true,
+      angle: Math.PI * 0.1,
+      render: { fillStyle: "#5a5a5a" }
+    });
+    const obstacle2 = Matter2.Bodies.rectangle(500, 300, 200, 20, {
+      isStatic: true,
+      angle: -Math.PI * 0.1,
+      render: { fillStyle: "#5a5a5a" }
+    });
+    Matter2.World.add(engine.world, [ground, leftWall, rightWall, obstacle1, obstacle2]);
+    Matter2.Render.run(render);
+    runner = Matter2.Runner.create();
+    Matter2.Runner.run(runner, engine);
+    console.log("✅ [Matter] Physics simulation initialized");
+    addBalls(5);
+  } catch (error) {
+    console.error("❌ [Matter] Failed to initialize:", error);
+  }
+}
+function addBall(x = 400, y = 50) {
+  if (!engine) {
+    console.error("❌ [Matter] Physics engine not initialized");
+    return;
+  }
+  const Matter2 = window.Matter;
+  const colors = ["#ff6b6b", "#4ecdc4", "#45b7d1", "#f9ca24", "#6c5ce7", "#a29bfe"];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const radius = 10 + Math.random() * 15;
+  const ball = Matter2.Bodies.circle(x, y, radius, {
+    restitution: 0.7,
+    friction: 0.01,
+    render: {
+      fillStyle: color
+    }
+  });
+  Matter2.World.add(engine.world, ball);
+  ballCount++;
+  updateBallCounter();
+  console.log(`⚛️ [Matter] Ball added at (${x.toFixed(0)}, ${y.toFixed(0)})`);
+}
+function addBalls(count = 10) {
+  for (let i = 0; i < count; i++) {
+    const x = 100 + Math.random() * 600;
+    const y = 50 + Math.random() * 100;
+    setTimeout(() => addBall(x, y), i * 50);
+  }
+}
+function updateBallCounter() {
+  const counter = document.getElementById("ball-counter");
+  if (counter) {
+    counter.textContent = `Bolas: ${ballCount}`;
+  }
+}
+function resetSimulation() {
+  if (!engine) return;
+  const Matter2 = window.Matter;
+  const bodies = Matter2.Composite.allBodies(engine.world);
+  bodies.forEach((body) => {
+    if (!body.isStatic) {
+      Matter2.World.remove(engine.world, body);
+    }
+  });
+  ballCount = 0;
+  updateBallCounter();
+  console.log("🔄 [Matter] Simulation reset");
+}
+function toggleGravity() {
+  if (!engine) return;
+  const currentGravity = engine.world.gravity.y;
+  if (currentGravity === 1) {
+    engine.world.gravity.y = -1;
+    console.log("🔄 [Matter] Gravity: INVERTED");
+  } else if (currentGravity === -1) {
+    engine.world.gravity.y = 0;
+    console.log("🔄 [Matter] Gravity: ZERO");
+  } else {
+    engine.world.gravity.y = 1;
+    console.log("🔄 [Matter] Gravity: NORMAL");
+  }
+}
+function cleanup() {
+  console.log("🧹 [Matter] Cleaning up...");
+  if (runner) {
+    Matter.Runner.stop(runner);
+    runner = null;
+  }
+  if (render) {
+    Matter.Render.stop(render);
+    render.canvas.remove();
+    render = null;
+  }
+  if (engine) {
+    Matter.World.clear(engine.world);
+    Matter.Engine.clear(engine);
+    engine = null;
+  }
+  if (matterContainer) {
+    matterContainer.remove();
+    matterContainer = null;
+    canvasContainer = null;
+  }
+  ballCount = 0;
+  console.log("✅ [Matter] Cleanup complete");
+}
+const matterTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  addBall,
+  addBalls,
+  cleanup,
+  initPhysics,
+  isLoading,
+  isReady,
+  preloadMatter,
+  resetSimulation,
+  toggleGravity
 }, Symbol.toStringTag, { value: "Module" }));
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 function injectStylesheet() {
@@ -4955,7 +5180,8 @@ function initUITest(rendererData, testModules) {
     seederTest: seederTest2,
     apexchartsTest: apexchartsTest2,
     audioTest: audioTest2,
-    mermaidTest: mermaidTest2
+    mermaidTest: mermaidTest2,
+    matterTest: matterTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -4982,7 +5208,8 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-audio-sprite", name: "Audio Sprite", fn: () => audioSpriteHandler() },
     { btnId: "btn-audio-volume", name: "Audio Volume", fn: () => audioVolumeHandler() },
     { btnId: "btn-audio-stop", name: "Audio Stop", fn: () => audioStopHandler() },
-    { btnId: "btn-mermaid", name: "Mermaid", fn: () => mermaidHandler() }
+    { btnId: "btn-mermaid", name: "Mermaid", fn: () => mermaidHandler() },
+    { btnId: "btn-matter", name: "Matter.js", fn: () => matterHandler() }
   ];
   async function diceHandler() {
     log("🎲 Rolando dados...", "info");
@@ -5166,6 +5393,15 @@ function initUITest(rendererData, testModules) {
       diagramContainer = document.createElement("div");
       diagramContainer.id = "mermaid-diagrams";
       diagramContainer.className = "mermaid-container";
+      const closeBtn = document.createElement("button");
+      closeBtn.className = "mermaid-close-btn";
+      closeBtn.innerHTML = "✕";
+      closeBtn.title = "Fechar";
+      closeBtn.onclick = () => {
+        diagramContainer.remove();
+        log("📊 Diagramas fechados", "info");
+      };
+      diagramContainer.appendChild(closeBtn);
       document.body.appendChild(diagramContainer);
     } else {
       diagramContainer.innerHTML = "";
@@ -5174,6 +5410,16 @@ function initUITest(rendererData, testModules) {
     const successCount = Object.values(results).filter(Boolean).length;
     const totalCount = Object.keys(results).length;
     log(`✅ Mermaid: ${successCount}/${totalCount} diagramas renderizados`, "success");
+  }
+  async function matterHandler() {
+    log("⚛️ Testando Matter.js...", "info");
+    if (!matterTest2) throw new Error("Matter not available");
+    if (matterTest2.isLoading && matterTest2.isLoading()) {
+      log("⏳ Matter.js ainda carregando, aguarde...", "warning");
+      await matterTest2.getMatter();
+    }
+    await matterTest2.initPhysics();
+    log("✅ Matter.js: Simulação de física inicializada", "success");
   }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
@@ -5229,6 +5475,7 @@ function initUITest(rendererData, testModules) {
     <div class="ui-test-category">
       <strong style="color:var(--ui-color-viz)">📊 Diagramas</strong>
       <button id="btn-mermaid" class="ui-test-btn ui-test-btn--viz">📊 Mermaid</button>
+      <button id="btn-matter" class="ui-test-btn ui-test-btn--viz">⚛️ Matter.js</button>
     </div>
     
     <div class="ui-test-category">
@@ -5281,6 +5528,7 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-audio-volume").onclick = () => runTest("btn-audio-volume", "Audio Volume", audioVolumeHandler);
   document.getElementById("btn-audio-stop").onclick = () => runTest("btn-audio-stop", "Audio Stop", audioStopHandler);
   document.getElementById("btn-mermaid").onclick = () => runTest("btn-mermaid", "Mermaid", mermaidHandler);
+  document.getElementById("btn-matter").onclick = () => runTest("btn-matter", "Matter.js", matterHandler);
   console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado com controles globais.`);
 }
 const uiTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({

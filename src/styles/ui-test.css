@@ -285,3 +285,128 @@
   color: var(--ui-color-error);
   font-size: var(--ui-font-size-small);
 }
+
+/* ============================================
+   MATTER.JS PHYSICS STYLES
+   ============================================ */
+
+.matter-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 850px;
+  max-width: 95vw;
+  max-height: 95vh;
+  background: var(--ui-bg-panel);
+  border: 2px solid var(--ui-color-viz);
+  border-radius: var(--ui-border-radius);
+  padding: var(--ui-spacing-lg);
+  z-index: 10000;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.matter-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.matter-close-btn:hover {
+  background: #ff4757;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.matter-close-btn:active {
+  transform: scale(0.95);
+}
+
+.matter-title {
+  color: var(--ui-color-viz);
+  margin: 0 0 var(--ui-spacing-md) 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.matter-controls {
+  display: flex;
+  gap: var(--ui-spacing-sm);
+  margin-bottom: var(--ui-spacing-md);
+  flex-wrap: wrap;
+}
+
+.matter-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--ui-border-radius-sm);
+  cursor: pointer;
+  font-size: var(--ui-font-size-small);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.matter-btn--add {
+  background: #4ecdc4;
+}
+
+.matter-btn--add:hover {
+  background: #45b8af;
+  transform: translateY(-2px);
+}
+
+.matter-btn--reset {
+  background: #ff6b6b;
+}
+
+.matter-btn--reset:hover {
+  background: #ff4757;
+  transform: translateY(-2px);
+}
+
+.matter-btn--gravity {
+  background: #6c5ce7;
+}
+
+.matter-btn--gravity:hover {
+  background: #5f4fd6;
+  transform: translateY(-2px);
+}
+
+.matter-canvas {
+  width: 100%;
+  height: 600px;
+  background: #1a1a1a;
+  border-radius: var(--ui-border-radius-sm);
+  border: 1px solid #404040;
+  overflow: hidden;
+}
+
+.matter-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--ui-spacing-sm);
+  padding: var(--ui-spacing-sm);
+  background: #252525;
+  border-radius: var(--ui-border-radius-sm);
+  font-size: var(--ui-font-size-small);
+  color: #aaa;
+}

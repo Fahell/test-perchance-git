@@ -23,7 +23,8 @@ const TEST_MODULES = {
   seederTest: () => import('./modules/seeder-test.js'),
   apexchartsTest: () => import('./modules/apexcharts-test.js'),
   audioTest: () => import('./modules/audio-test.js'),
-  mermaidTest: () => import('./modules/mermaid-test.js')
+  mermaidTest: () => import('./modules/mermaid-test.js'),
+  matterTest: () => import('./modules/matter-test.js')
 };
 
 // Cache de módulos carregados
@@ -124,6 +125,13 @@ export async function initGame() {
     const mermaidModule = await TEST_MODULES.mermaidTest();
     if (mermaidModule && mermaidModule.mermaidTest && mermaidModule.mermaidTest.preloadMermaid) {
       mermaidModule.mermaidTest.preloadMermaid();
+    }
+
+    // 3.6. Start preloading Matter.js in background (non-blocking)
+    console.log('⚛️ [Main] Starting Matter.js background preload...');
+    const matterModule = await TEST_MODULES.matterTest();
+    if (matterModule && matterModule.matterTest && matterModule.matterTest.preloadMatter) {
+      matterModule.matterTest.preloadMatter();
     }
 
     // 4. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
