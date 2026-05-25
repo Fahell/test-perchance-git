@@ -276,30 +276,26 @@ function updateGenericFile(filePath, version, versionWithoutPrefix, stats) {
     return match;
   });
   
-  // Pattern 6: Console logs with version mentions (generic)
-  // Example: console.log('...v1.3.0...')
-  
-  // Pattern 6: Version strings in console.log (literal strings only)
-  // Example: console.log('...bundle v1.3.0...')
-  // Only matches versions inside quotes (single or double)
-  const consoleLogPattern = /(["'])([^"']*?(?:bundle|carregando|versão|version)[^"']*?)(v?\d+\.\d+\.\d+)([^"']*?)\1/gi;
-  updatedContent = updatedContent.replace(consoleLogPattern, (match, quote, before, oldVersion, after) => {
-    if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
-      oldVersions.add(oldVersion);
-      changesCount++;
-      return `${quote}${before}${version}${after}${quote}`;
-    }
-    return match;
-  });
-  
-  // Pattern 7: Tag version in error messages (literal strings only)
-  // Example: console.log('...Tag v1.3.0...')
-  const errorMsgPattern = /(["'])([^"']*?Tag\s+)(v?\d+\.\d+\.\d+)([^"']*?)\1/gi;
-  updatedContent = updatedContent.replace(errorMsgPattern, (match, quote, before, oldVersion, after) => {
-    if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
-      oldVersions.add(oldVersion);
-      changesCount++;
-      return `${quote}${before}${version}${after}${quote}`;
+  // Pattern 6 & 7: Console logs (FIXED - using complete string matching)
+  // Match complete strings containing version keywords, then replace version within
+  const stringPattern = /(['"])(.*?)\1/g;
+  updatedContent = updatedContent.replace(stringPattern, (match, quote, content) => {
+    // Check if string contains version-related keywords
+    if (/(bundle|carregando|versão|version|tag\s)/i.test(content)) {
+      // Replace version within the string
+      const versionPattern = /v?\d+\.\d+\.\d+/g;
+      const newContent = content.replace(versionPattern, (oldVersion) => {
+        if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
+          oldVersions.add(oldVersion);
+          changesCount++;
+          return version;
+        }
+        return oldVersion;
+      });
+      
+      if (newContent !== content) {
+        return `${quote}${newContent}${quote}`;
+      }
     }
     return match;
   });

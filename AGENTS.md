@@ -103,7 +103,7 @@ git tag -a v1.4.0 -m "Release v1.4.0"
 ✅ **Correct:**
 ```bash
 # Update constants.js first
-sed -i "s/VERSION = '1.3.0'/VERSION = '1.4.0'/" src/constants.js
+sed -i "s/VERSION = 'v1.6.0'/VERSION = 'v1.6.0'/" src/constants.js
 git add src/constants.js
 git commit -m "chore: release v1.4.0"
 # Hook updates package.json and for-perchance.html automatically
@@ -146,7 +146,7 @@ import { VERSION } from './constants.js';
 console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 
 // ❌ Wrong - requires manual update or script pattern
-console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.6.0v1.3.0');
+console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.6.0v1.6.0');
 ```
 
 This approach:
@@ -167,6 +167,10 @@ This will:
 - Show the current version in `constants.js`
 - List all files that would be updated
 - Show Git status warnings (missing tags, uncommitted changes)
+
+## Docs
+
+- `docs/iframe-access-perchance-guide.md` — How to access cross-origin Perchance iframes via CDP (browser automation).
 
 ## Defensive Restrictions
 
