@@ -115,10 +115,20 @@ print(logs["result"]["value"])
 | Rule | Reason |
 |------|--------|
 | `Target.getTargets` **without** `session_id` | It's a browser-level command |
-| Always `flatten: True` on attach | CDP-compatible format |
+| Always `flatten: True` on attach | Without it, CDP creates a nested session whose `sessionId` cannot be used for commands — all `Runtime.evaluate` and `Console.enable` calls will fail with `"Session with given id not found"`. `flatten: True` makes the session directly usable. |
 | Enable `Runtime.enable` and `Console.enable` | Required for `evaluate` and log capture |
 | Use `session_id=iframe_sid` in **all** subsequent commands | Ensures execution within the iframe context |
 | `wait(3)` after `navigate` | Iframe loads asynchronously |
 | `wait(N)` after async actions (AI, fetch, etc.) | Results may be delayed; use `wait(5–10)` before reading logs |
+
+---
+
+### Pitfalls & Patterns
+
+#### `flatten: True` is not optional
+
+Without `flatten: True`, `Target.attachToTarget` returns a `sessionId`, but it refers to a **nested** session. Any command sent with that `sessionId` (e.g. `Runtime.evaluate`, `Console.enable`) fails with `"Session with given id not found"`. With `flatten: True`, the session is flattened to the CDP client level and the `sessionId` works for all commands.
+
+**Verification:** After attaching, run `Runtime.enable` with the returned `sessionId`. If it throws `"Session with given id not found"`, the attach was done without `flatten: True`.
 
 ---
