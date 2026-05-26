@@ -1,4 +1,4 @@
-Use openbrowser mcp for this task.
+Use openbrowser mcp for this task. url: https://perchance.org/cp48hd48rs
 
 
 
@@ -17,22 +17,24 @@ App iframe:        https://<hash>.perchance.org/<slug>
 
 Common JavaScript **cannot** access the iframe's content (cross-origin). The correct access is via CDP `Target.attachToTarget`.
 
+**Important:** Connecting to a single iframe only captures console events from that target. The browser DevTools aggregates logs from all frames automatically, but CDP does not. This guide uses the **multi-frame approach** as the default — connecting to all frames (main page + iframes) for comprehensive log capture.
+
 ---
 
-### Automated Iframe Access
+### Automated Multi-Frame Access
 
-The 3-step CDP connection process is encapsulated in two reusable functions. Use them directly in any `openbrowser` session.
+The CDP connection process is encapsulated in reusable functions. Use them directly in any `openbrowser` session.
 
-#### `perchance_iframe(slug)` — Connect to the iframe
+#### `perchance_all_frames(slug)` — Connect to all frames
 
 ```python
-async def perchance_iframe(slug: str) -> tuple:
-    """Returns (cdp, iframe_sid) ready for commands inside the iframe.
+async def perchance_all_frames(slug: str) -> tuple:
+    """Returns (cdp, main_sid, [iframe_sids]) for all frames.
 
     Internally performs:
-      1. navigate() + wait(4) — load page and iframe
-      2. Target.getTargets — discover iframe targetId
-      3. Target.attachToTarget (flatten: True) — obtain sessionId
+      1. navigate() + wait(4) — load page and all iframes
+      2. Target.getTargets — discover all frame targets
+      3. Target.attachToTarget (flatten: True) — attach to each
       4. Runtime.enable + Console.enable — activate execution context
     """
     await navigate(f"https://perchance.org/{slug}")
@@ -41,31 +43,44 @@ async def perchance_iframe(slug: str) -> tuple:
     cdp = browser.cdp_client
     targets = await cdp.send_raw("Target.getTargets", params={})
 
-    iframe = next(
-        (t for t in targets["targetInfos"]
-         if t["type"] == "iframe" and ".perchance.org" in t["url"]),
-        None
-    )
-    if not iframe:
-        raise RuntimeError(f"Iframe not found for slug '{slug}'")
+    page_target = None
+    iframe_targets = []
 
-    attach = await cdp.send_raw(
+    for t in targets["targetInfos"]:
+        if t["type"] == "page":
+            page_target = t
+        elif t["type"] == "iframe" and ".perchance.org" in t["url"]:
+            iframe_targets.append(t)
+
+    # Attach to main page
+    main_attach = await cdp.send_raw(
         "Target.attachToTarget",
-        params={"targetId": iframe["targetId"], "flatten": True}
+        params={"targetId": page_target["targetId"], "flatten": True}
     )
-    sid = attach["sessionId"]
+    main_sid = main_attach["sessionId"]
+    await cdp.send_raw("Runtime.enable", params={}, session_id=main_sid)
+    await cdp.send_raw("Console.enable", params={}, session_id=main_sid)
 
-    await cdp.send_raw("Runtime.enable", params={}, session_id=sid)
-    await cdp.send_raw("Console.enable", params={}, session_id=sid)
+    # Attach to all iframes
+    iframe_sids = []
+    for iframe in iframe_targets:
+        attach = await cdp.send_raw(
+            "Target.attachToTarget",
+            params={"targetId": iframe["targetId"], "flatten": True}
+        )
+        sid = attach["sessionId"]
+        await cdp.send_raw("Runtime.enable", params={}, session_id=sid)
+        await cdp.send_raw("Console.enable", params={}, session_id=sid)
+        iframe_sids.append(sid)
 
-    return cdp, sid
+    return cdp, main_sid, iframe_sids
 ```
 
-#### `iframe_eval(cdp, sid, expression)` — Execute JS inside the iframe
+#### `iframe_eval(cdp, sid, expression)` — Execute JS in a specific frame
 
 ```python
 async def iframe_eval(cdp, sid: str, expression: str, await_promise: bool = True) -> dict:
-    """Evaluates JavaScript inside the iframe and returns the result."""
+    """Evaluates JavaScript inside a frame and returns the result."""
     result = await cdp.send_raw(
         "Runtime.evaluate",
         params={
@@ -78,34 +93,122 @@ async def iframe_eval(cdp, sid: str, expression: str, await_promise: bool = True
     return result.get("result", {})
 ```
 
+#### `install_log_interceptor(cdp, session_ids)` — Intercept console in all frames
+
+```python
+async def install_log_interceptor(cdp, session_ids: list[str]):
+    """Installs console.log/warn/error/info/debug interceptor in all frames."""
+    interceptor_code = """
+        if (!window.__consoleLogs) {
+            window.__consoleLogs = [];
+            window.__origConsole = {};
+            ['log', 'warn', 'error', 'info', 'debug'].forEach(method => {
+                window.__origConsole[method] = console[method];
+                console[method] = function(...args) {
+                    window.__consoleLogs.push({
+                        type: method,
+                        msg: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '),
+                        time: Date.now()
+                    });
+                    window.__origConsole[method](...args);
+                };
+            });
+        }
+        'interceptor installed';
+    """
+    for sid in session_ids:
+        await cdp.send_raw("Runtime.evaluate", params={
+            "expression": interceptor_code,
+            "returnByValue": True,
+            "awaitPromise": False
+        }, session_id=sid)
+```
+
+#### `poll_all_frame_logs(cdp, all_sids, duration, interval)` — Collect logs from all frames
+
+```python
+import asyncio
+import json
+
+async def poll_all_frame_logs(cdp, all_sids: list[str], duration: int = 10, interval: float = 0.5) -> list[dict]:
+    """Polls console logs from all frames over a duration.
+
+    Args:
+        all_sids: List of session IDs (main + iframes)
+        duration: How long to poll (seconds)
+        interval: Polling interval (seconds)
+
+    Returns:
+        List of log entries: [{"source": "main"|"iframe", "type": "log"|"warn"|..., "msg": str}]
+    """
+    all_logs = []
+    seen_logs = {sid: 0 for sid in all_sids}
+    end_time = asyncio.get_event_loop().time() + duration
+
+    while asyncio.get_event_loop().time() < end_time:
+        for i, sid in enumerate(all_sids):
+            source = "main" if i == 0 else f"iframe-{i}"
+            try:
+                result = await cdp.send_raw("Runtime.evaluate", params={
+                    "expression": "window.__consoleLogs ? JSON.stringify(window.__consoleLogs) : '[]'",
+                    "returnByValue": True
+                }, session_id=sid)
+                
+                val = result.get("result", {}).get("value", "[]")
+                logs = json.loads(val) if isinstance(val, str) else val
+                
+                # Get only new logs since last check
+                new_logs = logs[seen_logs[sid]:]
+                seen_logs[sid] = len(logs)
+                
+                for log in new_logs:
+                    all_logs.append({
+                        "source": source,
+                        "type": log["type"],
+                        "msg": log["msg"]
+                    })
+            except Exception:
+                pass
+        
+        await asyncio.sleep(interval)
+
+    return all_logs
+```
+
 #### Usage
 
 ```python
-# Connect once per session
-cdp, sid = await perchance_iframe("cp48hd48rs")
+# Connect to all frames (main page + iframes)
+cdp, main_sid, iframe_sids = await perchance_all_frames("cp48hd48rs")
+all_sids = [main_sid] + iframe_sids
+
+# Install log interceptor in all frames
+await install_log_interceptor(cdp, all_sids)
 
 # Click a button inside the iframe
-await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
+await iframe_eval(cdp, iframe_sids[0], "document.querySelector('#btn-dice')?.click()")
 await wait(1)
 
 # Read results from DOM
-log = await iframe_eval(cdp, sid, "document.querySelector('#test-log')?.textContent")
+log = await iframe_eval(cdp, iframe_sids[0], "document.querySelector('#test-log')?.textContent")
 print(log.get("value"))
 
-# Console log interceptor (for async plugin results)
-await iframe_eval(cdp, sid, """
-    window._logs = window._logs || [];
-    ['log','warn','error'].forEach(fn => {
-        const orig = console[fn];
-        console[fn] = (...args) => { window._logs.push({fn, args: args.map(String)}); orig(...args); };
-    });
-    'interceptor installed';
-""")
+# Poll logs from all frames after an async action
+await iframe_eval(cdp, iframe_sids[0], "document.querySelector('#btn-ai-text')?.click()")
+logs = await poll_all_frame_logs(cdp, all_sids, duration=10, interval=0.5)
 
-# After triggering an async action (AI, Image, etc.):
-await wait(5)
-logs = await iframe_eval(cdp, sid, "JSON.stringify(window._logs || [])")
-print(logs.get("value"))
+# Display results
+for entry in logs:
+    print(f"[{entry['source']}] [{entry['type']}] {entry['msg']}")
+```
+
+#### Output example
+
+```
+[main] [log] Page loaded
+[iframe-1] [log] 🤖 [AI-Text] Gerando texto básico...
+[iframe-1] [log] ✅ [AI-Text] Texto gerado: Com a espada enferrujada...
+[iframe-1] [debug] streamKeepAlive: heartbeat
 ```
 
 ---
@@ -119,10 +222,15 @@ print(logs.get("value"))
 | Always `awaitPromise: True` for async code | Without it, Promises return as unresolved objects (`subtype: "promise"`) with no value. With it, primitives resolve to `value`, objects to `objectId`. |
 | Use `returnByValue: True` for object results | Without it, async object results return only `objectId` (requires `Runtime.getProperties` to extract). With it, objects are serialized directly to `value`. |
 | Enable `Runtime.enable` and `Console.enable` | Required for `evaluate` and log capture |
-| Use `session_id=iframe_sid` in **all** subsequent commands | Ensures execution within the iframe context |
+| Use `session_id=<sid>` in **all** subsequent commands | Ensures execution within the correct frame context |
 | `wait(4)` after `navigate` | Iframe loads asynchronously |
 | `wait(N)` after async actions (AI, fetch, etc.) | Results may be delayed; use `wait(5–10)` before reading logs |
 | Prefer `Runtime.evaluate` over CDP `DOM.*` methods | `DOM.*` methods require multiple steps for simple operations (e.g., getting text content). `Runtime.evaluate` with native DOM API is more direct and efficient. |
+| Attach to **all** frame targets (page + iframes) | CDP events are per-target; without attaching to each, logs are missed |
+| Install interceptor in **every** frame | Each frame has its own `console` object |
+| Use polling instead of CDP events | `register.Runtime.consoleAPICalled` does not reliably receive events from attached sessions |
+| Track seen log count per frame | Avoids duplicate entries when polling repeatedly |
+| Filter irrelevant logs in post-processing | Keep-alive heartbeats and debug noise may need filtering |
 
 ---
 
@@ -191,13 +299,13 @@ When a button click triggers an async function inside Perchance (e.g., AI Text, 
 **Example:**
 ```python
 # Click returns immediately, no result:
-result = await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
+result = await iframe_eval(cdp, iframe_sids[0], "document.querySelector('#btn-dice')?.click()")
 print(result)  # {'type': 'undefined'}
 
 # But the dice result appears in console logs (captured via interceptor):
 await wait(3)
-logs = await iframe_eval(cdp, sid, "JSON.stringify(window._logs || [])")
-print(logs.get("value"))  # '[{"fn":"log","args":["✅ [Dice] Resultado: 15"]}]'
+logs = await poll_all_frame_logs(cdp, all_sids, duration=1)
+print(logs)  # [{'source': 'iframe-1', 'type': 'log', 'msg': '✅ [Dice] Resultado: 15'}]
 ```
 
 **Why this happens:**
@@ -208,16 +316,15 @@ print(logs.get("value"))  # '[{"fn":"log","args":["✅ [Dice] Resultado: 15"]}]'
 
 **Correct patterns for plugin interactions:**
 
-**Option 1: Console log interceptor**
-1. Install console interceptor (see "Automated Iframe Access" section)
+**Option 1: Console log interceptor (recommended)**
+1. Install console interceptor in all frames
 2. Click the button (sync, returns undefined)
-3. `wait(5-10)` for async operation to complete
-4. Read `window._logs` to get the actual result
+3. `poll_all_frame_logs()` to capture async results
 
 **Option 2: Read from DOM**
 ```python
 # After clicking and waiting:
-dom_result = await iframe_eval(cdp, sid, """
+dom_result = await iframe_eval(cdp, iframe_sids[0], """
     (function() {
         const log = document.querySelector('#test-log');
         if (!log) return 'not found';
@@ -269,7 +376,7 @@ Perchance generators have inconsistent HTML structures. Before interacting, disc
 
 ```python
 # Find all buttons
-buttons = await iframe_eval(cdp, sid, """
+buttons = await iframe_eval(cdp, iframe_sids[0], """
     Array.from(document.querySelectorAll('button')).map(b => ({
         text: b.textContent.trim().substring(0, 50),
         id: b.id,
@@ -278,7 +385,7 @@ buttons = await iframe_eval(cdp, sid, """
 """)
 
 # Find log/output elements
-log_elements = await iframe_eval(cdp, sid, """
+log_elements = await iframe_eval(cdp, iframe_sids[0], """
     Array.from(document.querySelectorAll('[class*="log"], [id*="log"], [class*="output"], [id*="output"]')).map(el => ({
         tag: el.tagName,
         id: el.id,
@@ -296,7 +403,7 @@ log_elements = await iframe_eval(cdp, sid, """
 Wrap code in `try/catch` to capture errors as strings instead of failing silently:
 
 ```python
-result = await iframe_eval(cdp, sid, """
+result = await iframe_eval(cdp, iframe_sids[0], """
     (function() {
         try {
             // Your code here
@@ -337,7 +444,7 @@ Perchance test panel buttons have **semantic IDs** (`#btn-dice`, `#btn-ai-text`,
 **Discovery pattern:**
 ```python
 # List all buttons with their IDs (run this first to discover available elements)
-discovery = await iframe_eval(cdp, sid, """
+discovery = await iframe_eval(cdp, iframe_sids[0], """
     Array.from(document.querySelectorAll('button')).map(b => ({
         id: b.id,
         text: b.textContent?.trim().substring(0, 30)
@@ -350,20 +457,11 @@ print(discovery.get("value"))
 **Click pattern:**
 ```python
 # ✅ Correct: use ID selector
-await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
+await iframe_eval(cdp, iframe_sids[0], "document.querySelector('#btn-dice')?.click()")
 
 # ❌ Wrong: text-based selector (fragile)
-await iframe_eval(cdp, sid, "Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Dice'))?.click()")
+await iframe_eval(cdp, iframe_sids[0], "Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Dice'))?.click()")
 ```
-
-**Available button IDs in test panel:**
-- System: `#btn-run-all`, `#btn-clear-log`, `#btn-export`
-- Generation: `#btn-dice`, `#btn-seeder`, `#btn-pattern`
-- AI: `#btn-ai-text`, `#btn-image`, `#btn-tts`, `#btn-tts-stop`
-- Render: `#btn-3d`, `#btn-raycaster`, `#btn-canvas`, `#btn-rpg-icon`
-- Charts: `#btn-chart-bar`, `#btn-chart-line`, `#btn-chart-pie`, `#btn-chart-radar`, `#btn-mermaid`, `#btn-matter`
-- Audio: `#btn-audio-sfx`, `#btn-audio-music`, `#btn-audio-sprite`, `#btn-audio-volume`, `#btn-audio-stop`
-- Data: `#btn-lists`, `#btn-bridge`, `#btn-state-save`, `#btn-state-load`, `#btn-kv`
 
 ---
 
@@ -395,7 +493,7 @@ html = await cdp.send_raw("DOM.getOuterHTML", params={
 # Must parse HTML to extract text content
 
 # ✅ Runtime.evaluate (1 step):
-result = await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.textContent")
+result = await iframe_eval(cdp, iframe_sids[0], "document.querySelector('#btn-dice')?.textContent")
 print(result.get("value"))  # "🎲 Dice"
 ```
 
@@ -417,7 +515,7 @@ await cdp.send_raw("Runtime.callFunctionOn", params={
 }, session_id=sid)
 
 # ✅ Runtime.evaluate (1 step):
-await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
+await iframe_eval(cdp, iframe_sids[0], "document.querySelector('#btn-dice')?.click()")
 ```
 
 **Example: XPath search**
@@ -438,7 +536,7 @@ await cdp.send_raw("DOM.discardSearchResults", params={
 # results["nodeIds"][0] is the nodeId
 
 # ✅ Runtime.evaluate (1 step):
-result = await iframe_eval(cdp, sid, """
+result = await iframe_eval(cdp, iframe_sids[0], """
     (function() {
         const r = document.evaluate(
             "//button[contains(text(), 'Dice')]",
@@ -456,3 +554,14 @@ print(result.get("value"))  # "btn-dice"
 - When you need to traverse the DOM tree programmatically via `DOM.describeNode`
 
 **Rule of thumb:** Use `Runtime.evaluate` for all DOM interactions unless you specifically need CDP-level node references.
+
+---
+
+#### Why single-target capture is insufficient
+
+| Approach | Coverage | Limitation |
+|----------|----------|------------|
+| Attach to 1 iframe | ✅ Single frame | Misses logs from other iframes and main page |
+| `Target.setAutoAttach` | ⚠️ New targets only | Does not cover existing frames |
+| `register.Runtime.consoleAPICalled` | ⚠️ Main page only | Does not receive events from attached sessions |
+| **Intercept + Polling (all frames)** | ✅ All frames | Most reliable for comprehensive log capture |
