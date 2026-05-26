@@ -1,6 +1,5 @@
 Use openbrowser mcp for this task.
 
-
 ---
 
 ## Guide: Direct Access to Cross-Origin Iframes on Perchance
@@ -123,7 +122,7 @@ print(logs["result"]["value"])
 | Use `session_id=iframe_sid` in **all** subsequent commands | Ensures execution within the iframe context |
 | `wait(3)` after `navigate` | Iframe loads asynchronously |
 | `wait(N)` after async actions (AI, fetch, etc.) | Results may be delayed; use `wait(5–10)` before reading logs |
-| Prefer ID selectors for buttons | Perchance test panel buttons have semantic IDs (`#btn-dice`, `#btn-ai-text`, etc.) — use `querySelector('#btn-dice')` instead of text-based selectors which are fragile due to emojis and whitespace |
+| Prefer `Runtime.evaluate` over CDP `DOM.*` methods | `DOM.*` methods require multiple steps for simple operations (e.g., getting text content). `Runtime.evaluate` with native DOM API is more direct and efficient. |
 
 ---
 
@@ -391,3 +390,103 @@ await cdp.send_raw("Runtime.evaluate", params={
 - Charts: `#btn-chart-bar`, `#btn-chart-line`, `#btn-chart-pie`, `#btn-chart-radar`, `#btn-mermaid`, `#btn-matter`
 - Audio: `#btn-audio-sfx`, `#btn-audio-music`, `#btn-audio-sprite`, `#btn-audio-volume`, `#btn-audio-stop`
 - Data: `#btn-lists`, `#btn-bridge`, `#btn-state-save`, `#btn-state-load`, `#btn-kv`
+
+---
+
+#### Prefer `Runtime.evaluate` over CDP `DOM.*` methods
+
+CDP provides native `DOM.*` methods (`DOM.querySelector`, `DOM.getOuterHTML`, etc.), but `Runtime.evaluate` with native DOM API is **simpler and more efficient** for most tasks.
+
+**Why `DOM.*` methods are verbose:**
+
+| Task | `DOM.*` steps | `Runtime.evaluate` steps |
+|------|---------------|--------------------------|
+| Get text content | `DOM.querySelector` → `DOM.getOuterHTML` → parse HTML | Single `evaluate` call |
+| Click element | `DOM.querySelector` → `DOM.resolveNode` → `Runtime.callFunctionOn` | Single `evaluate` call |
+| XPath search | `DOM.performSearch` → `DOM.getSearchResults` → `DOM.discardSearchResults` | Single `evaluate` call |
+| Get multiple properties | Multiple `DOM.describeNode` calls | Single `evaluate` call |
+
+**Example: Getting button text**
+
+```python
+# ❌ DOM API (3 steps):
+doc = await cdp.send_raw("DOM.getDocument", params={"depth": 0}, session_id=sid)
+result = await cdp.send_raw("DOM.querySelector", params={
+    "nodeId": doc["root"]["nodeId"],
+    "selector": "#btn-dice"
+}, session_id=sid)
+html = await cdp.send_raw("DOM.getOuterHTML", params={
+    "nodeId": result["nodeId"]
+}, session_id=sid)
+# Must parse HTML to extract text content
+
+# ✅ Runtime.evaluate (1 step):
+result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "document.querySelector('#btn-dice')?.textContent",
+    "returnByValue": True
+}, session_id=sid)
+print(result["result"]["value"])  # "🎲 Dice"
+```
+
+**Example: Clicking a button**
+
+```python
+# ❌ DOM API (3 steps):
+doc = await cdp.send_raw("DOM.getDocument", params={"depth": 0}, session_id=sid)
+result = await cdp.send_raw("DOM.querySelector", params={
+    "nodeId": doc["root"]["nodeId"],
+    "selector": "#btn-dice"
+}, session_id=sid)
+resolved = await cdp.send_raw("DOM.resolveNode", params={
+    "nodeId": result["nodeId"]
+}, session_id=sid)
+await cdp.send_raw("Runtime.callFunctionOn", params={
+    "objectId": resolved["object"]["objectId"],
+    "functionDeclaration": "function() { this.click(); }"
+}, session_id=sid)
+
+# ✅ Runtime.evaluate (1 step):
+await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "document.querySelector('#btn-dice')?.click()"
+}, session_id=sid)
+```
+
+**Example: XPath search**
+
+```python
+# ❌ DOM API (3 steps):
+search = await cdp.send_raw("DOM.performSearch", params={
+    "query": "//button[contains(text(), 'Dice')]"
+}, session_id=sid)
+results = await cdp.send_raw("DOM.getSearchResults", params={
+    "searchId": search["searchId"],
+    "fromIndex": 0,
+    "toIndex": search["resultCount"]
+}, session_id=sid)
+await cdp.send_raw("DOM.discardSearchResults", params={
+    "searchId": search["searchId"]
+}, session_id=sid)
+# results["nodeIds"][0] is the nodeId
+
+# ✅ Runtime.evaluate (1 step):
+result = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        (function() {
+            const r = document.evaluate(
+                "//button[contains(text(), 'Dice')]",
+                document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null
+            );
+            return r.singleNodeValue?.id;
+        })()
+    """,
+    "returnByValue": True
+}, session_id=sid)
+print(result["result"]["value"])  # "btn-dice"
+```
+
+**When to use `DOM.*` methods:**
+- When you need the raw `nodeId` for subsequent CDP operations
+- When working with CDP-specific features like `DOM.setOuterHTML`
+- When you need to traverse the DOM tree programmatically via `DOM.describeNode`
+
+**Rule of thumb:** Use `Runtime.evaluate` for all DOM interactions unless you specifically need CDP-level node references.
