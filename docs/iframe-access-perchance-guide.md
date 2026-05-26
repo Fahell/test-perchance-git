@@ -1,5 +1,7 @@
 Use openbrowser mcp for this task.
 
+
+
 ---
 
 ## Guide: Direct Access to Cross-Origin Iframes on Perchance
@@ -17,58 +19,36 @@ Common JavaScript **cannot** access the iframe's content (cross-origin). The cor
 
 ---
 
-### 3-Step Strategy
+### Automated Iframe Access
 
-```python
-# STEP 1: Navigate and discover the iframe's targetId
-await navigate("https://perchance.org/<slug>")
-await wait(3)  # wait for iframe to load
+The 3-step CDP connection process is encapsulated in two reusable functions. Use them directly in any `openbrowser` session.
 
-cdp = browser.cdp_client
-targets = await cdp.send_raw("Target.getTargets", params={})  # NO session_id
-
-iframe_target = next(
-    t for t in targets["targetInfos"]
-    if t["type"] == "iframe" and ".perchance.org" in t["url"]
-)
-target_id = iframe_target["targetId"]
-
-# STEP 2: Attach to the iframe to obtain sessionId
-attach = await cdp.send_raw(
-    "Target.attachToTarget",
-    params={"targetId": target_id, "flatten": True}
-)
-iframe_sid = attach["sessionId"]
-
-# STEP 3: Enable domains and execute JS inside the iframe context
-await cdp.send_raw("Runtime.enable", params={}, session_id=iframe_sid)
-await cdp.send_raw("Console.enable", params={}, session_id=iframe_sid)
-
-# Now any CDP command runs INSIDE the iframe:
-result = await cdp.send_raw(
-    "Runtime.evaluate",
-    params={"expression": "document.title"},
-    session_id=iframe_sid
-)
-print(result)
-```
-
----
-
-### Reusable Function
+#### `perchance_iframe(slug)` — Connect to the iframe
 
 ```python
 async def perchance_iframe(slug: str) -> tuple:
-    """Returns (cdp, iframe_sid) ready for commands inside the iframe."""
+    """Returns (cdp, iframe_sid) ready for commands inside the iframe.
+
+    Internally performs:
+      1. navigate() + wait(4) — load page and iframe
+      2. Target.getTargets — discover iframe targetId
+      3. Target.attachToTarget (flatten: True) — obtain sessionId
+      4. Runtime.enable + Console.enable — activate execution context
+    """
     await navigate(f"https://perchance.org/{slug}")
-    await wait(3)
+    await wait(4)
 
     cdp = browser.cdp_client
     targets = await cdp.send_raw("Target.getTargets", params={})
+
     iframe = next(
-        t for t in targets["targetInfos"]
-        if t["type"] == "iframe" and ".perchance.org" in t["url"]
+        (t for t in targets["targetInfos"]
+         if t["type"] == "iframe" and ".perchance.org" in t["url"]),
+        None
     )
+    if not iframe:
+        raise RuntimeError(f"Iframe not found for slug '{slug}'")
+
     attach = await cdp.send_raw(
         "Target.attachToTarget",
         params={"targetId": iframe["targetId"], "flatten": True}
@@ -79,33 +59,53 @@ async def perchance_iframe(slug: str) -> tuple:
     await cdp.send_raw("Console.enable", params={}, session_id=sid)
 
     return cdp, sid
+```
 
-# Usage:
+#### `iframe_eval(cdp, sid, expression)` — Execute JS inside the iframe
+
+```python
+async def iframe_eval(cdp, sid: str, expression: str, await_promise: bool = True) -> dict:
+    """Evaluates JavaScript inside the iframe and returns the result."""
+    result = await cdp.send_raw(
+        "Runtime.evaluate",
+        params={
+            "expression": expression,
+            "returnByValue": True,
+            "awaitPromise": await_promise,
+        },
+        session_id=sid
+    )
+    return result.get("result", {})
+```
+
+#### Usage
+
+```python
+# Connect once per session
 cdp, sid = await perchance_iframe("cp48hd48rs")
 
-# Click a button inside the iframe:
-await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "document.querySelector('button')?.click()"
-}, session_id=sid)
+# Click a button inside the iframe
+await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
+await wait(1)
 
-# Extract console logs:
-import json
-await cdp.send_raw("Runtime.evaluate", params={
-    "expression": """
-        window._logs = window._logs || [];
-        ['log','warn','error'].forEach(fn => {
-            const orig = console[fn];
-            console[fn] = (...args) => { window._logs.push({fn, args: args.map(String)}); orig(...args); };
-        });
-        'interceptor installed';
-    """
-}, session_id=sid)
+# Read results from DOM
+log = await iframe_eval(cdp, sid, "document.querySelector('#test-log')?.textContent")
+print(log.get("value"))
 
-# After interacting (use wait(5–10) for async ops like AI calls):
-logs = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "JSON.stringify(window._logs || [])"
-}, session_id=sid)
-print(logs["result"]["value"])
+# Console log interceptor (for async plugin results)
+await iframe_eval(cdp, sid, """
+    window._logs = window._logs || [];
+    ['log','warn','error'].forEach(fn => {
+        const orig = console[fn];
+        console[fn] = (...args) => { window._logs.push({fn, args: args.map(String)}); orig(...args); };
+    });
+    'interceptor installed';
+""")
+
+# After triggering an async action (AI, Image, etc.):
+await wait(5)
+logs = await iframe_eval(cdp, sid, "JSON.stringify(window._logs || [])")
+print(logs.get("value"))
 ```
 
 ---
@@ -120,7 +120,7 @@ print(logs["result"]["value"])
 | Use `returnByValue: True` for object results | Without it, async object results return only `objectId` (requires `Runtime.getProperties` to extract). With it, objects are serialized directly to `value`. |
 | Enable `Runtime.enable` and `Console.enable` | Required for `evaluate` and log capture |
 | Use `session_id=iframe_sid` in **all** subsequent commands | Ensures execution within the iframe context |
-| `wait(3)` after `navigate` | Iframe loads asynchronously |
+| `wait(4)` after `navigate` | Iframe loads asynchronously |
 | `wait(N)` after async actions (AI, fetch, etc.) | Results may be delayed; use `wait(5–10)` before reading logs |
 | Prefer `Runtime.evaluate` over CDP `DOM.*` methods | `DOM.*` methods require multiple steps for simple operations (e.g., getting text content). `Runtime.evaluate` with native DOM API is more direct and efficient. |
 
@@ -191,18 +191,13 @@ When a button click triggers an async function inside Perchance (e.g., AI Text, 
 **Example:**
 ```python
 # Click returns immediately, no result:
-result = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "document.querySelector('#btn-dice')?.click()",
-    "returnByValue": True
-}, session_id=sid)
-print(result["result"])  # {'type': 'undefined'}
+result = await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
+print(result)  # {'type': 'undefined'}
 
 # But the dice result appears in console logs (captured via interceptor):
 await wait(3)
-logs = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "JSON.stringify(window._logs || [])"
-}, session_id=sid)
-print(logs["result"]["value"])  # '[{"fn":"log","args":["✅ [Dice] Resultado: 15"]}]'
+logs = await iframe_eval(cdp, sid, "JSON.stringify(window._logs || [])")
+print(logs.get("value"))  # '[{"fn":"log","args":["✅ [Dice] Resultado: 15"]}]'
 ```
 
 **Why this happens:**
@@ -214,7 +209,7 @@ print(logs["result"]["value"])  # '[{"fn":"log","args":["✅ [Dice] Resultado: 1
 **Correct patterns for plugin interactions:**
 
 **Option 1: Console log interceptor**
-1. Install console interceptor (see "Reusable Function" section)
+1. Install console interceptor (see "Automated Iframe Access" section)
 2. Click the button (sync, returns undefined)
 3. `wait(5-10)` for async operation to complete
 4. Read `window._logs` to get the actual result
@@ -222,21 +217,18 @@ print(logs["result"]["value"])  # '[{"fn":"log","args":["✅ [Dice] Resultado: 1
 **Option 2: Read from DOM**
 ```python
 # After clicking and waiting:
-dom_result = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": """
-        (function() {
-            const log = document.querySelector('#test-log');
-            if (!log) return 'not found';
-            const entries = Array.from(log.querySelectorAll('.log-entry')).map(el => ({
-                time: el.querySelector('.log-entry__time')?.textContent || '',
-                msg: el.querySelector('.log-entry__msg')?.textContent || ''
-            }));
-            return JSON.stringify(entries);
-        })()
-    """,
-    "returnByValue": True
-}, session_id=sid)
-print(dom_result["result"]["value"])
+dom_result = await iframe_eval(cdp, sid, """
+    (function() {
+        const log = document.querySelector('#test-log');
+        if (!log) return 'not found';
+        const entries = Array.from(log.querySelectorAll('.log-entry')).map(el => ({
+            time: el.querySelector('.log-entry__time')?.textContent || '',
+            msg: el.querySelector('.log-entry__msg')?.textContent || ''
+        }));
+        return JSON.stringify(entries);
+    })()
+""")
+print(dom_result.get("value"))
 ```
 
 **Option 3: Use `Console.messageAdded` events**
@@ -277,30 +269,24 @@ Perchance generators have inconsistent HTML structures. Before interacting, disc
 
 ```python
 # Find all buttons
-buttons = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": """
-        Array.from(document.querySelectorAll('button')).map(b => ({
-            text: b.textContent.trim().substring(0, 50),
-            id: b.id,
-            className: b.className
-        }))
-    """,
-    "returnByValue": True
-}, session_id=sid)
+buttons = await iframe_eval(cdp, sid, """
+    Array.from(document.querySelectorAll('button')).map(b => ({
+        text: b.textContent.trim().substring(0, 50),
+        id: b.id,
+        className: b.className
+    }))
+""")
 
 # Find log/output elements
-log_elements = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": """
-        Array.from(document.querySelectorAll('[class*="log"], [id*="log"], [class*="output"], [id*="output"]')).map(el => ({
-            tag: el.tagName,
-            id: el.id,
-            class: el.className.substring(0, 60),
-            childCount: el.children.length,
-            text: el.textContent.substring(0, 100)
-        }))
-    """,
-    "returnByValue": True
-}, session_id=sid)
+log_elements = await iframe_eval(cdp, sid, """
+    Array.from(document.querySelectorAll('[class*="log"], [id*="log"], [class*="output"], [id*="output"]')).map(el => ({
+        tag: el.tagName,
+        id: el.id,
+        class: el.className.substring(0, 60),
+        childCount: el.children.length,
+        text: el.textContent.substring(0, 100)
+    }))
+""")
 ```
 
 ---
@@ -310,19 +296,16 @@ log_elements = await cdp.send_raw("Runtime.evaluate", params={
 Wrap code in `try/catch` to capture errors as strings instead of failing silently:
 
 ```python
-result = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": """
-        (function() {
-            try {
-                // Your code here
-                return document.querySelector('#nonexistent').textContent;
-            } catch(e) {
-                return 'ERROR: ' + e.message;
-            }
-        })()
-    """,
-    "returnByValue": True
-}, session_id=sid)
+result = await iframe_eval(cdp, sid, """
+    (function() {
+        try {
+            // Your code here
+            return document.querySelector('#nonexistent').textContent;
+        } catch(e) {
+            return 'ERROR: ' + e.message;
+        }
+    })()
+""")
 ```
 
 ---
@@ -332,7 +315,7 @@ result = await cdp.send_raw("Runtime.evaluate", params={
 Perchance test panel buttons have **semantic IDs** (`#btn-dice`, `#btn-ai-text`, `#btn-image`, etc.). Always prefer ID selectors over text-based or class-based selectors.
 
 **Why text-based selectors fail:**
-- Button text contains emojis (`🎲 Dice`, `🤖 AI Text`) which may vary
+- Button text contains emojis (🎲 Dice, 🤖 AI Text) which may vary
 - Whitespace differences (trimming issues)
 - No `data-*` attributes available
 - No Shadow DOM
@@ -354,32 +337,23 @@ Perchance test panel buttons have **semantic IDs** (`#btn-dice`, `#btn-ai-text`,
 **Discovery pattern:**
 ```python
 # List all buttons with their IDs (run this first to discover available elements)
-discovery = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": """
-        Array.from(document.querySelectorAll('button')).map(b => ({
-            id: b.id,
-            text: b.textContent?.trim().substring(0, 30)
-        }))
-    """,
-    "returnByValue": True
-}, session_id=sid)
-print(discovery["result"]["value"])
+discovery = await iframe_eval(cdp, sid, """
+    Array.from(document.querySelectorAll('button')).map(b => ({
+        id: b.id,
+        text: b.textContent?.trim().substring(0, 30)
+    }))
+""")
+print(discovery.get("value"))
 # Output: [{"id":"btn-dice","text":"🎲 Dice"}, {"id":"btn-ai-text","text":"🤖 AI Text"}, ...]
 ```
 
 **Click pattern:**
 ```python
 # ✅ Correct: use ID selector
-await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "document.querySelector('#btn-dice')?.click()",
-    "returnByValue": True
-}, session_id=sid)
+await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
 
 # ❌ Wrong: text-based selector (fragile)
-await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Dice'))?.click()",
-    "returnByValue": True
-}, session_id=sid)
+await iframe_eval(cdp, sid, "Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Dice'))?.click()")
 ```
 
 **Available button IDs in test panel:**
@@ -421,11 +395,8 @@ html = await cdp.send_raw("DOM.getOuterHTML", params={
 # Must parse HTML to extract text content
 
 # ✅ Runtime.evaluate (1 step):
-result = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "document.querySelector('#btn-dice')?.textContent",
-    "returnByValue": True
-}, session_id=sid)
-print(result["result"]["value"])  # "🎲 Dice"
+result = await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.textContent")
+print(result.get("value"))  # "🎲 Dice"
 ```
 
 **Example: Clicking a button**
@@ -446,9 +417,7 @@ await cdp.send_raw("Runtime.callFunctionOn", params={
 }, session_id=sid)
 
 # ✅ Runtime.evaluate (1 step):
-await cdp.send_raw("Runtime.evaluate", params={
-    "expression": "document.querySelector('#btn-dice')?.click()"
-}, session_id=sid)
+await iframe_eval(cdp, sid, "document.querySelector('#btn-dice')?.click()")
 ```
 
 **Example: XPath search**
@@ -469,19 +438,16 @@ await cdp.send_raw("DOM.discardSearchResults", params={
 # results["nodeIds"][0] is the nodeId
 
 # ✅ Runtime.evaluate (1 step):
-result = await cdp.send_raw("Runtime.evaluate", params={
-    "expression": """
-        (function() {
-            const r = document.evaluate(
-                "//button[contains(text(), 'Dice')]",
-                document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null
-            );
-            return r.singleNodeValue?.id;
-        })()
-    """,
-    "returnByValue": True
-}, session_id=sid)
-print(result["result"]["value"])  # "btn-dice"
+result = await iframe_eval(cdp, sid, """
+    (function() {
+        const r = document.evaluate(
+            "//button[contains(text(), 'Dice')]",
+            document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null
+        );
+        return r.singleNodeValue?.id;
+    })()
+""")
+print(result.get("value"))  # "btn-dice"
 ```
 
 **When to use `DOM.*` methods:**
