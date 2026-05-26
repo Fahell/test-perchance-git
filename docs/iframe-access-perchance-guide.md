@@ -123,6 +123,7 @@ print(logs["result"]["value"])
 | Use `session_id=iframe_sid` in **all** subsequent commands | Ensures execution within the iframe context |
 | `wait(3)` after `navigate` | Iframe loads asynchronously |
 | `wait(N)` after async actions (AI, fetch, etc.) | Results may be delayed; use `wait(5–10)` before reading logs |
+| Prefer ID selectors for buttons | Perchance test panel buttons have semantic IDs (`#btn-dice`, `#btn-ai-text`, etc.) — use `querySelector('#btn-dice')` instead of text-based selectors which are fragile due to emojis and whitespace |
 
 ---
 
@@ -324,3 +325,69 @@ result = await cdp.send_raw("Runtime.evaluate", params={
     "returnByValue": True
 }, session_id=sid)
 ```
+
+---
+
+#### CSS selectors: prefer IDs, avoid text-based selection
+
+Perchance test panel buttons have **semantic IDs** (`#btn-dice`, `#btn-ai-text`, `#btn-image`, etc.). Always prefer ID selectors over text-based or class-based selectors.
+
+**Why text-based selectors fail:**
+- Button text contains emojis (`🎲 Dice`, `🤖 AI Text`) which may vary
+- Whitespace differences (trimming issues)
+- No `data-*` attributes available
+- No Shadow DOM
+
+**Selector strategy comparison:**
+
+| Strategy | Robustness | Example |
+|----------|------------|---------|
+| ID selector | ✅ Most robust | `querySelector('#btn-dice')` |
+| Class + text | ⚠️ Fallback | `Array.from(querySelectorAll('.ui-test-btn')).find(b => b.textContent?.includes('Dice'))` |
+| XPath | ⚠️ Verbose | `document.evaluate('//button[contains(text(), "Dice")]', ...)` |
+| `:contains()` | ❌ Invalid CSS | `querySelector('button:contains("Dice")')` — throws SyntaxError |
+
+**Common mistakes:**
+- `:contains()` is jQuery-only, not valid CSS — throws `SyntaxError`
+- XPath syntax (`//button[...]`) in `querySelector` — throws `SyntaxError`
+- Case-sensitive IDs: `#BTN-DICE` won't match `#btn-dice`
+
+**Discovery pattern:**
+```python
+# List all buttons with their IDs (run this first to discover available elements)
+discovery = await cdp.send_raw("Runtime.evaluate", params={
+    "expression": """
+        Array.from(document.querySelectorAll('button')).map(b => ({
+            id: b.id,
+            text: b.textContent?.trim().substring(0, 30)
+        }))
+    """,
+    "returnByValue": True
+}, session_id=sid)
+print(discovery["result"]["value"])
+# Output: [{"id":"btn-dice","text":"🎲 Dice"}, {"id":"btn-ai-text","text":"🤖 AI Text"}, ...]
+```
+
+**Click pattern:**
+```python
+# ✅ Correct: use ID selector
+await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "document.querySelector('#btn-dice')?.click()",
+    "returnByValue": True
+}, session_id=sid)
+
+# ❌ Wrong: text-based selector (fragile)
+await cdp.send_raw("Runtime.evaluate", params={
+    "expression": "Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Dice'))?.click()",
+    "returnByValue": True
+}, session_id=sid)
+```
+
+**Available button IDs in test panel:**
+- System: `#btn-run-all`, `#btn-clear-log`, `#btn-export`
+- Generation: `#btn-dice`, `#btn-seeder`, `#btn-pattern`
+- AI: `#btn-ai-text`, `#btn-image`, `#btn-tts`, `#btn-tts-stop`
+- Render: `#btn-3d`, `#btn-raycaster`, `#btn-canvas`, `#btn-rpg-icon`
+- Charts: `#btn-chart-bar`, `#btn-chart-line`, `#btn-chart-pie`, `#btn-chart-radar`, `#btn-mermaid`, `#btn-matter`
+- Audio: `#btn-audio-sfx`, `#btn-audio-music`, `#btn-audio-sprite`, `#btn-audio-volume`, `#btn-audio-stop`
+- Data: `#btn-lists`, `#btn-bridge`, `#btn-state-save`, `#btn-state-load`, `#btn-kv`
