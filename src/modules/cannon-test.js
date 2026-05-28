@@ -1,6 +1,6 @@
 /**
  * Cannon-es 3D Physics Test Module
- * Testa integração de física 3D com Three.js no ambiente Perchance
+ * Renderiza física 3D em seu próprio container Three.js isolado
  */
 
 import { VERSION } from '../constants.js';
@@ -30,9 +30,6 @@ const COLORS = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xf9ca24, 0x6c5ce7, 0xa29bfe];
 
 const CANNON_CDN = 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
 
-/**
- * Inicia o preload assíncrono do Cannon-es via ESM dynamic import
- */
 export function preloadCannon() {
   if (cannonPromise) return;
 
@@ -65,9 +62,6 @@ async function getCannon() {
   return await cannonPromise;
 }
 
-/**
- * Cria o container modal para a simulação de física 3D
- */
 function createContainer() {
   containerEl = document.createElement('div');
   containerEl.id = 'cannon-physics';
@@ -102,29 +96,45 @@ function createContainer() {
 }
 
 /**
- * Inicializa a simulação de física 3D integrada ao Three.js
+ * Inicializa simulação com renderer Three.js próprio, isolado do scene principal
  */
-export async function initPhysics3D(rendererData) {
+export async function initPhysics3D() {
   try {
     const CANNON = await getCannon();
-    const { scene, camera, renderer } = rendererData;
-
-    if (!scene || !camera || !renderer) {
-      throw new Error('Three.js renderer data incomplete');
-    }
-
-    sceneRef = scene;
-    cameraRef = camera;
-    rendererRef = renderer;
 
     createContainer();
 
-    // Criar world
+    const width = canvasContainer.clientWidth || 600;
+    const height = canvasContainer.clientHeight || 400;
+
+    // Scene próprio
+    sceneRef = new THREE.Scene();
+    sceneRef.background = new THREE.Color(0x1a1a2e);
+
+    // Camera própria
+    cameraRef = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+    cameraRef.position.set(8, 8, 8);
+    cameraRef.lookAt(0, 0, 0);
+
+    // Renderer próprio dentro do canvas container
+    rendererRef = new THREE.WebGLRenderer({ antialias: true });
+    rendererRef.setSize(width, height);
+    rendererRef.setPixelRatio(window.devicePixelRatio);
+    canvasContainer.appendChild(rendererRef.domElement);
+
+    // Luzes
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    sceneRef.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight.position.set(5, 10, 5);
+    sceneRef.add(directionalLight);
+
+    // World
     world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
     world.allowSleep = true;
     world.broadphase = new CANNON.SAPBroadphase(world);
 
-    // Material padrão
     const defaultMaterial = new CANNON.Material('default');
     const contactMaterial = new CANNON.ContactMaterial(defaultMaterial, defaultMaterial, {
       friction: 0.4,
@@ -133,22 +143,20 @@ export async function initPhysics3D(rendererData) {
     world.addContactMaterial(contactMaterial);
     world.defaultContactMaterial = contactMaterial;
 
-    // Chão estático
+    // Ground
     const groundShape = new CANNON.Plane();
     const groundBody = new CANNON.Body({ mass: 0, shape: groundShape });
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     groundBody.material = defaultMaterial;
     world.addBody(groundBody);
 
-    // Grid visual no Three.js
+    // Grid visual
     const gridHelper = new THREE.GridHelper(20, 20, 0x4a4a4a, 0x2a2a2a);
-    gridHelper.name = 'cannon-grid';
-    scene.add(gridHelper);
+    sceneRef.add(gridHelper);
 
-    // Adicionar esferas iniciais
     addSpheres(5);
 
-    // Loop de animação
+    // Animation loop
     const fixedTimeStep = 1 / 60;
 
     function animate() {
@@ -159,19 +167,18 @@ export async function initPhysics3D(rendererData) {
         mesh.position.copy(body.position);
         mesh.quaternion.copy(body.quaternion);
       }
+
+      rendererRef.render(sceneRef, cameraRef);
     }
 
     animate();
 
-    console.log('✅ [Cannon] 3D Physics simulation initialized');
+    console.log('✅ [Cannon] 3D Physics simulation initialized (isolated renderer)');
   } catch (error) {
     console.error('❌ [Cannon] Failed to initialize:', error.message);
   }
 }
 
-/**
- * Adiciona uma esfera dinâmica
- */
 export function addSphere(x, y, z) {
   if (!world || !sceneRef) {
     console.error('❌ [Cannon] World or scene not initialized');
@@ -182,7 +189,6 @@ export function addSphere(x, y, z) {
   const radius = 0.3 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
-  // Cannon body
   const shape = new CANNON.Sphere(radius);
   const body = new CANNON.Body({ mass: 1, shape });
   body.position.set(
@@ -194,11 +200,9 @@ export function addSphere(x, y, z) {
   body.sleepTimeLimit = 1;
   world.addBody(body);
 
-  // Three mesh
   const geometry = new THREE.SphereGeometry(radius, 16, 16);
   const material = new THREE.MeshPhongMaterial({ color });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.castShadow = true;
   sceneRef.add(mesh);
 
   physicsObjects.push({ body, mesh });
@@ -208,9 +212,6 @@ export function addSphere(x, y, z) {
   console.log(`💣 [Cannon] Sphere added (${bodyCount} bodies)`);
 }
 
-/**
- * Adiciona uma caixa dinâmica
- */
 export function addBox(x, y, z) {
   if (!world || !sceneRef) {
     console.error('❌ [Cannon] World or scene not initialized');
@@ -221,7 +222,6 @@ export function addBox(x, y, z) {
   const size = 0.4 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
-  // Cannon body
   const shape = new CANNON.Box(new CANNON.Vec3(size / 2, size / 2, size / 2));
   const body = new CANNON.Body({ mass: 1, shape });
   body.position.set(
@@ -233,11 +233,9 @@ export function addBox(x, y, z) {
   body.sleepTimeLimit = 1;
   world.addBody(body);
 
-  // Three mesh
   const geometry = new THREE.BoxGeometry(size, size, size);
   const material = new THREE.MeshPhongMaterial({ color });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.castShadow = true;
   sceneRef.add(mesh);
 
   physicsObjects.push({ body, mesh });
@@ -264,9 +262,6 @@ function updateCounter() {
   if (counter) counter.textContent = `Bodies: ${bodyCount}`;
 }
 
-/**
- * Remove todos os bodies dinâmicos e meshes correspondentes
- */
 export function resetSimulation() {
   if (!world || !sceneRef) return;
 
@@ -284,9 +279,6 @@ export function resetSimulation() {
   console.log('🔄 [Cannon] Simulation reset');
 }
 
-/**
- * Cicla entre gravidade normal, invertida e zero
- */
 export function toggleGravity() {
   if (!world) return;
 
@@ -297,9 +289,6 @@ export function toggleGravity() {
   console.log(`🔄 [Cannon] Gravity: ${state.label} (${state.y})`);
 }
 
-/**
- * Aplica impulso radial a partir da origem
- */
 export function applyExplosion() {
   if (!world) return;
 
@@ -315,9 +304,6 @@ export function applyExplosion() {
   console.log(`💥 [Cannon] Explosion applied to ${physicsObjects.length} bodies`);
 }
 
-/**
- * Limpa recursos e remove o container
- */
 export function cleanup() {
   console.log('🧹 [Cannon] Cleaning up...');
 
@@ -335,13 +321,15 @@ export function cleanup() {
     }
   }
 
-  if (sceneRef) {
-    const grid = sceneRef.getObjectByName('cannon-grid');
-    if (grid) sceneRef.remove(grid);
+  if (rendererRef) {
+    rendererRef.dispose();
+    rendererRef = null;
   }
 
   physicsObjects = [];
   world = null;
+  sceneRef = null;
+  cameraRef = null;
   bodyCount = 0;
   gravityIndex = 0;
 
