@@ -7,6 +7,7 @@ import { VERSION } from '../constants.js';
 
 let cannonPromise = null;
 let cannonReady = false;
+let cannonModule = null;
 let world = null;
 let animationId = null;
 let physicsObjects = [];
@@ -26,33 +27,26 @@ const GRAVITY_STATES = [
 
 const COLORS = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xf9ca24, 0x6c5ce7, 0xa29bfe];
 
-const CANNON_CDN = 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.cjs.js';
+const CANNON_CDN = 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
 
 /**
- * Inicia o preload assíncrono do Cannon-es via CDN
+ * Inicia o preload assíncrono do Cannon-es via ESM dynamic import
  */
 export function preloadCannon() {
   if (cannonPromise) return;
 
-  cannonPromise = new Promise((resolve, reject) => {
-    console.log('💣 [Cannon] Starting background load from CDN...');
-
-    const script = document.createElement('script');
-    script.src = CANNON_CDN;
-
-    script.onload = () => {
+  cannonPromise = (async () => {
+    console.log('💣 [Cannon] Starting background load from CDN (ESM)...');
+    try {
+      cannonModule = await import(/* @vite-ignore */ CANNON_CDN);
       cannonReady = true;
       console.log(`✅ [Cannon] Loaded from CDN (${VERSION})`);
-      resolve(window.CANNON);
-    };
-
-    script.onerror = () => {
-      console.error('❌ [Cannon] Failed to load from CDN');
-      reject(new Error('Failed to load Cannon-es'));
-    };
-
-    document.head.appendChild(script);
-  });
+      return cannonModule;
+    } catch (error) {
+      console.error('❌ [Cannon] Failed to load from CDN:', error.message);
+      throw error;
+    }
+  })();
 }
 
 export function isReady() {
@@ -64,7 +58,7 @@ export function isLoading() {
 }
 
 async function getCannon() {
-  if (cannonReady) return window.CANNON;
+  if (cannonReady) return cannonModule;
   if (!cannonPromise) preloadCannon();
   console.log('⏳ [Cannon] Waiting for load to complete...');
   return await cannonPromise;
@@ -183,7 +177,7 @@ export function addSphere(x, y, z) {
     return;
   }
 
-  const CANNON = window.CANNON;
+  const CANNON = cannonModule;
   const THREE = window.THREE;
   const radius = 0.3 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -223,7 +217,7 @@ export function addBox(x, y, z) {
     return;
   }
 
-  const CANNON = window.CANNON;
+  const CANNON = cannonModule;
   const THREE = window.THREE;
   const size = 0.4 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -310,10 +304,11 @@ export function toggleGravity() {
 export function applyExplosion() {
   if (!world) return;
 
+  const CANNON = cannonModule;
   const force = 15;
   for (const { body } of physicsObjects) {
     body.wakeUp();
-    const dir = body.position.vsub(new window.CANNON.Vec3(0, 0, 0));
+    const dir = body.position.vsub(new CANNON.Vec3(0, 0, 0));
     dir.normalize();
     body.applyImpulse(dir.scale(force));
   }
