@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.7.0";
+const VERSION = "v1.7.1";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -227,9 +227,9 @@ async function initGame() {
       matterModule.matterTest.preloadMatter();
     }
     console.log("💣 [Main] Starting Cannon-es background preload...");
-    const cannonModule = await TEST_MODULES.cannonTest();
-    if (cannonModule && cannonModule.cannonTest && cannonModule.cannonTest.preloadCannon) {
-      cannonModule.cannonTest.preloadCannon();
+    const cannonModule2 = await TEST_MODULES.cannonTest();
+    if (cannonModule2 && cannonModule2.cannonTest && cannonModule2.cannonTest.preloadCannon) {
+      cannonModule2.cannonTest.preloadCannon();
     }
     initTestModules(testModules, rendererData);
     console.log("🔍 [Main] Carregando módulo ui-test.js...");
@@ -5090,6 +5090,7 @@ const matterTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePr
 }, Symbol.toStringTag, { value: "Module" }));
 let cannonPromise = null;
 let cannonReady = false;
+let cannonModule = null;
 let world = null;
 let animationId = null;
 let physicsObjects = [];
@@ -5105,24 +5106,24 @@ const GRAVITY_STATES = [
   { y: 0, label: "ZERO" }
 ];
 const COLORS = [16739179, 5164484, 4569041, 16370212, 7101671, 10656766];
-const CANNON_CDN = "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.cjs.js";
+const CANNON_CDN = "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js";
 function preloadCannon() {
   if (cannonPromise) return;
-  cannonPromise = new Promise((resolve, reject) => {
-    console.log("💣 [Cannon] Starting background load from CDN...");
-    const script = document.createElement("script");
-    script.src = CANNON_CDN;
-    script.onload = () => {
+  cannonPromise = (async () => {
+    console.log("💣 [Cannon] Starting background load from CDN (ESM)...");
+    try {
+      cannonModule = await import(
+        /* @vite-ignore */
+        CANNON_CDN
+      );
       cannonReady = true;
       console.log(`✅ [Cannon] Loaded from CDN (${VERSION})`);
-      resolve(window.CANNON);
-    };
-    script.onerror = () => {
-      console.error("❌ [Cannon] Failed to load from CDN");
-      reject(new Error("Failed to load Cannon-es"));
-    };
-    document.head.appendChild(script);
-  });
+      return cannonModule;
+    } catch (error) {
+      console.error("❌ [Cannon] Failed to load from CDN:", error.message);
+      throw error;
+    }
+  })();
 }
 function isReady() {
   return cannonReady;
@@ -5131,7 +5132,7 @@ function isLoading() {
   return cannonPromise !== null && !cannonReady;
 }
 async function getCannon() {
-  if (cannonReady) return window.CANNON;
+  if (cannonReady) return cannonModule;
   if (!cannonPromise) preloadCannon();
   console.log("⏳ [Cannon] Waiting for load to complete...");
   return await cannonPromise;
@@ -5215,7 +5216,7 @@ function addSphere(x, y, z) {
     console.error("❌ [Cannon] World or scene not initialized");
     return;
   }
-  const CANNON = window.CANNON;
+  const CANNON = cannonModule;
   const THREE2 = window.THREE;
   const radius = 0.3 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -5244,7 +5245,7 @@ function addBox(x, y, z) {
     console.error("❌ [Cannon] World or scene not initialized");
     return;
   }
-  const CANNON = window.CANNON;
+  const CANNON = cannonModule;
   const THREE2 = window.THREE;
   const size = 0.4 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -5304,10 +5305,11 @@ function toggleGravity() {
 }
 function applyExplosion() {
   if (!world) return;
+  const CANNON = cannonModule;
   const force = 15;
   for (const { body } of physicsObjects) {
     body.wakeUp();
-    const dir = body.position.vsub(new window.CANNON.Vec3(0, 0, 0));
+    const dir = body.position.vsub(new CANNON.Vec3(0, 0, 0));
     dir.normalize();
     body.applyImpulse(dir.scale(force));
   }
