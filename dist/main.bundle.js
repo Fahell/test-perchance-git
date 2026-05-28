@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.7.2";
+const VERSION = "v1.7.3";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -4875,7 +4875,7 @@ let engine = null;
 let render = null;
 let runner = null;
 let matterContainer = null;
-let canvasContainer = null;
+let canvasContainer$1 = null;
 let ballCount = 0;
 function preloadMatter() {
   if (matterPromise) return;
@@ -4930,13 +4930,13 @@ function createPhysicsContainer() {
     </div>
   `;
   document.body.appendChild(matterContainer);
-  canvasContainer = document.getElementById("matter-canvas");
+  canvasContainer$1 = document.getElementById("matter-canvas");
   document.getElementById("matter-close").addEventListener("click", cleanup$1);
   document.getElementById("btn-add-balls").addEventListener("click", () => addBalls(10));
   document.getElementById("btn-reset").addEventListener("click", resetSimulation$1);
   document.getElementById("btn-gravity").addEventListener("click", toggleGravity$1);
-  canvasContainer.addEventListener("click", (e) => {
-    const rect = canvasContainer.getBoundingClientRect();
+  canvasContainer$1.addEventListener("click", (e) => {
+    const rect = canvasContainer$1.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     addBall(x, y);
@@ -4949,7 +4949,7 @@ async function initPhysics() {
     engine = Matter2.Engine.create();
     engine.world.gravity.y = 1;
     render = Matter2.Render.create({
-      element: canvasContainer,
+      element: canvasContainer$1,
       engine,
       options: {
         width: 800,
@@ -5071,7 +5071,7 @@ function cleanup$1() {
   if (matterContainer) {
     matterContainer.remove();
     matterContainer = null;
-    canvasContainer = null;
+    canvasContainer$1 = null;
   }
   ballCount = 0;
   console.log("✅ [Matter] Cleanup complete");
@@ -5095,6 +5095,7 @@ let world = null;
 let animationId = null;
 let physicsObjects = [];
 let containerEl = null;
+let canvasContainer = null;
 let sceneRef = null;
 let cameraRef = null;
 let rendererRef = null;
@@ -5158,7 +5159,7 @@ function createContainer() {
     </div>
   `;
   document.body.appendChild(containerEl);
-  document.getElementById("cannon-canvas");
+  canvasContainer = document.getElementById("cannon-canvas");
   document.getElementById("cannon-close").addEventListener("click", cleanup);
   document.getElementById("btn-add-spheres").addEventListener("click", () => addSpheres(10));
   document.getElementById("btn-add-boxes").addEventListener("click", () => addBoxes(5));
@@ -5166,7 +5167,7 @@ function createContainer() {
   document.getElementById("btn-gravity").addEventListener("click", toggleGravity);
   document.getElementById("btn-explosion").addEventListener("click", applyExplosion);
 }
-async function initPhysics3D(rendererData) {
+async function initPhysics3D() {
   try {
     let animate = function() {
       animationId = requestAnimationFrame(animate);
@@ -5175,16 +5176,26 @@ async function initPhysics3D(rendererData) {
         mesh.position.copy(body.position);
         mesh.quaternion.copy(body.quaternion);
       }
+      rendererRef.render(sceneRef, cameraRef);
     };
     const CANNON = await getCannon();
-    const { scene, camera, renderer } = rendererData;
-    if (!scene || !camera || !renderer) {
-      throw new Error("Three.js renderer data incomplete");
-    }
-    sceneRef = scene;
-    cameraRef = camera;
-    rendererRef = renderer;
     createContainer();
+    const width = canvasContainer.clientWidth || 600;
+    const height = canvasContainer.clientHeight || 400;
+    sceneRef = new THREE.Scene();
+    sceneRef.background = new THREE.Color(1710638);
+    cameraRef = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+    cameraRef.position.set(8, 8, 8);
+    cameraRef.lookAt(0, 0, 0);
+    rendererRef = new THREE.WebGLRenderer({ antialias: true });
+    rendererRef.setSize(width, height);
+    rendererRef.setPixelRatio(window.devicePixelRatio);
+    canvasContainer.appendChild(rendererRef.domElement);
+    const ambientLight = new THREE.AmbientLight(4210752, 2);
+    sceneRef.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(16777215, 1.5);
+    directionalLight.position.set(5, 10, 5);
+    sceneRef.add(directionalLight);
     world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
     world.allowSleep = true;
     world.broadphase = new CANNON.SAPBroadphase(world);
@@ -5201,12 +5212,11 @@ async function initPhysics3D(rendererData) {
     groundBody.material = defaultMaterial;
     world.addBody(groundBody);
     const gridHelper = new THREE.GridHelper(20, 20, 4868682, 2763306);
-    gridHelper.name = "cannon-grid";
-    scene.add(gridHelper);
+    sceneRef.add(gridHelper);
     addSpheres(5);
     const fixedTimeStep = 1 / 60;
     animate();
-    console.log("✅ [Cannon] 3D Physics simulation initialized");
+    console.log("✅ [Cannon] 3D Physics simulation initialized (isolated renderer)");
   } catch (error) {
     console.error("❌ [Cannon] Failed to initialize:", error.message);
   }
@@ -5232,7 +5242,6 @@ function addSphere(x, y, z) {
   const geometry = new THREE.SphereGeometry(radius, 16, 16);
   const material = new THREE.MeshPhongMaterial({ color });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.castShadow = true;
   sceneRef.add(mesh);
   physicsObjects.push({ body, mesh });
   bodyCount++;
@@ -5260,7 +5269,6 @@ function addBox(x, y, z) {
   const geometry = new THREE.BoxGeometry(size, size, size);
   const material = new THREE.MeshPhongMaterial({ color });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.castShadow = true;
   sceneRef.add(mesh);
   physicsObjects.push({ body, mesh });
   bodyCount++;
@@ -5327,17 +5335,20 @@ function cleanup() {
       mesh.material.dispose();
     }
   }
-  if (sceneRef) {
-    const grid = sceneRef.getObjectByName("cannon-grid");
-    if (grid) sceneRef.remove(grid);
+  if (rendererRef) {
+    rendererRef.dispose();
+    rendererRef = null;
   }
   physicsObjects = [];
   world = null;
+  sceneRef = null;
+  cameraRef = null;
   bodyCount = 0;
   gravityIndex = 0;
   if (containerEl) {
     containerEl.remove();
     containerEl = null;
+    canvasContainer = null;
   }
   console.log("✅ [Cannon] Cleanup complete");
 }
@@ -5683,7 +5694,7 @@ function initUITest(rendererData, testModules) {
     if (cannonTest2.isLoading && cannonTest2.isLoading()) {
       console.log("⏳ Cannon-es still loading, waiting...");
     }
-    await cannonTest2.initPhysics3D(rendererData);
+    await cannonTest2.initPhysics3D();
     console.log("✅ Cannon-es: 3D Physics simulation initialized");
   }
   const panel = document.createElement("div");
