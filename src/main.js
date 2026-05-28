@@ -40,7 +40,8 @@ const TEST_MODULES = {
   apexchartsTest: () => import('./modules/apexcharts-test.js'),
   audioTest: () => import('./modules/audio-test.js'),
   mermaidTest: () => import('./modules/mermaid-test.js'),
-  matterTest: () => import('./modules/matter-test.js')
+  matterTest: () => import('./modules/matter-test.js'),
+  cannonTest: () => import('./modules/cannon-test.js')
 };
 
 // Cache de módulos carregados
@@ -148,6 +149,13 @@ export async function initGame() {
     const matterModule = await TEST_MODULES.matterTest();
     if (matterModule && matterModule.matterTest && matterModule.matterTest.preloadMatter) {
       matterModule.matterTest.preloadMatter();
+    }
+
+    // 3.7. Start preloading Cannon-es in background (non-blocking)
+    console.log('💣 [Main] Starting Cannon-es background preload...');
+    const cannonModule = await TEST_MODULES.cannonTest();
+    if (cannonModule && cannonModule.cannonTest && cannonModule.cannonTest.preloadCannon) {
+      cannonModule.cannonTest.preloadCannon();
     }
 
     // 4. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
