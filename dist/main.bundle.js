@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.6.1";
+const VERSION = "v1.7.0";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -118,6 +118,18 @@ function initLogic(seed, bioma) {
   console.log("💡 Debug: window.RPG disponível no console");
   console.log("✅ [Logic] Lógica inicializada com sucesso!");
 }
+(() => {
+  const originalLog = console.log.bind(console);
+  console.log = (...args) => {
+    if (args.length === 1 && typeof args[0] === "object" && args[0] !== null) {
+      const keys = Object.keys(args[0]);
+      if (keys.length === 1 && keys[0] === "isTrusted" && args[0].isTrusted === true) {
+        return;
+      }
+    }
+    originalLog(...args);
+  };
+})();
 const TEST_MODULES = {
   imageTest: () => Promise.resolve().then(() => imageTest$1),
   aiTextTest: () => Promise.resolve().then(() => aiTextTest$1),
@@ -134,7 +146,8 @@ const TEST_MODULES = {
   apexchartsTest: () => Promise.resolve().then(() => apexchartsTest$1),
   audioTest: () => Promise.resolve().then(() => audioTest),
   mermaidTest: () => Promise.resolve().then(() => mermaidTest$1),
-  matterTest: () => Promise.resolve().then(() => matterTest)
+  matterTest: () => Promise.resolve().then(() => matterTest),
+  cannonTest: () => Promise.resolve().then(() => cannonTest)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -212,6 +225,11 @@ async function initGame() {
     const matterModule = await TEST_MODULES.matterTest();
     if (matterModule && matterModule.matterTest && matterModule.matterTest.preloadMatter) {
       matterModule.matterTest.preloadMatter();
+    }
+    console.log("💣 [Main] Starting Cannon-es background preload...");
+    const cannonModule = await TEST_MODULES.cannonTest();
+    if (cannonModule && cannonModule.cannonTest && cannonModule.cannonTest.preloadCannon) {
+      cannonModule.cannonTest.preloadCannon();
     }
     initTestModules(testModules, rendererData);
     console.log("🔍 [Main] Carregando módulo ui-test.js...");
@@ -1135,9 +1153,11 @@ const canvasTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.define
   __proto__: null,
   canvasTest
 }, Symbol.toStringTag, { value: "Module" }));
+const isSpeechSynthesisSupported = () => typeof window.speechSynthesis !== "undefined";
 const ttsTest = {
   available: !!root.speak,
-  // Teste 1: Fala básica
+  speechApiSupported: isSpeechSynthesisSupported(),
+  // Teste 1: Fala básica via plugin Perchance
   speakBasic(text = "Olá! Este é um teste de síntese de voz no Perchance.") {
     if (!this.available) {
       console.warn("⚠️ [TTS] Plugin text-to-speech não disponível");
@@ -1179,7 +1199,7 @@ const ttsTest = {
       return null;
     }
   },
-  // Teste 3: Parar fala usando Web Speech API nativa
+  // Teste 3: Parar fala
   stopSpeech() {
     try {
       console.log("🔊 [TTS] Parando fala...");
@@ -1193,7 +1213,7 @@ const ttsTest = {
         console.log("✅ [TTS] Fala parada via plugin.stop()");
         return true;
       }
-      if (window.speechSynthesis) {
+      if (isSpeechSynthesisSupported()) {
         window.speechSynthesis.cancel();
         console.log("✅ [TTS] Fala parada via Web Speech API");
         return true;
@@ -1205,10 +1225,10 @@ const ttsTest = {
       return null;
     }
   },
-  // Teste 4: Verificar vozes disponíveis
+  // Teste 4: Verificar vozes disponíveis (requer Web Speech API)
   getAvailableVoices() {
-    if (!window.speechSynthesis) {
-      console.warn("⚠️ [TTS] Web Speech API não disponível");
+    if (!isSpeechSynthesisSupported()) {
+      console.warn("⚠️ [TTS] Web Speech API não disponível neste contexto (cross-origin iframe)");
       return [];
     }
     try {
@@ -1227,10 +1247,14 @@ const ttsTest = {
       return [];
     }
   },
-  // Teste 5: Fala com voz específica (Web Speech API)
+  // Teste 5: Fala com voz específica (requer Web Speech API)
   speakWithVoice(text = "Testando voz específica.", voiceName = null) {
-    if (!window.speechSynthesis) {
-      console.warn("⚠️ [TTS] Web Speech API não disponível");
+    if (!isSpeechSynthesisSupported()) {
+      console.warn("⚠️ [TTS] Web Speech API não disponível neste contexto (cross-origin iframe)");
+      if (this.available) {
+        console.log("🔊 [TTS] Fallback: usando plugin Perchance sem voz específica");
+        return this.speakBasic(text);
+      }
       return null;
     }
     try {
@@ -1261,15 +1285,17 @@ const ttsTest = {
     console.log("   root.speak disponível:", !!root.speak);
     console.log("   Tipo:", typeof root.speak);
     if (typeof root.speak === "function") {
-      console.log("   ✅ É uma função");
+      console.log("   ✅ Plugin Perchance disponível");
       console.log('   Uso: root.speak("texto")');
     }
-    console.log("   Web Speech API:", window.speechSynthesis ? "✅ Disponível" : "❌ Não disponível");
-    if (window.speechSynthesis) {
+    console.log("   Web Speech API:", isSpeechSynthesisSupported() ? "✅ Disponível" : "❌ Não disponível (cross-origin iframe)");
+    if (isSpeechSynthesisSupported()) {
       setTimeout(() => {
         const voices = window.speechSynthesis.getVoices();
         console.log(`   Vozes carregadas: ${voices.length}`);
       }, 100);
+    } else {
+      console.log("   ℹ️ [TTS] Apenas o plugin Perchance (root.speak) será utilizado");
     }
   }
 };
@@ -1280,7 +1306,11 @@ if (ttsTest.available) {
 } else {
   console.warn("⚠️ [TTS] Plugin text-to-speech-plugin NÃO disponível");
   console.warn("   Adicione no List Panel: speak = {import:text-to-speech-plugin}");
-  console.warn("   Web Speech API nativa ainda pode ser usada como fallback");
+  if (isSpeechSynthesisSupported()) {
+    console.log("   ℹ️ Web Speech API nativa disponível como fallback");
+  } else {
+    console.warn("   ❌ Nenhum método de TTS disponível neste contexto");
+  }
 }
 const ttsTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -4616,7 +4646,7 @@ function checkAvailability() {
     code: "audio-test"
   };
 }
-function cleanup$2() {
+function cleanup$3() {
   stopAll();
   Object.keys(sounds).forEach((key) => {
     sounds[key].unload();
@@ -4633,7 +4663,7 @@ const info = {
 const audioTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   checkAvailability,
-  cleanup: cleanup$2,
+  cleanup: cleanup$3,
   getVolume,
   info,
   playMusic,
@@ -4698,10 +4728,10 @@ async function getMermaid() {
   console.log(`⏳ [Mermaid] Waiting for load to complete...`);
   return await mermaidPromise;
 }
-function isReady$1() {
+function isReady$2() {
   return mermaidReady;
 }
-function isLoading$1() {
+function isLoading$2() {
   return mermaidPromise !== null && !mermaidReady;
 }
 const DIAGRAMS = {
@@ -4815,25 +4845,25 @@ async function setTheme(themeName) {
   });
   console.log(`🎨 [Mermaid] Theme changed to: ${themeName}`);
 }
-function cleanup$1() {
+function cleanup$2() {
   console.log(`🧹 [Mermaid] Cleanup (note: CDN script remains in DOM for reuse)`);
 }
 const mermaidTest = {
   preloadMermaid,
   getMermaid,
-  isReady: isReady$1,
-  isLoading: isLoading$1,
+  isReady: isReady$2,
+  isLoading: isLoading$2,
   renderDiagram,
   renderAllExamples,
   setTheme,
-  cleanup: cleanup$1,
+  cleanup: cleanup$2,
   DIAGRAMS
 };
 const mermaidTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  cleanup: cleanup$1,
-  isLoading: isLoading$1,
-  isReady: isReady$1,
+  cleanup: cleanup$2,
+  isLoading: isLoading$2,
+  isReady: isReady$2,
   mermaidTest,
   renderAllExamples,
   renderDiagram,
@@ -4865,10 +4895,10 @@ function preloadMatter() {
     document.head.appendChild(script);
   });
 }
-function isReady() {
+function isReady$1() {
   return matterReady;
 }
-function isLoading() {
+function isLoading$1() {
   return matterPromise !== null && !matterReady;
 }
 async function getMatter() {
@@ -4901,10 +4931,10 @@ function createPhysicsContainer() {
   `;
   document.body.appendChild(matterContainer);
   canvasContainer = document.getElementById("matter-canvas");
-  document.getElementById("matter-close").addEventListener("click", cleanup);
+  document.getElementById("matter-close").addEventListener("click", cleanup$1);
   document.getElementById("btn-add-balls").addEventListener("click", () => addBalls(10));
-  document.getElementById("btn-reset").addEventListener("click", resetSimulation);
-  document.getElementById("btn-gravity").addEventListener("click", toggleGravity);
+  document.getElementById("btn-reset").addEventListener("click", resetSimulation$1);
+  document.getElementById("btn-gravity").addEventListener("click", toggleGravity$1);
   canvasContainer.addEventListener("click", (e) => {
     const rect = canvasContainer.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -4995,7 +5025,7 @@ function updateBallCounter() {
     counter.textContent = `Bolas: ${ballCount}`;
   }
 }
-function resetSimulation() {
+function resetSimulation$1() {
   if (!engine) return;
   const Matter2 = window.Matter;
   const bodies = Matter2.Composite.allBodies(engine.world);
@@ -5008,7 +5038,7 @@ function resetSimulation() {
   updateBallCounter();
   console.log("🔄 [Matter] Simulation reset");
 }
-function toggleGravity() {
+function toggleGravity$1() {
   if (!engine) return;
   const currentGravity = engine.world.gravity.y;
   if (currentGravity === 1) {
@@ -5022,7 +5052,7 @@ function toggleGravity() {
     console.log("🔄 [Matter] Gravity: NORMAL");
   }
 }
-function cleanup() {
+function cleanup$1() {
   console.log("🧹 [Matter] Cleaning up...");
   if (runner) {
     Matter.Runner.stop(runner);
@@ -5050,11 +5080,279 @@ const matterTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePr
   __proto__: null,
   addBall,
   addBalls,
-  cleanup,
+  cleanup: cleanup$1,
   initPhysics,
+  isLoading: isLoading$1,
+  isReady: isReady$1,
+  preloadMatter,
+  resetSimulation: resetSimulation$1,
+  toggleGravity: toggleGravity$1
+}, Symbol.toStringTag, { value: "Module" }));
+let cannonPromise = null;
+let cannonReady = false;
+let world = null;
+let animationId = null;
+let physicsObjects = [];
+let containerEl = null;
+let sceneRef = null;
+let cameraRef = null;
+let rendererRef = null;
+let bodyCount = 0;
+let gravityIndex = 0;
+const GRAVITY_STATES = [
+  { y: -9.82, label: "NORMAL" },
+  { y: 9.82, label: "INVERTED" },
+  { y: 0, label: "ZERO" }
+];
+const COLORS = [16739179, 5164484, 4569041, 16370212, 7101671, 10656766];
+const CANNON_CDN = "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.cjs.js";
+function preloadCannon() {
+  if (cannonPromise) return;
+  cannonPromise = new Promise((resolve, reject) => {
+    console.log("💣 [Cannon] Starting background load from CDN...");
+    const script = document.createElement("script");
+    script.src = CANNON_CDN;
+    script.onload = () => {
+      cannonReady = true;
+      console.log(`✅ [Cannon] Loaded from CDN (${VERSION})`);
+      resolve(window.CANNON);
+    };
+    script.onerror = () => {
+      console.error("❌ [Cannon] Failed to load from CDN");
+      reject(new Error("Failed to load Cannon-es"));
+    };
+    document.head.appendChild(script);
+  });
+}
+function isReady() {
+  return cannonReady;
+}
+function isLoading() {
+  return cannonPromise !== null && !cannonReady;
+}
+async function getCannon() {
+  if (cannonReady) return window.CANNON;
+  if (!cannonPromise) preloadCannon();
+  console.log("⏳ [Cannon] Waiting for load to complete...");
+  return await cannonPromise;
+}
+function createContainer() {
+  containerEl = document.createElement("div");
+  containerEl.id = "cannon-physics";
+  containerEl.className = "matter-container";
+  containerEl.innerHTML = `
+    <button class="matter-close-btn" id="cannon-close">✕</button>
+    <h3 class="matter-title">💣 Cannon-es 3D Physics</h3>
+    <div class="matter-controls">
+      <button id="btn-add-spheres" class="matter-btn matter-btn--add">Add 10 Spheres</button>
+      <button id="btn-add-boxes" class="matter-btn matter-btn--add">Add 5 Boxes</button>
+      <button id="btn-reset" class="matter-btn matter-btn--reset">Reset</button>
+      <button id="btn-gravity" class="matter-btn matter-btn--gravity">Gravity</button>
+      <button id="btn-explosion" class="matter-btn matter-btn--add">💥 Explosion</button>
+    </div>
+    <div id="cannon-canvas" class="matter-canvas"></div>
+    <div class="matter-info">
+      <span id="cannon-counter">Bodies: 0</span>
+      <span>Click scene to add spheres</span>
+    </div>
+  `;
+  document.body.appendChild(containerEl);
+  document.getElementById("cannon-canvas");
+  document.getElementById("cannon-close").addEventListener("click", cleanup);
+  document.getElementById("btn-add-spheres").addEventListener("click", () => addSpheres(10));
+  document.getElementById("btn-add-boxes").addEventListener("click", () => addBoxes(5));
+  document.getElementById("btn-reset").addEventListener("click", resetSimulation);
+  document.getElementById("btn-gravity").addEventListener("click", toggleGravity);
+  document.getElementById("btn-explosion").addEventListener("click", applyExplosion);
+}
+async function initPhysics3D(rendererData) {
+  try {
+    let animate = function() {
+      animationId = requestAnimationFrame(animate);
+      world.fixedStep(fixedTimeStep);
+      for (const { body, mesh } of physicsObjects) {
+        mesh.position.copy(body.position);
+        mesh.quaternion.copy(body.quaternion);
+      }
+    };
+    const CANNON = await getCannon();
+    const { scene, camera, renderer } = rendererData;
+    if (!scene || !camera || !renderer) {
+      throw new Error("Three.js renderer data incomplete");
+    }
+    sceneRef = scene;
+    cameraRef = camera;
+    rendererRef = renderer;
+    createContainer();
+    world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+    world.allowSleep = true;
+    world.broadphase = new CANNON.SAPBroadphase(world);
+    const defaultMaterial = new CANNON.Material("default");
+    const contactMaterial = new CANNON.ContactMaterial(defaultMaterial, defaultMaterial, {
+      friction: 0.4,
+      restitution: 0.5
+    });
+    world.addContactMaterial(contactMaterial);
+    world.defaultContactMaterial = contactMaterial;
+    const groundShape = new CANNON.Plane();
+    const groundBody = new CANNON.Body({ mass: 0, shape: groundShape });
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.material = defaultMaterial;
+    world.addBody(groundBody);
+    const gridHelper = new window.THREE.GridHelper(20, 20, 4868682, 2763306);
+    gridHelper.name = "cannon-grid";
+    scene.add(gridHelper);
+    addSpheres(5);
+    const fixedTimeStep = 1 / 60;
+    animate();
+    console.log("✅ [Cannon] 3D Physics simulation initialized");
+  } catch (error) {
+    console.error("❌ [Cannon] Failed to initialize:", error.message);
+  }
+}
+function addSphere(x, y, z) {
+  if (!world || !sceneRef) {
+    console.error("❌ [Cannon] World or scene not initialized");
+    return;
+  }
+  const CANNON = window.CANNON;
+  const THREE2 = window.THREE;
+  const radius = 0.3 + Math.random() * 0.4;
+  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  const shape = new CANNON.Sphere(radius);
+  const body = new CANNON.Body({ mass: 1, shape });
+  body.position.set(
+    x ?? Math.random() * 6 - 3,
+    y ?? 5 + Math.random() * 5,
+    z ?? Math.random() * 6 - 3
+  );
+  body.sleepSpeedLimit = 0.5;
+  body.sleepTimeLimit = 1;
+  world.addBody(body);
+  const geometry = new THREE2.SphereGeometry(radius, 16, 16);
+  const material = new THREE2.MeshPhongMaterial({ color });
+  const mesh = new THREE2.Mesh(geometry, material);
+  mesh.castShadow = true;
+  sceneRef.add(mesh);
+  physicsObjects.push({ body, mesh });
+  bodyCount++;
+  updateCounter();
+  console.log(`💣 [Cannon] Sphere added (${bodyCount} bodies)`);
+}
+function addBox(x, y, z) {
+  if (!world || !sceneRef) {
+    console.error("❌ [Cannon] World or scene not initialized");
+    return;
+  }
+  const CANNON = window.CANNON;
+  const THREE2 = window.THREE;
+  const size = 0.4 + Math.random() * 0.4;
+  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  const shape = new CANNON.Box(new CANNON.Vec3(size / 2, size / 2, size / 2));
+  const body = new CANNON.Body({ mass: 1, shape });
+  body.position.set(
+    x ?? Math.random() * 6 - 3,
+    y ?? 5 + Math.random() * 5,
+    z ?? Math.random() * 6 - 3
+  );
+  body.sleepSpeedLimit = 0.5;
+  body.sleepTimeLimit = 1;
+  world.addBody(body);
+  const geometry = new THREE2.BoxGeometry(size, size, size);
+  const material = new THREE2.MeshPhongMaterial({ color });
+  const mesh = new THREE2.Mesh(geometry, material);
+  mesh.castShadow = true;
+  sceneRef.add(mesh);
+  physicsObjects.push({ body, mesh });
+  bodyCount++;
+  updateCounter();
+  console.log(`💣 [Cannon] Box added (${bodyCount} bodies)`);
+}
+function addSpheres(count = 10) {
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => addSphere(), i * 80);
+  }
+}
+function addBoxes(count = 5) {
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => addBox(), i * 80);
+  }
+}
+function updateCounter() {
+  const counter = document.getElementById("cannon-counter");
+  if (counter) counter.textContent = `Bodies: ${bodyCount}`;
+}
+function resetSimulation() {
+  if (!world || !sceneRef) return;
+  for (const { body, mesh } of physicsObjects) {
+    world.removeBody(body);
+    sceneRef.remove(mesh);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+  }
+  physicsObjects = [];
+  bodyCount = 0;
+  updateCounter();
+  console.log("🔄 [Cannon] Simulation reset");
+}
+function toggleGravity() {
+  if (!world) return;
+  gravityIndex = (gravityIndex + 1) % GRAVITY_STATES.length;
+  const state = GRAVITY_STATES[gravityIndex];
+  world.gravity.set(0, state.y, 0);
+  console.log(`🔄 [Cannon] Gravity: ${state.label} (${state.y})`);
+}
+function applyExplosion() {
+  if (!world) return;
+  const force = 15;
+  for (const { body } of physicsObjects) {
+    body.wakeUp();
+    const dir = body.position.vsub(new window.CANNON.Vec3(0, 0, 0));
+    dir.normalize();
+    body.applyImpulse(dir.scale(force));
+  }
+  console.log(`💥 [Cannon] Explosion applied to ${physicsObjects.length} bodies`);
+}
+function cleanup() {
+  console.log("🧹 [Cannon] Cleaning up...");
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+  if (world && sceneRef) {
+    for (const { body, mesh } of physicsObjects) {
+      world.removeBody(body);
+      sceneRef.remove(mesh);
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+    }
+  }
+  if (sceneRef) {
+    const grid = sceneRef.getObjectByName("cannon-grid");
+    if (grid) sceneRef.remove(grid);
+  }
+  physicsObjects = [];
+  world = null;
+  bodyCount = 0;
+  gravityIndex = 0;
+  if (containerEl) {
+    containerEl.remove();
+    containerEl = null;
+  }
+  console.log("✅ [Cannon] Cleanup complete");
+}
+const cannonTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  addBox,
+  addBoxes,
+  addSphere,
+  addSpheres,
+  applyExplosion,
+  cleanup,
+  initPhysics3D,
   isLoading,
   isReady,
-  preloadMatter,
+  preloadCannon,
   resetSimulation,
   toggleGravity
 }, Symbol.toStringTag, { value: "Module" }));
@@ -5068,7 +5366,6 @@ function injectStylesheet() {
   document.head.appendChild(link);
 }
 const buttonStatus = /* @__PURE__ */ new Map();
-const testResults = [];
 function setButtonStatus(btnId, status) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
@@ -5087,65 +5384,22 @@ function setButtonStatus(btnId, status) {
   statusSpan.textContent = icons[status] || "";
   btn.appendChild(statusSpan);
 }
-let logDiv = null;
-function formatTime() {
-  const now = /* @__PURE__ */ new Date();
-  return now.toLocaleTimeString("pt-BR", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-}
-function log(message, type = "info") {
-  if (!logDiv) return;
-  const entry = document.createElement("div");
-  entry.className = `log-entry log-entry--${type}`;
-  const timeSpan = document.createElement("span");
-  timeSpan.className = "log-entry__time";
-  timeSpan.textContent = `[${formatTime()}]`;
-  const msgSpan = document.createElement("span");
-  msgSpan.className = "log-entry__msg";
-  msgSpan.textContent = message;
-  entry.appendChild(timeSpan);
-  entry.appendChild(msgSpan);
-  logDiv.appendChild(entry);
-  logDiv.scrollTop = logDiv.scrollHeight;
-  testResults.push({ time: formatTime(), message, type });
-}
 async function runTest(btnId, testName, testFn) {
   setButtonStatus(btnId, "running");
   const startTime = Date.now();
   try {
     await testFn();
+    const duration = Date.now() - startTime;
+    console.log(`✅ [${testName}] Passed (${duration}ms)`);
     setButtonStatus(btnId, "success");
+  } catch (error) {
     const duration = Date.now() - startTime;
-    testResults[testResults.length - 1].duration = `${duration}ms`;
-  } catch {
+    console.error(`❌ [${testName}] Failed (${duration}ms):`, error.message);
     setButtonStatus(btnId, "error");
-    const duration = Date.now() - startTime;
-    testResults[testResults.length - 1].duration = `${duration}ms`;
   }
-}
-function clearLog() {
-  if (!logDiv) return;
-  logDiv.innerHTML = "";
-  testResults.length = 0;
-  buttonStatus.forEach((_, btnId) => setButtonStatus(btnId, "idle"));
-  log("🗑 Log limpo", "info");
-}
-function exportResults() {
-  if (testResults.length === 0) {
-    log("⚠️ Nenhum resultado para exportar", "warning");
-    return;
-  }
-  const lines = testResults.map((r) => `[${r.time}] [${r.type.toUpperCase()}] ${r.message}${r.duration ? ` (${r.duration})` : ""}`);
-  const text = `🧪 Test Results - ${(/* @__PURE__ */ new Date()).toISOString()}
-${"=".repeat(50)}
-${lines.join("\n")}`;
-  navigator.clipboard.writeText(text).then(() => {
-    log(`📋 ${testResults.length} resultados copiados!`, "success");
-  }).catch(() => {
-    log("❌ Falha ao copiar para clipboard", "error");
-  });
 }
 async function runAllTests(testDefs) {
-  log("▶ Executando todos os testes...", "info");
+  console.log("▶ Running all tests...");
   for (const def of testDefs) {
     const btn = document.getElementById(def.btnId);
     if (!btn) continue;
@@ -5157,14 +5411,14 @@ async function runAllTests(testDefs) {
   }
   const passed = [...buttonStatus.values()].filter((s) => s === "success").length;
   const failed = [...buttonStatus.values()].filter((s) => s === "error").length;
-  log(`🏁 Concluído: ${passed} ✅ | ${failed} ❌`, passed > 0 && failed === 0 ? "success" : "warning");
+  console.log(`🏁 Done: ${passed} ✅ | ${failed} ❌`);
 }
 function initUITest(rendererData, testModules) {
-  console.log(`🎮 [UI-Test] Criando painel de testes ${VERSION}...`);
+  console.log(`🎮 [UI-Test] Creating test panel ${VERSION}...`);
   injectStylesheet();
   const capturedSeed = getVar("GAME_SEED", "N/A");
   const capturedRoot = !!root;
-  console.log("📸 [UI-Test] Valores capturados:", { seed: capturedSeed, root: capturedRoot });
+  console.log("📸 [UI-Test] Captured values:", { seed: capturedSeed, root: capturedRoot });
   const {
     imageTest: imageTest2,
     aiTextTest: aiTextTest2,
@@ -5181,7 +5435,8 @@ function initUITest(rendererData, testModules) {
     apexchartsTest: apexchartsTest2,
     audioTest: audioTest2,
     mermaidTest: mermaidTest2,
-    matterTest: matterTest2
+    matterTest: matterTest2,
+    cannonTest: cannonTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -5209,183 +5464,184 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-audio-volume", name: "Audio Volume", fn: () => audioVolumeHandler() },
     { btnId: "btn-audio-stop", name: "Audio Stop", fn: () => audioStopHandler() },
     { btnId: "btn-mermaid", name: "Mermaid", fn: () => mermaidHandler() },
-    { btnId: "btn-matter", name: "Matter.js", fn: () => matterHandler() }
+    { btnId: "btn-matter", name: "Matter.js", fn: () => matterHandler() },
+    { btnId: "btn-cannon", name: "Cannon-es", fn: () => cannonHandler() }
   ];
   async function diceHandler() {
-    log("🎲 Rolando dados...", "info");
+    console.log("🎲 Rolling dice...");
     if (!diceTest2 || !diceTest2.available) throw new Error("Plugin not available");
     const d20 = diceTest2.rollD20();
     const d6 = diceTest2.roll3D6();
-    log(`✅ 1d20: ${d20.result} | 3d6: ${d6.result}`, "success");
+    console.log(`🎲 1d20: ${d20.result} | 3d6: ${d6.result}`);
   }
   async function seederHandler() {
-    log("🌱 Testando Seeder...", "info");
+    console.log("🌱 Testing Seeder...");
     if (!seederTest2 || !seederTest2.available) throw new Error("Plugin not available");
     const seed = seederTest2.generateRandomSeed();
     seederTest2.applySeed(seed);
-    log(`✅ Seed aplicada: ${seed}`, "success");
+    console.log(`✅ Seed applied: ${seed}`);
   }
   async function patternHandler() {
-    log("🎨 Gerando padrão procedural...", "info");
+    console.log("🎨 Generating procedural pattern...");
     if (!patternTest2 || !patternTest2.available) throw new Error("Plugin not available");
     const result = patternTest2.generateEmojiPattern();
     if (!result) throw new Error("Pattern generation failed");
-    log("✅ Padrão gerado!", "success");
+    console.log("✅ Pattern generated!");
   }
   async function aiTextHandler() {
-    log("🤖 Gerando texto com IA...", "info");
+    console.log("🤖 Generating AI text...");
     if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
     const result = await aiTextTest2.generateBasic("Escreva uma frase curta sobre um aventureiro.");
-    if (!result || !result.generatedText) throw new Error("Generation failed");
-    const preview = result.generatedText.substring(0, 60) + "...";
-    log(`✅ AI: "${preview}"`, "success");
+    if (!(result == null ? void 0 : result.success) || !result.text) throw new Error((result == null ? void 0 : result.error) || "Empty response from AI");
+    const preview = result.text.substring(0, 80) + (result.text.length > 80 ? "..." : "");
+    console.log(`✅ AI Text: "${preview}"`);
   }
   async function imageHandler() {
-    log("🖼️ Gerando imagem com IA...", "info");
+    console.log("🖼️ Generating AI image...");
     if (!imageTest2 || !imageTest2.available) throw new Error("Plugin not available");
-    const result = await imageTest2.testBasicImage("papercraft warrior with sword, fantasy art style", 12345);
-    if (!result) throw new Error("Generation failed");
-    log("✅ Imagem gerada!", "success");
+    const result = await imageTest2.testBasicImage();
+    if (!(result == null ? void 0 : result.success)) throw new Error((result == null ? void 0 : result.error) || "Image generation failed");
+    console.log("✅ Image generated!");
   }
   async function ttsHandler() {
-    log("🔊 Testando Text-to-Speech...", "info");
+    console.log("🔊 Testing Text-to-Speech...");
     if (!ttsTest2 || !ttsTest2.available) throw new Error("Plugin not available");
     ttsTest2.speakBasic("Olá! Este é um teste de síntese de voz.");
-    log("✅ Fala iniciada!", "success");
+    console.log("✅ Speech started!");
   }
   async function cubeColorHandler() {
-    log("🎲 Mudando cor do cubo...", "info");
+    console.log("🎲 Changing cube color...");
     if (!rendererData || !rendererData.cube || !rendererData.cube.material) throw new Error("Cube not available");
     rendererData.cube.material.color.setHex(Math.random() * 16777215);
-    log("✅ Cor do cubo alterada!", "success");
+    console.log("✅ Cube color changed!");
   }
   async function raycasterHandler() {
     var _a;
-    log("🖱️ Raycaster: Clique nas esferas!", "info");
+    console.log("🖱️ Raycaster: Click on spheres!");
     if (!raycasterTest2 || !raycasterTest2.available) throw new Error("Raycaster not available");
-    log(`✅ ${((_a = raycasterTest2.spheres) == null ? void 0 : _a.length) || 0} esferas adicionadas`, "success");
+    console.log(`✅ ${((_a = raycasterTest2.spheres) == null ? void 0 : _a.length) || 0} spheres added`);
   }
   async function canvasHandler() {
-    log("🎨 Testando Canvas 2D...", "info");
+    console.log("🎨 Testing Canvas 2D...");
     if (!canvasTest2) throw new Error("Canvas not available");
     canvasTest2.drawGradient();
     canvasTest2.drawCircles(15);
     canvasTest2.drawText("RPG Paper Craft", 256, 256);
     if (canvasTest2.threeIntegration) canvasTest2.showThreePlane();
-    log("✅ Canvas desenhado!", "success");
+    console.log("✅ Canvas drawn!");
   }
   async function rpgIconHandler() {
-    log("⚔️ Carregando RPG Icons...", "info");
+    console.log("⚔️ Loading RPG Icons...");
     if (!rpgIconTest2 || !rpgIconTest2.available) throw new Error("Plugin not available");
     const icons = rpgIconTest2.getMultipleIcons(6);
     if (!icons) throw new Error("Icon loading failed");
-    log(`✅ ${icons.length} ícones carregados!`, "success");
+    console.log(`✅ ${icons.length} icons loaded!`);
   }
   async function listsHandler() {
-    log("📋 Testando listas...", "info");
+    console.log("📋 Testing lists...");
     if (!listsTest2) throw new Error("Lists not available");
     const item = listsTest2.testSelectOne("itens");
     const heroes = listsTest2.testSelectUnique("nomes_herois", 2);
     const length = listsTest2.testListLength("nomes_herois");
-    log(`✅ Item: "${item}" | Heróis: ${heroes.length} | Tamanho: ${length}`, "success");
+    console.log(`✅ Item: "${item}" | Heroes: ${heroes.length} | Length: ${length}`);
   }
   async function bridgeHandler() {
-    log(`📡 Seed: ${capturedSeed} | Root: ${capturedRoot}`, "success");
+    console.log(`📡 Seed: ${capturedSeed} | Root: ${capturedRoot}`);
   }
   async function stateSaveHandler() {
-    log("💾 Salvando estado...", "info");
+    console.log("💾 Saving state...");
     if (!stateTest2) throw new Error("State not available");
     const state = stateTest2.getDefaultState();
     state.player.name = "Herói Testador";
     state.player.level = 5;
     state.world.bioma = "floresta";
     if (!stateTest2.save(state)) throw new Error("Save failed");
-    log("✅ Estado salvo!", "success");
+    console.log("✅ State saved!");
   }
   async function stateLoadHandler() {
-    log("📂 Carregando estado...", "info");
+    console.log("📂 Loading state...");
     if (!stateTest2) throw new Error("State not available");
     const loaded = stateTest2.load();
     if (!loaded) throw new Error("No save found");
-    log(`✅ Carregado: ${loaded.player.name} Lv.${loaded.player.level}`, "success");
+    console.log(`✅ Loaded: ${loaded.player.name} Lv.${loaded.player.level}`);
   }
   async function kvHandler() {
-    log("💾 Testando KV Plugin...", "info");
+    console.log("💾 Testing KV Plugin...");
     if (!kvTest2 || !kvTest2.available) throw new Error("Plugin not available");
     const saved = await kvTest2.setSimpleValue("test_key", "test_value");
     if (!saved) throw new Error("KV save failed");
     const retrieved = await kvTest2.getValue("test_key");
-    log(`✅ KV: test_key = "${retrieved}"`, "success");
+    console.log(`✅ KV: test_key = "${retrieved}"`);
   }
   async function chartBarHandler() {
-    log("📊 Renderizando Bar Chart...", "info");
+    console.log("📊 Rendering Bar Chart...");
     if (!apexchartsTest2) throw new Error("ApexCharts not available");
     const result = await apexchartsTest2.renderBarChart();
     if (!(result == null ? void 0 : result.success)) throw new Error("Chart render failed");
-    log(`✅ Bar Chart: ${result.categories} categorias`, "success");
+    console.log(`✅ Bar Chart: ${result.categories} categories`);
   }
   async function chartLineHandler() {
-    log("📈 Renderizando Line Chart...", "info");
+    console.log("📈 Rendering Line Chart...");
     if (!apexchartsTest2) throw new Error("ApexCharts not available");
     const result = await apexchartsTest2.renderLineChart();
     if (!(result == null ? void 0 : result.success)) throw new Error("Chart render failed");
-    log(`✅ Line Chart: ${result.points} pontos`, "success");
+    console.log(`✅ Line Chart: ${result.points} points`);
   }
   async function chartPieHandler() {
-    log("🍩 Renderizando Donut Chart...", "info");
+    console.log("🍩 Rendering Donut Chart...");
     if (!apexchartsTest2) throw new Error("ApexCharts not available");
     const result = await apexchartsTest2.renderPieChart();
     if (!(result == null ? void 0 : result.success)) throw new Error("Chart render failed");
-    log(`✅ Donut Chart: ${result.slices} fatias`, "success");
+    console.log(`✅ Donut Chart: ${result.slices} slices`);
   }
   async function chartRadarHandler() {
-    log("🕸️ Renderizando Radar Chart...", "info");
+    console.log("🕸️ Rendering Radar Chart...");
     if (!apexchartsTest2) throw new Error("ApexCharts not available");
     const result = await apexchartsTest2.renderRadarChart();
     if (!(result == null ? void 0 : result.success)) throw new Error("Chart render failed");
-    log(`✅ Radar Chart: ${result.axes} eixos`, "success");
+    console.log(`✅ Radar Chart: ${result.axes} axes`);
   }
   async function audioSFXHandler() {
-    log("🔊 Testando SFX...", "info");
+    console.log("🔊 Testing SFX...");
     if (!audioTest2) throw new Error("Audio not available");
     const result = audioTest2.playSFX("click");
     if (!result) throw new Error("SFX failed");
-    log("✅ SFX: click", "success");
+    console.log("✅ SFX: click");
   }
   async function audioMusicHandler() {
-    log("🎵 Testando música com loop...", "info");
+    console.log("🎵 Testing music with loop...");
     if (!audioTest2) throw new Error("Audio not available");
     const result = audioTest2.playMusic("music");
     if (!result) throw new Error("Music failed");
-    log("✅ Música iniciada (loop)", "success");
+    console.log("✅ Music started (loop)");
   }
   async function audioStopHandler() {
-    log("🔇 Parando todos os sons...", "info");
+    console.log("🔇 Stopping all sounds...");
     if (!audioTest2) throw new Error("Audio not available");
     const result = audioTest2.stopAll();
     if (!result) throw new Error("Stop failed");
-    log("✅ Todos os sons parados", "success");
+    console.log("✅ All sounds stopped");
   }
   async function audioSpriteHandler() {
-    log("🎵 Testando audio sprite...", "info");
+    console.log("🎵 Testing audio sprite...");
     if (!audioTest2) throw new Error("Audio not available");
     const result = audioTest2.testSprite();
     if (!result) throw new Error("Sprite failed");
-    log("✅ Sprite: middle (2-4s)", "success");
+    console.log("✅ Sprite: middle (2-4s)");
   }
   async function audioVolumeHandler() {
-    log("🔊 Testando volume...", "info");
+    console.log("🔊 Testing volume...");
     if (!audioTest2) throw new Error("Audio not available");
     const current = audioTest2.getVolume();
     const newVolume = current > 0.5 ? 0.2 : 0.8;
     audioTest2.setVolume(newVolume);
-    log(`✅ Volume: ${(newVolume * 100).toFixed(0)}%`, "success");
+    console.log(`✅ Volume: ${(newVolume * 100).toFixed(0)}%`);
   }
   async function mermaidHandler() {
-    log("📊 Testando Mermaid.js...", "info");
+    console.log("📊 Testing Mermaid.js...");
     if (!mermaidTest2) throw new Error("Mermaid not available");
     if (mermaidTest2.isLoading && mermaidTest2.isLoading()) {
-      log("⏳ Mermaid ainda carregando, aguarde...", "warning");
+      console.log("⏳ Mermaid still loading, waiting...");
       await mermaidTest2.getMermaid();
     }
     let diagramContainer = document.getElementById("mermaid-diagrams");
@@ -5396,10 +5652,10 @@ function initUITest(rendererData, testModules) {
       const closeBtn = document.createElement("button");
       closeBtn.className = "mermaid-close-btn";
       closeBtn.innerHTML = "✕";
-      closeBtn.title = "Fechar";
+      closeBtn.title = "Close";
       closeBtn.onclick = () => {
         diagramContainer.remove();
-        log("📊 Diagramas fechados", "info");
+        console.log("📊 Diagrams closed");
       };
       diagramContainer.appendChild(closeBtn);
       document.body.appendChild(diagramContainer);
@@ -5409,54 +5665,61 @@ function initUITest(rendererData, testModules) {
     const results = await mermaidTest2.renderAllExamples(diagramContainer);
     const successCount = Object.values(results).filter(Boolean).length;
     const totalCount = Object.keys(results).length;
-    log(`✅ Mermaid: ${successCount}/${totalCount} diagramas renderizados`, "success");
+    console.log(`✅ Mermaid: ${successCount}/${totalCount} diagrams rendered`);
   }
   async function matterHandler() {
-    log("⚛️ Testando Matter.js...", "info");
+    console.log("⚛️ Testing Matter.js...");
     if (!matterTest2) throw new Error("Matter not available");
     if (matterTest2.isLoading && matterTest2.isLoading()) {
-      log("⏳ Matter.js ainda carregando, aguarde...", "warning");
+      console.log("⏳ Matter.js still loading, waiting...");
       await matterTest2.getMatter();
     }
     await matterTest2.initPhysics();
-    log("✅ Matter.js: Simulação de física inicializada", "success");
+    console.log("✅ Matter.js: Physics simulation initialized");
+  }
+  async function cannonHandler() {
+    console.log("💣 Testing Cannon-es...");
+    if (!cannonTest2) throw new Error("Cannon-es not available");
+    if (cannonTest2.isLoading && cannonTest2.isLoading()) {
+      console.log("⏳ Cannon-es still loading, waiting...");
+    }
+    await cannonTest2.initPhysics3D(rendererData);
+    console.log("✅ Cannon-es: 3D Physics simulation initialized");
   }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
   panel.innerHTML = `
-    <h3>🧪 Painel de Testes ${VERSION}</h3>
+    <h3>🧪 Test Panel ${VERSION}</h3>
     
     <div class="ui-test-controls">
-      <button id="btn-run-all" class="ui-test-btn ui-test-btn--system">▶ Todos</button>
-      <button id="btn-clear-log" class="ui-test-btn ui-test-btn--system">🗑 Limpar</button>
-      <button id="btn-export" class="ui-test-btn ui-test-btn--system">📋 Exportar</button>
+      <button id="btn-run-all" class="ui-test-btn ui-test-btn--system">▶ Run All</button>
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-generation)">🎲 Geração & Aleatoriedade</strong>
+      <strong style="color:var(--ui-color-generation)">🎲 Generation & Randomness</strong>
       <button id="btn-dice" class="ui-test-btn ui-test-btn--generation">🎲 Dice</button>
       <button id="btn-seeder" class="ui-test-btn ui-test-btn--generation">🌱 Seeder</button>
       <button id="btn-pattern" class="ui-test-btn ui-test-btn--generation">🎨 Pattern</button>
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-ai)">🤖 IA & Conteúdo</strong>
+      <strong style="color:var(--ui-color-ai)">🤖 AI & Content</strong>
       <button id="btn-ai-text" class="ui-test-btn ui-test-btn--ai">🤖 AI Text</button>
       <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
-      <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Parar</button>
+      <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-render)">🎨 Renderização</strong>
-      <button id="btn-3d" class="ui-test-btn ui-test-btn--render">🎲 Cor Cubo</button>
+      <strong style="color:var(--ui-color-render)">🎨 Rendering</strong>
+      <button id="btn-3d" class="ui-test-btn ui-test-btn--render">🎲 Cube Color</button>
       <button id="btn-raycaster" class="ui-test-btn ui-test-btn--render">🖱️ Raycaster</button>
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-viz)">📊 Visualização</strong>
+      <strong style="color:var(--ui-color-viz)">📊 Visualization</strong>
       <button id="btn-chart-bar" class="ui-test-btn ui-test-btn--viz">📊 Bar</button>
       <button id="btn-chart-line" class="ui-test-btn ui-test-btn--viz">📈 Line</button>
       <button id="btn-chart-pie" class="ui-test-btn ui-test-btn--viz">🍩 Donut</button>
@@ -5464,7 +5727,7 @@ function initUITest(rendererData, testModules) {
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:#ff6b9d">🔊 Áudio</strong>
+      <strong style="color:#ff6b9d">🔊 Audio</strong>
       <button id="btn-audio-sfx" class="ui-test-btn ui-test-btn--audio">🔊 SFX</button>
       <button id="btn-audio-music" class="ui-test-btn ui-test-btn--audio">🎵 Music</button>
       <button id="btn-audio-sprite" class="ui-test-btn ui-test-btn--audio">🎵 Sprite</button>
@@ -5473,30 +5736,26 @@ function initUITest(rendererData, testModules) {
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-viz)">📊 Diagramas</strong>
+      <strong style="color:var(--ui-color-viz)">📊 Diagrams</strong>
       <button id="btn-mermaid" class="ui-test-btn ui-test-btn--viz">📊 Mermaid</button>
       <button id="btn-matter" class="ui-test-btn ui-test-btn--viz">⚛️ Matter.js</button>
+      <button id="btn-cannon" class="ui-test-btn ui-test-btn--viz">💣 Cannon-es</button>
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-data)">💾 Dados & Estado</strong>
-      <button id="btn-lists" class="ui-test-btn ui-test-btn--data">📋 Listas</button>
+      <strong style="color:var(--ui-color-data)">💾 Data & State</strong>
+      <button id="btn-lists" class="ui-test-btn ui-test-btn--data">📋 Lists</button>
       <button id="btn-bridge" class="ui-test-btn ui-test-btn--data">🔗 Bridge</button>
       <button id="btn-state-save" class="ui-test-btn ui-test-btn--data">💾 Save</button>
       <button id="btn-state-load" class="ui-test-btn ui-test-btn--data">📂 Load</button>
       <button id="btn-kv" class="ui-test-btn ui-test-btn--data">💾 KV</button>
     </div>
-    
-    <div id="test-log">Aguardando interação...</div>
   `;
   document.body.appendChild(panel);
-  console.log("📎 [UI-Test] Painel anexado ao document.body");
+  console.log("📎 [UI-Test] Panel attached to document.body");
   const rect = panel.getBoundingClientRect();
-  console.log(`📐 [UI-Test] Painel visível: ${rect.width}x${rect.height}px em (${rect.left}, ${rect.top})`);
-  logDiv = document.getElementById("test-log");
+  console.log(`📐 [UI-Test] Panel visible: ${rect.width}x${rect.height}px at (${rect.left}, ${rect.top})`);
   document.getElementById("btn-run-all").onclick = () => runAllTests(testDefs);
-  document.getElementById("btn-clear-log").onclick = clearLog;
-  document.getElementById("btn-export").onclick = exportResults;
   document.getElementById("btn-dice").onclick = () => runTest("btn-dice", "Dice", diceHandler);
   document.getElementById("btn-seeder").onclick = () => runTest("btn-seeder", "Seeder", seederHandler);
   document.getElementById("btn-pattern").onclick = () => runTest("btn-pattern", "Pattern", patternHandler);
@@ -5504,10 +5763,10 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-image").onclick = () => runTest("btn-image", "Image", imageHandler);
   document.getElementById("btn-tts").onclick = () => runTest("btn-tts", "TTS", ttsHandler);
   document.getElementById("btn-tts-stop").onclick = () => runTest("btn-tts-stop", "TTS Stop", () => {
-    log("⏹️ Parando fala...", "info");
+    console.log("⏹️ Stopping speech...");
     if (!ttsTest2) throw new Error("TTS not available");
     if (!ttsTest2.stopSpeech()) throw new Error("Stop not available");
-    log("✅ Fala parada", "success");
+    console.log("✅ Speech stopped");
   });
   document.getElementById("btn-3d").onclick = () => runTest("btn-3d", "Cube Color", cubeColorHandler);
   document.getElementById("btn-raycaster").onclick = () => runTest("btn-raycaster", "Raycaster", raycasterHandler);
@@ -5529,7 +5788,8 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-audio-stop").onclick = () => runTest("btn-audio-stop", "Audio Stop", audioStopHandler);
   document.getElementById("btn-mermaid").onclick = () => runTest("btn-mermaid", "Mermaid", mermaidHandler);
   document.getElementById("btn-matter").onclick = () => runTest("btn-matter", "Matter.js", matterHandler);
-  console.log(`✅ [UI-Test] Painel de testes ${VERSION} criado com controles globais.`);
+  document.getElementById("btn-cannon").onclick = () => runTest("btn-cannon", "Cannon-es", cannonHandler);
+  console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
 const uiTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
