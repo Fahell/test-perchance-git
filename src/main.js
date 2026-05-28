@@ -1,6 +1,22 @@
 // src/main.js
 // Entry point - Vite bundling
 
+// ─── Console Filter: suprime ruído 'isTrusted' de eventos DOM (#19) ───
+// Alguns plugins do Perchance logam objetos de evento com apenas {isTrusted: true}
+// em loop, poluindo o console. Este wrapper filtra esses logs espúrios.
+(() => {
+  const originalLog = console.log.bind(console);
+  console.log = (...args) => {
+    if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+      const keys = Object.keys(args[0]);
+      if (keys.length === 1 && keys[0] === 'isTrusted' && args[0].isTrusted === true) {
+        return;
+      }
+    }
+    originalLog(...args);
+  };
+})();
+
 // Imports estáticos para módulos críticos
 import * as bridgeMod from './perchance-bridge.js';
 import { VERSION } from './constants.js';
