@@ -1,5 +1,5 @@
 /* src/styles/ui-test.css
- * Design tokens and styles for Perchance UI test panel (v1.2.8)
+ * Design tokens and styles for Perchance UI test panel (v1.3.0)
  */
 
 :root {
@@ -25,7 +25,6 @@
   /* Colors - Backgrounds */
   --ui-bg-panel: rgba(0, 0, 0, 0.9);
   --ui-bg-button: #1a1a2e;
-  --ui-bg-log: #0a0a0a;
   
   /* Spacing */
   --ui-spacing-xs: 2px;
@@ -38,7 +37,6 @@
   --ui-font-family: monospace;
   --ui-font-size-base: 12px;
   --ui-font-size-title: 14px;
-  --ui-font-size-log: 11px;
   
   /* Borders & Radius */
   --ui-border-width: 2px;
@@ -51,7 +49,6 @@
   /* Dimensions */
   --ui-panel-max-width: 340px;
   --ui-panel-max-height: 85vh;
-  --ui-log-max-height: 150px;
 }
 
 /* Panel Container */
@@ -164,41 +161,6 @@
   padding: var(--ui-spacing-sm);
 }
 
-/* Log Area */
-#test-log {
-  margin-top: var(--ui-spacing-lg);
-  color: var(--ui-color-info);
-  font-size: var(--ui-font-size-log);
-  max-height: var(--ui-log-max-height);
-  overflow-y: auto;
-  background: var(--ui-bg-log);
-  padding: var(--ui-spacing-md);
-  border-radius: var(--ui-border-radius-sm);
-}
-
-/* Log Entry Types */
-.log-entry {
-  margin-bottom: var(--ui-spacing-xs);
-  word-break: break-word;
-  display: flex;
-  gap: var(--ui-spacing-sm);
-}
-
-.log-entry__time {
-  color: #555;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.log-entry__msg {
-  flex: 1;
-}
-
-.log-entry--success .log-entry__msg { color: var(--ui-color-success); }
-.log-entry--error .log-entry__msg { color: var(--ui-color-error); }
-.log-entry--warning .log-entry__msg { color: var(--ui-color-warning); }
-.log-entry--info .log-entry__msg { color: var(--ui-color-info); }
-
 /* Mermaid Diagrams Container */
 .mermaid-container {
   position: fixed;
@@ -211,7 +173,7 @@
   overflow-y: auto;
   background: #1a1a1a;
   border: 2px solid #333;
-  border-radius: var(--ui-border-radius-md);
+  border-radius: 8px;
   padding: var(--ui-spacing-lg);
   z-index: 10000;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -283,7 +245,7 @@
   border: 1px solid var(--ui-color-error);
   border-radius: var(--ui-border-radius-sm);
   color: var(--ui-color-error);
-  font-size: var(--ui-font-size-small);
+  font-size: 11px;
 }
 
 /* ============================================
@@ -357,7 +319,7 @@
   border: none;
   border-radius: var(--ui-border-radius-sm);
   cursor: pointer;
-  font-size: var(--ui-font-size-small);
+  font-size: 11px;
   font-weight: 600;
   transition: all 0.2s ease;
   color: white;
@@ -407,6 +369,6 @@
   padding: var(--ui-spacing-sm);
   background: #252525;
   border-radius: var(--ui-border-radius-sm);
-  font-size: var(--ui-font-size-small);
+  font-size: 11px;
   color: #aaa;
 }
