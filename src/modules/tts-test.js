@@ -3,14 +3,31 @@
 // Documentação: https://perchance.org/text-to-speech-plugin
 import { root } from '../perchance-bridge.js';
 
-// Feature detection: Web Speech API pode não estar disponível em iframes cross-origin
+// Polyfill: Web Speech API is unavailable in cross-origin iframes.
+// The Perchance text-to-speech-plugin uses setInterval to poll
+// window.speechSynthesis.getVoices() every 100ms. Without this polyfill,
+// it throws TypeError in a tight loop (the "isTrusted" noise).
+// This stub returns an empty voices array so the plugin's clearInterval
+// is triggered and the polling stops.
+if (typeof window.speechSynthesis === 'undefined') {
+  window.speechSynthesis = {
+    getVoices: () => [],
+    speak: () => {},
+    cancel: () => {},
+    pause: () => {},
+    resume: () => {},
+    pending: false,
+    speaking: false,
+    paused: false
+  };
+}
+
 const isSpeechSynthesisSupported = () => typeof window.speechSynthesis !== 'undefined';
 
 export const ttsTest = {
   available: !!root.speak,
   speechApiSupported: isSpeechSynthesisSupported(),
 
-  // Teste 1: Fala básica via plugin Perchance
   speakBasic(text = 'Olá! Este é um teste de síntese de voz no Perchance.') {
     if (!this.available) {
       console.warn('⚠️ [TTS] Plugin text-to-speech não disponível');
@@ -29,7 +46,6 @@ export const ttsTest = {
     }
   },
 
-  // Teste 2: Fala com opções (velocidade, tom, volume)
   speakWithOptions(text = 'Testando velocidade e tom.', options = {}) {
     if (!this.available) {
       console.warn('⚠️ [TTS] Plugin text-to-speech não disponível');
@@ -59,7 +75,6 @@ export const ttsTest = {
     }
   },
 
-  // Teste 3: Parar fala
   stopSpeech() {
     try {
       console.log('🔊 [TTS] Parando fala...');
@@ -90,7 +105,6 @@ export const ttsTest = {
     }
   },
 
-  // Teste 4: Verificar vozes disponíveis (requer Web Speech API)
   getAvailableVoices() {
     if (!isSpeechSynthesisSupported()) {
       console.warn('⚠️ [TTS] Web Speech API não disponível neste contexto (cross-origin iframe)');
@@ -116,7 +130,6 @@ export const ttsTest = {
     }
   },
 
-  // Teste 5: Fala com voz específica (requer Web Speech API)
   speakWithVoice(text = 'Testando voz específica.', voiceName = null) {
     if (!isSpeechSynthesisSupported()) {
       console.warn('⚠️ [TTS] Web Speech API não disponível neste contexto (cross-origin iframe)');
@@ -154,7 +167,6 @@ export const ttsTest = {
     }
   },
 
-  // Diagnóstico da API
   checkAPI() {
     console.log('🔊 [TTS] Verificando API do plugin...');
     console.log('   root.speak disponível:', !!root.speak);
@@ -165,7 +177,7 @@ export const ttsTest = {
       console.log('   Uso: root.speak("texto")');
     }
 
-    console.log('   Web Speech API:', isSpeechSynthesisSupported() ? '✅ Disponível' : '❌ Não disponível (cross-origin iframe)');
+    console.log('   Web Speech API:', isSpeechSynthesisSupported() ? '✅ Disponível (polyfill)' : '❌ Não disponível');
 
     if (isSpeechSynthesisSupported()) {
       setTimeout(() => {
