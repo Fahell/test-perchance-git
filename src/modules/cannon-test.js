@@ -4,6 +4,7 @@
  */
 
 import { VERSION } from '../constants.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 let cannonPromise = null;
 let cannonReady = false;
@@ -140,7 +141,7 @@ export async function initPhysics3D(rendererData) {
     world.addBody(groundBody);
 
     // Grid visual no Three.js
-    const gridHelper = new window.THREE.GridHelper(20, 20, 0x4a4a4a, 0x2a2a2a);
+    const gridHelper = new THREE.GridHelper(20, 20, 0x4a4a4a, 0x2a2a2a);
     gridHelper.name = 'cannon-grid';
     scene.add(gridHelper);
 
@@ -178,7 +179,6 @@ export function addSphere(x, y, z) {
   }
 
   const CANNON = cannonModule;
-  const THREE = window.THREE;
   const radius = 0.3 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
@@ -218,7 +218,6 @@ export function addBox(x, y, z) {
   }
 
   const CANNON = cannonModule;
-  const THREE = window.THREE;
   const size = 0.4 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
 

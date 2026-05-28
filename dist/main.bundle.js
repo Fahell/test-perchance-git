@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.7.1";
+const VERSION = "v1.7.2";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -5200,7 +5200,7 @@ async function initPhysics3D(rendererData) {
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     groundBody.material = defaultMaterial;
     world.addBody(groundBody);
-    const gridHelper = new window.THREE.GridHelper(20, 20, 4868682, 2763306);
+    const gridHelper = new THREE.GridHelper(20, 20, 4868682, 2763306);
     gridHelper.name = "cannon-grid";
     scene.add(gridHelper);
     addSpheres(5);
@@ -5217,7 +5217,6 @@ function addSphere(x, y, z) {
     return;
   }
   const CANNON = cannonModule;
-  const THREE2 = window.THREE;
   const radius = 0.3 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
   const shape = new CANNON.Sphere(radius);
@@ -5230,9 +5229,9 @@ function addSphere(x, y, z) {
   body.sleepSpeedLimit = 0.5;
   body.sleepTimeLimit = 1;
   world.addBody(body);
-  const geometry = new THREE2.SphereGeometry(radius, 16, 16);
-  const material = new THREE2.MeshPhongMaterial({ color });
-  const mesh = new THREE2.Mesh(geometry, material);
+  const geometry = new THREE.SphereGeometry(radius, 16, 16);
+  const material = new THREE.MeshPhongMaterial({ color });
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
   sceneRef.add(mesh);
   physicsObjects.push({ body, mesh });
@@ -5246,7 +5245,6 @@ function addBox(x, y, z) {
     return;
   }
   const CANNON = cannonModule;
-  const THREE2 = window.THREE;
   const size = 0.4 + Math.random() * 0.4;
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
   const shape = new CANNON.Box(new CANNON.Vec3(size / 2, size / 2, size / 2));
@@ -5259,9 +5257,9 @@ function addBox(x, y, z) {
   body.sleepSpeedLimit = 0.5;
   body.sleepTimeLimit = 1;
   world.addBody(body);
-  const geometry = new THREE2.BoxGeometry(size, size, size);
-  const material = new THREE2.MeshPhongMaterial({ color });
-  const mesh = new THREE2.Mesh(geometry, material);
+  const geometry = new THREE.BoxGeometry(size, size, size);
+  const material = new THREE.MeshPhongMaterial({ color });
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
   sceneRef.add(mesh);
   physicsObjects.push({ body, mesh });
