@@ -96,7 +96,8 @@ export function initUITest(rendererData, testModules) {
     apexchartsTest,
     audioTest,
     mermaidTest,
-    matterTest
+    matterTest,
+    cannonTest
   } = testModules;
 
   // Test definitions for Run All
@@ -127,6 +128,7 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-audio-stop', name: 'Audio Stop', fn: () => audioStopHandler() },
     { btnId: 'btn-mermaid', name: 'Mermaid', fn: () => mermaidHandler() },
     { btnId: 'btn-matter', name: 'Matter.js', fn: () => matterHandler() },
+    { btnId: 'btn-cannon', name: 'Cannon-es', fn: () => cannonHandler() },
   ];
 
   async function diceHandler() {
@@ -364,6 +366,16 @@ export function initUITest(rendererData, testModules) {
     console.log('✅ Matter.js: Physics simulation initialized');
   }
 
+  async function cannonHandler() {
+    console.log('💣 Testing Cannon-es...');
+    if (!cannonTest) throw new Error('Cannon-es not available');
+    if (cannonTest.isLoading && cannonTest.isLoading()) {
+      console.log('⏳ Cannon-es still loading, waiting...');
+    }
+    await cannonTest.initPhysics3D(rendererData);
+    console.log('✅ Cannon-es: 3D Physics simulation initialized');
+  }
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -418,6 +430,7 @@ export function initUITest(rendererData, testModules) {
       <strong style="color:var(--ui-color-viz)">📊 Diagrams</strong>
       <button id="btn-mermaid" class="ui-test-btn ui-test-btn--viz">📊 Mermaid</button>
       <button id="btn-matter" class="ui-test-btn ui-test-btn--viz">⚛️ Matter.js</button>
+      <button id="btn-cannon" class="ui-test-btn ui-test-btn--viz">💣 Cannon-es</button>
     </div>
     
     <div class="ui-test-category">
@@ -472,6 +485,7 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-audio-stop').onclick = () => runTest('btn-audio-stop', 'Audio Stop', audioStopHandler);
   document.getElementById('btn-mermaid').onclick = () => runTest('btn-mermaid', 'Mermaid', mermaidHandler);
   document.getElementById('btn-matter').onclick = () => runTest('btn-matter', 'Matter.js', matterHandler);
+  document.getElementById('btn-cannon').onclick = () => runTest('btn-cannon', 'Cannon-es', cannonHandler);
 
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
