@@ -372,7 +372,7 @@ export function initUITest(rendererData, testModules) {
     if (cannonTest.isLoading && cannonTest.isLoading()) {
       console.log('⏳ Cannon-es still loading, waiting...');
     }
-    await cannonTest.initPhysics3D(rendererData);
+    await cannonTest.initPhysics3D();
     console.log('✅ Cannon-es: 3D Physics simulation initialized');
   }
 
