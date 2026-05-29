@@ -1,6 +1,9 @@
 // src/modules/canvas-test.js
-// Testa Canvas 2D e integração com Three.js (CanvasTexture)
+// Canvas 2D tests with Three.js integration (CanvasTexture)
+// Uses OutputArea for organized display
+
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { showVisual, showText, clearVisual, clearText } from './output-area.js';
 
 export const canvasTest = {
   available: true,
@@ -8,31 +11,26 @@ export const canvasTest = {
   ctx: null,
   threeIntegration: null,
 
-  // Inicializa o canvas 2D
   init(rendererData) {
-    console.log('🎨 [Canvas] Inicializando teste de Canvas 2D...');
+    console.log('🎨 [Canvas] Initializing Canvas 2D test...');
 
-    // Cria canvas 2D para testes
     this.canvas2D = document.createElement('canvas');
     this.canvas2D.width = 512;
     this.canvas2D.height = 512;
-    this.canvas2D.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 50; border: 2px solid #4ade80; border-radius: 4px;';
+    this.canvas2D.style.cssText = 'border-radius: 4px; width: 100%; height: auto; max-width: 512px;';
     this.ctx = this.canvas2D.getContext('2d');
 
-    // Anexa ao body
-    document.body.appendChild(this.canvas2D);
+    showVisual(this.canvas2D, '🎨 Canvas 2D');
+    showText('<strong>Status:</strong> Canvas initialized (512x512)');
 
-    console.log('✅ [Canvas] Canvas 2D criado (512x512)');
+    console.log('✅ [Canvas] Canvas 2D created (512x512)');
 
-    // Integração com Three.js (CanvasTexture)
     if (rendererData && rendererData.scene) {
-      console.log('🎨 [Canvas] Integrando com Three.js...');
+      console.log('🎨 [Canvas] Integrating with Three.js...');
 
-      // Cria textura a partir do canvas 2D
       const texture = new THREE.CanvasTexture(this.canvas2D);
       texture.needsUpdate = true;
 
-      // Cria um plano com a textura
       const geometry = new THREE.PlaneGeometry(4, 4);
       const material = new THREE.MeshBasicMaterial({
         map: texture,
@@ -41,38 +39,34 @@ export const canvasTest = {
       });
       const plane = new THREE.Mesh(geometry, material);
       plane.position.set(0, 0, -5);
-      plane.visible = false; // Começa invisível
+      plane.visible = false;
       rendererData.scene.add(plane);
 
       this.threeIntegration = {
         plane,
         texture,
 
-        // Mostra o plano no Three.js
         show: () => {
           plane.visible = true;
           texture.needsUpdate = true;
-          console.log('🎨 [Canvas] Plano 3D visível');
+          console.log('🎨 [Canvas] 3D plane visible');
         },
 
-        // Esconde o plano
         hide: () => {
           plane.visible = false;
-          console.log('🎨 [Canvas] Plano 3D oculto');
+          console.log('🎨 [Canvas] 3D plane hidden');
         },
 
-        // Atualiza a textura (após desenhar no canvas)
         update: () => {
           texture.needsUpdate = true;
-          console.log('🎨 [Canvas] Textura atualizada');
+          console.log('🎨 [Canvas] Texture updated');
         }
       };
 
-      console.log('✅ [Canvas] Integração com Three.js concluída');
+      console.log('✅ [Canvas] Three.js integration complete');
     }
   },
 
-  // Desenha um gradiente
   drawGradient() {
     if (!this.ctx) return;
     const gradient = this.ctx.createLinearGradient(0, 0, 512, 512);
@@ -80,11 +74,11 @@ export const canvasTest = {
     gradient.addColorStop(1, '#764ba2');
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, 512, 512);
-    console.log('🎨 [Canvas] Gradiente desenhado');
+    console.log('🎨 [Canvas] Gradient drawn');
     if (this.threeIntegration) this.threeIntegration.update();
+    showText('<strong>Operation:</strong> Gradient<br><strong>Colors:</strong> #667eea → #764ba2');
   },
 
-  // Desenha círculos aleatórios
   drawCircles(count = 20) {
     if (!this.ctx) return;
     for (let i = 0; i < count; i++) {
@@ -98,11 +92,11 @@ export const canvasTest = {
       this.ctx.fillStyle = color;
       this.ctx.fill();
     }
-    console.log(`🎨 [Canvas] ${count} círculos desenhados`);
+    console.log(`🎨 [Canvas] ${count} circles drawn`);
     if (this.threeIntegration) this.threeIntegration.update();
+    showText(`<strong>Operation:</strong> Circles<br><strong>Count:</strong> ${count}`);
   },
 
-  // Desenha texto
   drawText(text = 'RPG Paper Craft', x = 256, y = 256) {
     if (!this.ctx) return;
     this.ctx.font = 'bold 32px monospace';
@@ -111,28 +105,24 @@ export const canvasTest = {
     this.ctx.textBaseline = 'middle';
     this.ctx.fillText(text, x, y);
 
-    // Sombra
     this.ctx.shadowColor = '#000000';
     this.ctx.shadowBlur = 10;
     this.ctx.fillText(text, x, y);
     this.ctx.shadowBlur = 0;
 
-    console.log(`🎨 [Canvas] Texto "${text}" desenhado`);
+    console.log(`🎨 [Canvas] Text "${text}" drawn`);
     if (this.threeIntegration) this.threeIntegration.update();
+    showText(`<strong>Operation:</strong> Text<br><strong>Content:</strong> "${text}"<br><strong>Position:</strong> (${x}, ${y})`);
   },
 
-  // Desenha padrão de "papel rasgado" (fog-of-war)
   drawFogOfWar(revealX = 256, revealY = 256, revealRadius = 100) {
     if (!this.ctx) return;
-    // Fundo escuro (área não revelada)
     this.ctx.fillStyle = '#000000';
     this.ctx.fillRect(0, 0, 512, 512);
 
-    // Área revelada (círculo com bordas irregulares)
     this.ctx.save();
     this.ctx.globalCompositeOperation = 'destination-out';
 
-    // Cria padrão de "papel rasgado" com múltiplos círculos sobrepostos
     const baseRadius = revealRadius;
     for (let angle = 0; angle < Math.PI * 2; angle += 0.2) {
       const offset = Math.random() * 20 - 10;
@@ -145,17 +135,16 @@ export const canvasTest = {
       this.ctx.fill();
     }
 
-    // Círculo principal
     this.ctx.beginPath();
     this.ctx.arc(revealX, revealY, baseRadius, 0, Math.PI * 2);
     this.ctx.fill();
 
     this.ctx.restore();
-    console.log(`🎨 [Canvas] Fog-of-war desenhado em (${revealX}, ${revealY})`);
+    console.log(`🎨 [Canvas] Fog-of-war drawn at (${revealX}, ${revealY})`);
     if (this.threeIntegration) this.threeIntegration.update();
+    showText(`<strong>Operation:</strong> Fog of War<br><strong>Center:</strong> (${revealX}, ${revealY})<br><strong>Radius:</strong> ${revealRadius}px`);
   },
 
-  // Desenha grade (para debug)
   drawGrid(cellSize = 32) {
     if (!this.ctx) return;
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -175,35 +164,37 @@ export const canvasTest = {
       this.ctx.stroke();
     }
 
-    console.log(`🎨 [Canvas] Grade desenhada (células de ${cellSize}px)`);
+    console.log(`🎨 [Canvas] Grid drawn (cells of ${cellSize}px)`);
     if (this.threeIntegration) this.threeIntegration.update();
+    showText(`<strong>Operation:</strong> Grid<br><strong>Cell Size:</strong> ${cellSize}px<br><strong>Cells:</strong> ${Math.floor(512 / cellSize)}x${Math.floor(512 / cellSize)}`);
   },
 
-  // Mostra o plano 3D
   showThreePlane() {
     if (this.threeIntegration) {
       this.threeIntegration.show();
     }
   },
 
-  // Esconde o plano 3D
   hideThreePlane() {
     if (this.threeIntegration) {
       this.threeIntegration.hide();
     }
   },
 
-  // Limpa tudo
   cleanup() {
-    if (this.canvas2D && this.canvas2D.parentNode) {
-      this.canvas2D.parentNode.removeChild(this.canvas2D);
-    }
+    clearVisual();
+    clearText();
+
     if (this.threeIntegration && this.threeIntegration.plane) {
       this.threeIntegration.plane.parent.remove(this.threeIntegration.plane);
     }
-    console.log('🗑️ [Canvas] Canvas e recursos limpos');
+
+    this.canvas2D = null;
+    this.ctx = null;
+    this.threeIntegration = null;
+
+    console.log('🗑️ [Canvas] Canvas and resources cleaned up');
   }
 };
 
-// Inicialização
-console.log('🎨 [Canvas] Inicializando teste de Canvas 2D...');
+console.log('🎨 [Canvas] Canvas 2D test module loaded');
