@@ -1,7 +1,7 @@
 // src/main.js
 // Entry point - Vite bundling
 
-// ─── Console Filter: suprime ruído 'isTrusted' de eventos DOM (#19) ───
+// ─── Console Filter: suprime ruído 'isTrusted' de eventos DOM (#19) ────
 // Alguns plugins do Perchance logam objetos de evento com apenas {isTrusted: true}
 // em loop, poluindo o console. Este wrapper filtra esses logs espúrios.
 (() => {
@@ -22,6 +22,7 @@ import * as bridgeMod from './perchance-bridge.js';
 import { VERSION } from './constants.js';
 import { initRenderer } from './modules/renderer.js';
 import { initLogic } from './modules/logic.js';
+import { initOutputArea } from './modules/output-area.js';
 
 // Mapeamento de módulos de teste (dynamic imports)
 const TEST_MODULES = {
@@ -114,7 +115,7 @@ function initTestModules(modules, rendererData) {
 export async function initGame() {
   // 🛡️ Guard clause duplo para evitar execução duplicada
   if (window.GAME_INITIALIZED) {
-    console.warn('⏭️ Jogo já inicializado. Ignorando execução duplicada.');
+    console.warn('⏯️ Jogo já inicializado. Ignorando execução duplicada.');
     return;
   }
   window.GAME_INITIALIZED = true;
@@ -135,34 +136,38 @@ export async function initGame() {
     const bioma = getList('biomas', ['planície']).selectOne;
     initLogic(seed, bioma);
 
-    // 3. Carrega todos os módulos de teste em paralelo
+    // 3. Inicializa OutputArea (área de exibição de resultados)
+    console.log('📊 [Main] Inicializando OutputArea...');
+    initOutputArea();
+
+    // 4. Carrega todos os módulos de teste em paralelo
     const testModules = await loadAllTestModules();
 
-    // 3.5. Start preloading Mermaid in background (non-blocking)
+    // 4.5. Start preloading Mermaid in background (non-blocking)
     console.log('📊 [Main] Starting Mermaid background preload...');
     const mermaidModule = await TEST_MODULES.mermaidTest();
     if (mermaidModule && mermaidModule.mermaidTest && mermaidModule.mermaidTest.preloadMermaid) {
       mermaidModule.mermaidTest.preloadMermaid();
     }
 
-    // 3.6. Start preloading Matter.js in background (non-blocking)
+    // 4.6. Start preloading Matter.js in background (non-blocking)
     console.log('⚛️ [Main] Starting Matter.js background preload...');
     const matterModule = await TEST_MODULES.matterTest();
     if (matterModule && matterModule.matterTest && matterModule.matterTest.preloadMatter) {
       matterModule.matterTest.preloadMatter();
     }
 
-    // 3.7. Start preloading Cannon-es in background (non-blocking)
+    // 4.7. Start preloading Cannon-es in background (non-blocking)
     console.log('💣 [Main] Starting Cannon-es background preload...');
     const cannonModule = await TEST_MODULES.cannonTest();
     if (cannonModule && cannonModule.cannonTest && cannonModule.cannonTest.preloadCannon) {
       cannonModule.cannonTest.preloadCannon();
     }
 
-    // 4. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
+    // 5. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
     initTestModules(testModules, rendererData);
 
-    // 5. Carrega e inicializa UI de Teste
+    // 6. Carrega e inicializa UI de Teste
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
     const uiTestMod = await import('./modules/ui-test.js');
     
