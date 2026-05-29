@@ -6,12 +6,13 @@
  * Exemplo: node scripts/release.js 1.3.0
  * 
  * Fluxo:
- * 1. Atualiza constants.js (fonte da verdade)
- * 2. Roda sync-version.cjs (sincroniza todos os arquivos)
- * 3. Roda build (gera bundle)
- * 4. Commit (pre-commit hook roda sync-version novamente)
- * 5. Tag
- * 6. Push
+ * 1. Valida estado limpo do repositório
+ * 2. Atualiza constants.js (fonte da verdade)
+ * 3. Roda sync-version.cjs (sincroniza todos os arquivos)
+ * 4. Roda build (gera bundle)
+ * 5. Commit (pre-commit hook roda sync-version novamente)
+ * 6. Tag
+ * 7. Pull --rebase + Push
  */
 
 const fs = require('fs');
@@ -20,6 +21,55 @@ const { execSync } = require('child_process');
 
 const ROOT_DIR = path.join(__dirname, '..');
 const CONSTANTS_JS = path.join(ROOT_DIR, 'src/constants.js');
+
+function checkCleanState() {
+  console.log('🔍 Verificando estado do repositório...\n');
+  
+  // 1. Verifica se há mudanças não commitadas
+  const status = execSync('git status --porcelain', { cwd: ROOT_DIR }).toString().trim();
+  if (status) {
+    console.error('❌ Working tree tem mudanças não commitadas.');
+    console.error('\nArquivos modificados:');
+    console.error(status);
+    console.error('\n👉 Faça commit ou stash das mudanças antes de rodar o release.');
+    console.error('   Comandos úteis:');
+    console.error('   - git add . && git commit -m "wip: changes before release"');
+    console.error('   - git stash');
+    process.exit(1);
+  }
+  console.log('✅ Working tree limpo');
+  
+  // 2. Verifica se o local está atrás do remote
+  try {
+    console.log('🔄 Sincronizando com o remote...');
+    execSync('git fetch origin', { cwd: ROOT_DIR, stdio: 'pipe' });
+    
+    const behind = execSync('git rev-list HEAD..origin/main --count', { cwd: ROOT_DIR }).toString().trim();
+    const ahead = execSync('git rev-list origin/main..HEAD --count', { cwd: ROOT_DIR }).toString().trim();
+    
+    if (parseInt(behind) > 0) {
+      console.error(`\n❌ Branch local está ${behind} commit(s) atrás do remote.`);
+      console.error('\n👉 Execute "git pull --rebase origin main" antes de rodar o release.');
+      console.error('   Ou o script fará isso automaticamente durante o push.');
+      console.error('\n⚠️  Se você continuar, o script tentará fazer pull --rebase automaticamente.');
+      console.error('   Se houver conflitos, o release será abortado.');
+      
+      // Pergunta se quer continuar
+      console.log('\nContinuando com o release (pull --rebase será feito no push)...\n');
+    }
+    
+    if (parseInt(ahead) > 0) {
+      console.log(`✅ Branch local está ${ahead} commit(s) à frente do remote`);
+    } else {
+      console.log('✅ Branch local está sincronizado com o remote');
+    }
+  } catch (error) {
+    console.warn('⚠️  Não foi possível verificar o estado do remote:', error.message);
+    console.warn('   Continuando com o release...\n');
+  }
+  
+  console.log('');
+}
 
 function updateConstantsJs(version) {
   console.log('📝 Atualizando constants.js (fonte da verdade)...');
@@ -54,9 +104,47 @@ function gitCommitAndTag(version) {
 
 function gitPush(version) {
   console.log('🚀 Fazendo push para o GitHub...');
-  execSync('git push origin main', { stdio: 'inherit', cwd: ROOT_DIR });
-  execSync(`git push origin v${version}`, { stdio: 'inherit', cwd: ROOT_DIR });
-  console.log(`✅ Push completo. CDN jsDelivr irá processar em ~10 minutos.`);
+  
+  try {
+    // 1. Tenta fazer pull --rebase para evitar conflitos
+    console.log('🔄 Fazendo pull --rebase origin main...');
+    execSync('git pull --rebase origin main', { stdio: 'inherit', cwd: ROOT_DIR });
+    console.log('✅ Rebase concluído com sucesso');
+  } catch (error) {
+    console.error('\n❌ Erro durante o pull --rebase.');
+    console.error('\n👉 Possíveis causas:');
+    console.error('   1. Conflitos de merge - resolva manualmente e execute "git rebase --continue"');
+    console.error('   2. Problemas de conexão com o GitHub');
+    console.error('\n👉 Comandos úteis:');
+    console.error('   - git rebase --abort (para cancelar o rebase)');
+    console.error('   - git status (para ver o estado atual)');
+    console.error('\n⚠️  Release abortado. Resolva os conflitos e tente novamente.');
+    process.exit(1);
+  }
+  
+  // 2. Push do branch main
+  try {
+    execSync('git push origin main', { stdio: 'inherit', cwd: ROOT_DIR });
+    console.log('✅ Push do branch main concluído');
+  } catch (error) {
+    console.error('\n❌ Erro ao fazer push do branch main.');
+    console.error('Erro:', error.message);
+    process.exit(1);
+  }
+  
+  // 3. Push da tag
+  try {
+    execSync(`git push origin v${version}`, { stdio: 'inherit', cwd: ROOT_DIR });
+    console.log(`✅ Push da tag v${version} concluído`);
+  } catch (error) {
+    console.error(`\n❌ Erro ao fazer push da tag v${version}.`);
+    console.error('Erro:', error.message);
+    console.error('\n⚠️  O branch foi enviado, mas a tag falhou. Execute manualmente:');
+    console.error(`   git push origin v${version}`);
+    process.exit(1);
+  }
+  
+  console.log(`\n✅ Push completo. CDN jsDelivr irá processar em ~10 minutos.`);
 }
 
 function main() {
@@ -85,6 +173,9 @@ function main() {
   console.log(`\n🚀 Iniciando release v${version}...\n`);
   
   try {
+    // 0. Valida estado limpo do repositório
+    checkCleanState();
+    
     // 1. Atualiza constants.js (fonte da verdade)
     updateConstantsJs(version);
     
@@ -98,7 +189,7 @@ function main() {
     // 5. Tag
     gitCommitAndTag(version);
     
-    // 6. Push
+    // 6. Pull --rebase + Push
     gitPush(version);
     
     console.log(`\n✅ Release v${version} concluída com sucesso!`);
