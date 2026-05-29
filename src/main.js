@@ -41,7 +41,8 @@ const TEST_MODULES = {
   audioTest: () => import('./modules/audio-test.js'),
   mermaidTest: () => import('./modules/mermaid-test.js'),
   matterTest: () => import('./modules/matter-test.js'),
-  cannonTest: () => import('./modules/cannon-test.js')
+  cannonTest: () => import('./modules/cannon-test.js'),
+  particlesTest: () => import('./modules/particles-test.js')
 };
 
 // Cache de módulos carregados
@@ -106,6 +107,21 @@ function initTestModules(modules, rendererData) {
       console.log('✅ [Main] raycasterTest inicializado');
     } catch (e) {
       console.error('❌ [Main] Erro ao inicializar raycasterTest:', e.message);
+    }
+  }
+  
+  if (modules.particlesTest && modules.particlesTest.init) {
+    try {
+      modules.particlesTest.init(rendererData);
+      
+      // Register update callback for particles animation
+      if (rendererData.onUpdate && modules.particlesTest.update) {
+        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
+      }
+      
+      console.log('✅ [Main] particlesTest inicializado');
+    } catch (e) {
+      console.error('❌ [Main] Erro ao inicializar particlesTest:', e.message);
     }
   }
 }

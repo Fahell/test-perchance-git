@@ -97,7 +97,8 @@ export function initUITest(rendererData, testModules) {
     audioTest,
     mermaidTest,
     matterTest,
-    cannonTest
+    cannonTest,
+    particlesTest
   } = testModules;
 
   // Test definitions for Run All
@@ -129,6 +130,7 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-mermaid', name: 'Mermaid', fn: () => mermaidHandler() },
     { btnId: 'btn-matter', name: 'Matter.js', fn: () => matterHandler() },
     { btnId: 'btn-cannon', name: 'Cannon-es', fn: () => cannonHandler() },
+    { btnId: 'btn-particles', name: 'Particles', fn: () => particlesHandler() },
   ];
 
   async function diceHandler() {
@@ -376,6 +378,27 @@ export function initUITest(rendererData, testModules) {
     console.log('✅ Cannon-es: 3D Physics simulation initialized');
   }
 
+  async function particlesHandler() {
+    console.log('✨ Testing Particles...');
+    if (!particlesTest) throw new Error('Particles not available');
+    if (!rendererData || !rendererData.scene) throw new Error('Scene not available');
+    
+    // Toggle particles on/off
+    if (particlesTest.getConfig && particlesTest.getConfig().count > 0) {
+      // Check if particles are already active by trying to dispose
+      try {
+        particlesTest.dispose();
+        console.log('🗑️ Particles: System disposed');
+        return;
+      } catch (e) {
+        // Ignore, continue to init
+      }
+    }
+    
+    particlesTest.init(rendererData);
+    console.log('✅ Particles: 50,000 particles rendered');
+  }
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -407,6 +430,7 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-raycaster" class="ui-test-btn ui-test-btn--render">🖱️ Raycaster</button>
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
+      <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
     </div>
     
     <div class="ui-test-category">
@@ -486,6 +510,7 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-mermaid').onclick = () => runTest('btn-mermaid', 'Mermaid', mermaidHandler);
   document.getElementById('btn-matter').onclick = () => runTest('btn-matter', 'Matter.js', matterHandler);
   document.getElementById('btn-cannon').onclick = () => runTest('btn-cannon', 'Cannon-es', cannonHandler);
+  document.getElementById('btn-particles').onclick = () => runTest('btn-particles', 'Particles', particlesHandler);
 
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
