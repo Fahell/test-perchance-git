@@ -383,16 +383,11 @@ export function initUITest(rendererData, testModules) {
     if (!particlesTest) throw new Error('Particles not available');
     if (!rendererData || !rendererData.scene) throw new Error('Scene not available');
     
-    // Toggle particles on/off
-    if (particlesTest.getConfig && particlesTest.getConfig().count > 0) {
-      // Check if particles are already active by trying to dispose
-      try {
-        particlesTest.dispose();
-        console.log('🗑️ Particles: System disposed');
-        return;
-      } catch (e) {
-        // Ignore, continue to init
-      }
+    // Toggle particles on/off using isActive()
+    if (particlesTest.isActive && particlesTest.isActive()) {
+      particlesTest.dispose();
+      console.log('🗑️ Particles: System disposed');
+      return;
     }
     
     particlesTest.init(rendererData);

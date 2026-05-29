@@ -21,6 +21,8 @@ let material = null;
 let geometry = null;
 let sceneRef = null;
 let elapsedTime = 0;
+let updateCallback = null;
+let rendererDataRef = null;
 
 // ─── Shader Sources ───────────────────────────────────────────────────────────
 
@@ -251,7 +253,14 @@ export function init(rendererData) {
     return;
   }
   
+  rendererDataRef = rendererData;
   buildParticleSystem(rendererData.scene);
+  
+  // Register update callback internally
+  if (rendererData.onUpdate) {
+    updateCallback = (deltaTime) => update(deltaTime);
+    rendererData.onUpdate(updateCallback);
+  }
 }
 
 export function update(deltaTime) {
@@ -275,8 +284,19 @@ export function dispose() {
     material.dispose();
     material = null;
   }
+  
+  // Remove update callback
+  if (updateCallback && rendererDataRef && rendererDataRef.removeUpdateCallback) {
+    rendererDataRef.removeUpdateCallback(updateCallback);
+    updateCallback = null;
+  }
+  
   elapsedTime = 0;
   console.log('🗑️ [Particles] System disposed');
+}
+
+export function isActive() {
+  return particles !== null && material !== null;
 }
 
 export function setCount(count) {

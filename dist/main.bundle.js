@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.7.4";
+const VERSION = "v1.8.0";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -224,17 +224,6 @@ function initTestModules(modules, rendererData) {
       console.log("✅ [Main] raycasterTest inicializado");
     } catch (e) {
       console.error("❌ [Main] Erro ao inicializar raycasterTest:", e.message);
-    }
-  }
-  if (modules.particlesTest && modules.particlesTest.init) {
-    try {
-      modules.particlesTest.init(rendererData);
-      if (rendererData.onUpdate && modules.particlesTest.update) {
-        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
-      }
-      console.log("✅ [Main] particlesTest inicializado");
-    } catch (e) {
-      console.error("❌ [Main] Erro ao inicializar particlesTest:", e.message);
     }
   }
 }
@@ -5429,6 +5418,8 @@ let material = null;
 let geometry = null;
 let sceneRef = null;
 let elapsedTime = 0;
+let updateCallback = null;
+let rendererDataRef = null;
 const vertexShader = `
   attribute vec3 aVelocity;
   attribute vec3 aColor;
@@ -5618,7 +5609,12 @@ function init(rendererData) {
     console.error("❌ [Particles] Renderer data or scene not available");
     return;
   }
+  rendererDataRef = rendererData;
   buildParticleSystem(rendererData.scene);
+  if (rendererData.onUpdate) {
+    updateCallback = (deltaTime) => update(deltaTime);
+    rendererData.onUpdate(updateCallback);
+  }
 }
 function update(deltaTime) {
   if (!material) return;
@@ -5639,8 +5635,15 @@ function dispose() {
     material.dispose();
     material = null;
   }
+  if (updateCallback && rendererDataRef && rendererDataRef.removeUpdateCallback) {
+    rendererDataRef.removeUpdateCallback(updateCallback);
+    updateCallback = null;
+  }
   elapsedTime = 0;
   console.log("🗑️ [Particles] System disposed");
+}
+function isActive() {
+  return particles !== null && material !== null;
 }
 function setCount(count) {
   config.count = Math.max(1e3, Math.min(2e5, count));
@@ -5674,6 +5677,7 @@ const particlesTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defin
   dispose,
   getConfig,
   init,
+  isActive,
   resetConfig,
   setColorMode,
   setCount,
@@ -6018,13 +6022,10 @@ function initUITest(rendererData, testModules) {
     console.log("✨ Testing Particles...");
     if (!particlesTest2) throw new Error("Particles not available");
     if (!rendererData || !rendererData.scene) throw new Error("Scene not available");
-    if (particlesTest2.getConfig && particlesTest2.getConfig().count > 0) {
-      try {
-        particlesTest2.dispose();
-        console.log("🗑️ Particles: System disposed");
-        return;
-      } catch (e) {
-      }
+    if (particlesTest2.isActive && particlesTest2.isActive()) {
+      particlesTest2.dispose();
+      console.log("🗑️ Particles: System disposed");
+      return;
     }
     particlesTest2.init(rendererData);
     console.log("✅ Particles: 50,000 particles rendered");

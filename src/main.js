@@ -109,21 +109,6 @@ function initTestModules(modules, rendererData) {
       console.error('❌ [Main] Erro ao inicializar raycasterTest:', e.message);
     }
   }
-  
-  if (modules.particlesTest && modules.particlesTest.init) {
-    try {
-      modules.particlesTest.init(rendererData);
-      
-      // Register update callback for particles animation
-      if (rendererData.onUpdate && modules.particlesTest.update) {
-        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
-      }
-      
-      console.log('✅ [Main] particlesTest inicializado');
-    } catch (e) {
-      console.error('❌ [Main] Erro ao inicializar particlesTest:', e.message);
-    }
-  }
 }
 
 export async function initGame() {
