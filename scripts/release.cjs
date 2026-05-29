@@ -90,6 +90,9 @@ function syncAllFiles() {
 }
 
 function build() {
+  console.log('🧹 Limpando cache do Vite...');
+  execSync('rm -rf dist node_modules/.vite', { cwd: ROOT_DIR });
+  console.log('✅ Cache limpo');
   console.log('🔨 Executando build do Vite...');
   execSync('npm run build', { stdio: 'inherit', cwd: ROOT_DIR });
 }
