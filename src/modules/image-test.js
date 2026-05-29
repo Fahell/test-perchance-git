@@ -1,14 +1,14 @@
 /**
  * Módulo de teste para o plugin text-to-image-plugin do Perchance
  * Testa: geração de imagem, seed, removeBackground, negativePrompt, resolução
- * @version 1.2.0
+ * @version 1.3.0
  */
 
 import { root } from '../perchance-bridge.js';
+import { showVisual, showText, clearVisual } from './output-area.js';
 
 export const imageTest = {
   available: !!root.image,
-  containerId: 'image-preview-container',
   
   // Helper para extrair URL da imagem do retorno do plugin
   _extractImageUrl(result) {
@@ -25,77 +25,11 @@ export const imageTest = {
     return null;
   },
 
-  // Cria ou retorna o container de preview
-  _getOrCreateContainer() {
-    let container = document.getElementById(this.containerId);
-    if (!container) {
-      container = document.createElement('div');
-      container.id = this.containerId;
-      container.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 320px;
-        background: rgba(0, 0, 0, 0.9);
-        border: 2px solid #4ade80;
-        border-radius: 12px;
-        padding: 15px;
-        font-family: monospace;
-        font-size: 12px;
-        color: white;
-        z-index: 9998;
-        box-shadow: 0 4px 20px rgba(0, 255, 0, 0.3);
-      `;
-      container.innerHTML = `
-        <h3 style="margin: 0 0 10px 0; color: #4ade80; font-size: 14px;">🖼️ Preview de Imagem</h3>
-        <div id="image-preview-area" style="
-          width: 100%;
-          height: 200px;
-          background: #1a1a1a;
-          border: 1px solid #333;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          margin-bottom: 10px;
-        ">
-          <span style="color: #666;">Nenhuma imagem gerada</span>
-        </div>
-        <div id="image-info" style="color: #aaa; font-size: 11px;">
-          Aguardando geração...
-        </div>
-      `;
-      document.body.appendChild(container);
-    }
-    return container;
-  },
-
-  // Atualiza o preview com a imagem gerada
-  _updatePreview(imageUrl, info) {
-    const previewArea = document.getElementById('image-preview-area');
-    const infoDiv = document.getElementById('image-info');
-    
-    if (imageUrl) {
-      previewArea.innerHTML = `<img src="${imageUrl}" style="
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        image-rendering: pixelated;
-      " />`;
-      infoDiv.innerHTML = info || '✅ Imagem gerada com sucesso!';
-    } else {
-      previewArea.innerHTML = '<span style="color: #ff6b6b;">❌ Falha na geração</span>';
-      infoDiv.innerHTML = info || 'Erro ao gerar imagem';
-    }
-  },
-
   // Teste 1: Geração básica com seed fixa
   async testBasicImage() {
     console.log('🖼️ [Image] Gerando imagem básica com seed fixa...');
     
-    this._getOrCreateContainer();
-    this._updatePreview(null, '⏳ Gerando imagem...');
+    showText('⏳ Gerando imagem...');
     
     try {
       const result = await root.image(
@@ -114,11 +48,23 @@ export const imageTest = {
         console.log('   Data URL length:', imageUrl.length, 'chars');
         console.log('   Tipo do resultado:', typeof result, result.constructor.name);
         
-        this._updatePreview(imageUrl, `
-          ✅ Seed: 12345<br>
-          📐 Resolução: 512x512<br>
-          📏 Tamanho: ${(imageUrl.length / 1024).toFixed(1)}KB
-        `);
+        const imgHtml = `
+          <img src="${imageUrl}" style="
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            border-radius: 4px;
+          " />
+        `;
+        showVisual(imgHtml, '🖼️ Imagem Gerada');
+        
+        const infoHtml = `
+          <strong>✅ Seed:</strong> 12345<br>
+          <strong>📐 Resolução:</strong> 512x512<br>
+          <strong>📏 Tamanho:</strong> ${(imageUrl.length / 1024).toFixed(1)}KB
+        `;
+        showText(infoHtml);
         
         return { success: true, url: imageUrl, seed: 12345 };
       } else {
@@ -126,7 +72,7 @@ export const imageTest = {
       }
     } catch (error) {
       console.error('❌ [Image] Falha na geração:', error.message);
-      this._updatePreview(null, `❌ Erro: ${error.message}`);
+      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
       return { success: false, error: error.message };
     }
   },
@@ -135,8 +81,7 @@ export const imageTest = {
   async testRemoveBackground() {
     console.log('🖼️ [Image] Testando removeBackground...');
     
-    this._getOrCreateContainer();
-    this._updatePreview(null, '⏳ Gerando imagem sem fundo...');
+    showText('⏳ Gerando imagem sem fundo...');
     
     try {
       const result = await root.image(
@@ -154,22 +99,35 @@ export const imageTest = {
       if (imageUrl) {
         console.log('✅ [Image] Imagem sem fundo gerada!');
         
-        // Aplica fundo quadriculado para demonstrar transparência
-        const previewArea = document.getElementById('image-preview-area');
-        previewArea.style.background = `
-          linear-gradient(45deg, #333 25%, transparent 25%),
-          linear-gradient(-45deg, #333 25%, transparent 25%),
-          linear-gradient(45deg, transparent 75%, #333 75%),
-          linear-gradient(-45deg, transparent 75%, #333 75%)
+        const imgHtml = `
+          <div style="
+            background: 
+              linear-gradient(45deg, #333 25%, transparent 25%),
+              linear-gradient(-45deg, #333 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, #333 75%),
+              linear-gradient(-45deg, transparent 75%, #333 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            padding: 10px;
+            border-radius: 4px;
+            display: inline-block;
+          ">
+            <img src="${imageUrl}" style="
+              max-width: 100%;
+              max-height: 300px;
+              object-fit: contain;
+              image-rendering: pixelated;
+            " />
+          </div>
         `;
-        previewArea.style.backgroundSize = '20px 20px';
-        previewArea.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
+        showVisual(imgHtml, '🔍 Imagem Sem Fundo');
         
-        this._updatePreview(imageUrl, `
-          ✅ Seed: 54321<br>
-          🔍 RemoveBackground: true<br>
-          🎨 Fundo transparente (quadriculado)
-        `);
+        const infoHtml = `
+          <strong>✅ Seed:</strong> 54321<br>
+          <strong>🔍 RemoveBackground:</strong> true<br>
+          <strong>🎨 Fundo:</strong> transparente (quadriculado)
+        `;
+        showText(infoHtml);
         
         return { success: true, url: imageUrl, transparent: true };
       } else {
@@ -177,7 +135,7 @@ export const imageTest = {
       }
     } catch (error) {
       console.error('❌ [Image] Falha:', error.message);
-      this._updatePreview(null, `❌ Erro: ${error.message}`);
+      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
       return { success: false, error: error.message };
     }
   },
@@ -186,8 +144,7 @@ export const imageTest = {
   async testSeedComparison() {
     console.log('🖼️ [Image] Comparando seeds diferentes...');
     
-    this._getOrCreateContainer();
-    this._updatePreview(null, '⏳ Gerando 2 imagens com seeds diferentes...');
+    showText('⏳ Gerando 2 imagens com seeds diferentes...');
     
     try {
       const seed1 = 11111;
@@ -206,26 +163,38 @@ export const imageTest = {
       if (url1 && url2) {
         console.log('✅ [Image] Ambas imagens geradas!');
         
-        const previewArea = document.getElementById('image-preview-area');
-        previewArea.style.height = '250px';
-        previewArea.innerHTML = `
-          <div style="display: flex; gap: 5px; align-items: center; justify-content: center;">
+        const imgHtml = `
+          <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
             <div style="text-align: center;">
-              <img src="${url1}" style="width: 120px; height: 120px; object-fit: contain;" />
-              <div style="color: #4ade80; font-size: 10px; margin-top: 5px;">Seed: ${seed1}</div>
+              <img src="${url1}" style="
+                width: 150px;
+                height: 150px;
+                object-fit: contain;
+                border: 2px solid #4ade80;
+                border-radius: 4px;
+              " />
+              <div style="color: #4ade80; font-size: 11px; margin-top: 5px;">Seed: ${seed1}</div>
             </div>
-            <div style="color: #666; font-size: 18px;">vs</div>
+            <div style="color: #888; font-size: 20px;">vs</div>
             <div style="text-align: center;">
-              <img src="${url2}" style="width: 120px; height: 120px; object-fit: contain;" />
-              <div style="color: #4ade80; font-size: 10px; margin-top: 5px;">Seed: ${seed2}</div>
+              <img src="${url2}" style="
+                width: 150px;
+                height: 150px;
+                object-fit: contain;
+                border: 2px solid #4ade80;
+                border-radius: 4px;
+              " />
+              <div style="color: #4ade80; font-size: 11px; margin-top: 5px;">Seed: ${seed2}</div>
             </div>
           </div>
         `;
+        showVisual(imgHtml, '🎲 Comparação de Seeds');
         
-        document.getElementById('image-info').innerHTML = `
-          ✅ Mesma prompt, seeds diferentes<br>
-          📐 Resolução: 256x256 cada
+        const infoHtml = `
+          <strong>✅ Mesma prompt,</strong> seeds diferentes<br>
+          <strong>📐 Resolução:</strong> 256x256 cada
         `;
+        showText(infoHtml);
         
         return { success: true, images: [url1, url2], seeds: [seed1, seed2] };
       } else {
@@ -233,7 +202,7 @@ export const imageTest = {
       }
     } catch (error) {
       console.error('❌ [Image] Falha na comparação:', error.message);
-      this._updatePreview(null, `❌ Erro: ${error.message}`);
+      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
       return { success: false, error: error.message };
     }
   },
@@ -242,8 +211,7 @@ export const imageTest = {
   async testResolution() {
     console.log('🖼️ [Image] Testando resolução customizada...');
     
-    this._getOrCreateContainer();
-    this._updatePreview(null, '⏳ Gerando imagem 768x384...');
+    showText('⏳ Gerando imagem 768x384...');
     
     try {
       const result = await root.image(
@@ -260,14 +228,23 @@ export const imageTest = {
       if (imageUrl) {
         console.log('✅ [Image] Imagem wide gerada!');
         
-        const previewArea = document.getElementById('image-preview-area');
-        previewArea.style.height = '180px';
+        const imgHtml = `
+          <img src="${imageUrl}" style="
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            border-radius: 4px;
+          " />
+        `;
+        showVisual(imgHtml, '📐 Resolução Customizada');
         
-        this._updatePreview(imageUrl, `
-          ✅ Seed: 77777<br>
-          📐 Resolução: 768x384 (16:9)<br>
-          🎨 Formato wide/landscape
-        `);
+        const infoHtml = `
+          <strong>✅ Seed:</strong> 77777<br>
+          <strong>📐 Resolução:</strong> 768x384 (16:9)<br>
+          <strong>🎨 Formato:</strong> wide/landscape
+        `;
+        showText(infoHtml);
         
         return { success: true, url: imageUrl, resolution: '768x384' };
       } else {
@@ -275,18 +252,15 @@ export const imageTest = {
       }
     } catch (error) {
       console.error('❌ [Image] Falha:', error.message);
-      this._updatePreview(null, `❌ Erro: ${error.message}`);
+      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
       return { success: false, error: error.message };
     }
   },
 
-  // Limpa o container
+  // Limpa o conteúdo visual
   clear() {
-    const container = document.getElementById(this.containerId);
-    if (container) {
-      container.remove();
-      console.log('🗑️ [Image] Container de preview removido');
-    }
+    clearVisual();
+    console.log('🗑️ [Image] Preview de imagem limpo');
   }
 };
 
