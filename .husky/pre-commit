@@ -1,0 +1,2 @@
+# Sincroniza versão em todos os arquivos baseado em constants.js
+node scripts/sync-version.cjs
