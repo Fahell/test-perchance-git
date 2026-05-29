@@ -92,19 +92,45 @@ function initRenderer(container2) {
   const directionalLight = new THREE.DirectionalLight(16777215, 0.8);
   directionalLight.position.set(5, 5, 5);
   scene.add(directionalLight);
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshStandardMaterial({ color: 3900150 });
-  const cube = new THREE.Mesh(geometry, material);
+  const geometry2 = new THREE.BoxGeometry(1, 1, 1);
+  const material2 = new THREE.MeshStandardMaterial({ color: 3900150 });
+  const cube = new THREE.Mesh(geometry2, material2);
   scene.add(cube);
+  const updateCallbacks = [];
+  let lastTime = performance.now();
   const animate = () => {
     requestAnimationFrame(animate);
+    const now = performance.now();
+    const deltaTime = (now - lastTime) / 1e3;
+    lastTime = now;
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
+    for (const callback of updateCallbacks) {
+      try {
+        callback(deltaTime);
+      } catch (e) {
+        console.error("[Renderer] Update callback error:", e.message);
+      }
+    }
     renderer.render(scene, camera);
   };
   animate();
   console.log("🎨 [Renderer] Three.js inicializado com sucesso!");
-  return { scene, camera, renderer, cube };
+  return {
+    scene,
+    camera,
+    renderer,
+    cube,
+    onUpdate: (callback) => {
+      if (typeof callback === "function") {
+        updateCallbacks.push(callback);
+      }
+    },
+    removeUpdateCallback: (callback) => {
+      const index = updateCallbacks.indexOf(callback);
+      if (index > -1) updateCallbacks.splice(index, 1);
+    }
+  };
 }
 function initLogic(seed, bioma) {
   console.log("🧠 [Logic] Inicializando lógica do jogo...");
@@ -147,7 +173,8 @@ const TEST_MODULES = {
   audioTest: () => Promise.resolve().then(() => audioTest),
   mermaidTest: () => Promise.resolve().then(() => mermaidTest$1),
   matterTest: () => Promise.resolve().then(() => matterTest),
-  cannonTest: () => Promise.resolve().then(() => cannonTest)
+  cannonTest: () => Promise.resolve().then(() => cannonTest),
+  particlesTest: () => Promise.resolve().then(() => particlesTest)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -197,6 +224,17 @@ function initTestModules(modules, rendererData) {
       console.log("✅ [Main] raycasterTest inicializado");
     } catch (e) {
       console.error("❌ [Main] Erro ao inicializar raycasterTest:", e.message);
+    }
+  }
+  if (modules.particlesTest && modules.particlesTest.init) {
+    try {
+      modules.particlesTest.init(rendererData);
+      if (rendererData.onUpdate && modules.particlesTest.update) {
+        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
+      }
+      console.log("✅ [Main] particlesTest inicializado");
+    } catch (e) {
+      console.error("❌ [Main] Erro ao inicializar particlesTest:", e.message);
     }
   }
 }
@@ -900,13 +938,13 @@ const raycasterTest = {
     const { scene, camera, renderer } = rendererData;
     const colors = [16739179, 5164484, 16770669, 9822675];
     for (let i = 0; i < 4; i++) {
-      const geometry = new THREE.SphereGeometry(0.5, 16, 16);
-      const material = new THREE.MeshStandardMaterial({
+      const geometry2 = new THREE.SphereGeometry(0.5, 16, 16);
+      const material2 = new THREE.MeshStandardMaterial({
         color: colors[i],
         roughness: 0.3,
         metalness: 0.7
       });
-      const sphere = new THREE.Mesh(geometry, material);
+      const sphere = new THREE.Mesh(geometry2, material2);
       sphere.position.x = (i - 1.5) * 2;
       sphere.position.y = -2;
       sphere.position.z = -3;
@@ -1006,13 +1044,13 @@ const canvasTest = {
       console.log("🎨 [Canvas] Integrando com Three.js...");
       const texture = new THREE.CanvasTexture(this.canvas2D);
       texture.needsUpdate = true;
-      const geometry = new THREE.PlaneGeometry(4, 4);
-      const material = new THREE.MeshBasicMaterial({
+      const geometry2 = new THREE.PlaneGeometry(4, 4);
+      const material2 = new THREE.MeshBasicMaterial({
         map: texture,
         side: THREE.DoubleSide,
         transparent: true
       });
-      const plane = new THREE.Mesh(geometry, material);
+      const plane = new THREE.Mesh(geometry2, material2);
       plane.position.set(0, 0, -5);
       plane.visible = false;
       rendererData.scene.add(plane);
@@ -5106,7 +5144,7 @@ let animationId = null;
 let physicsObjects = [];
 let containerEl = null;
 let canvasContainer = null;
-let sceneRef = null;
+let sceneRef$1 = null;
 let cameraRef = null;
 let rendererRef = null;
 let bodyCount = 0;
@@ -5186,14 +5224,14 @@ async function initPhysics3D() {
         mesh.position.copy(body.position);
         mesh.quaternion.copy(body.quaternion);
       }
-      rendererRef.render(sceneRef, cameraRef);
+      rendererRef.render(sceneRef$1, cameraRef);
     };
     const CANNON = await getCannon();
     createContainer();
     const width = canvasContainer.clientWidth || 600;
     const height = canvasContainer.clientHeight || 400;
-    sceneRef = new THREE.Scene();
-    sceneRef.background = new THREE.Color(1710638);
+    sceneRef$1 = new THREE.Scene();
+    sceneRef$1.background = new THREE.Color(1710638);
     cameraRef = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
     cameraRef.position.set(8, 8, 8);
     cameraRef.lookAt(0, 0, 0);
@@ -5202,10 +5240,10 @@ async function initPhysics3D() {
     rendererRef.setPixelRatio(window.devicePixelRatio);
     canvasContainer.appendChild(rendererRef.domElement);
     const ambientLight = new THREE.AmbientLight(4210752, 2);
-    sceneRef.add(ambientLight);
+    sceneRef$1.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(16777215, 1.5);
     directionalLight.position.set(5, 10, 5);
-    sceneRef.add(directionalLight);
+    sceneRef$1.add(directionalLight);
     world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
     world.allowSleep = true;
     world.broadphase = new CANNON.SAPBroadphase(world);
@@ -5222,7 +5260,7 @@ async function initPhysics3D() {
     groundBody.material = defaultMaterial;
     world.addBody(groundBody);
     const gridHelper = new THREE.GridHelper(20, 20, 4868682, 2763306);
-    sceneRef.add(gridHelper);
+    sceneRef$1.add(gridHelper);
     addSpheres(5);
     const fixedTimeStep = 1 / 60;
     animate();
@@ -5232,7 +5270,7 @@ async function initPhysics3D() {
   }
 }
 function addSphere(x, y, z) {
-  if (!world || !sceneRef) {
+  if (!world || !sceneRef$1) {
     console.error("❌ [Cannon] World or scene not initialized");
     return;
   }
@@ -5249,17 +5287,17 @@ function addSphere(x, y, z) {
   body.sleepSpeedLimit = 0.5;
   body.sleepTimeLimit = 1;
   world.addBody(body);
-  const geometry = new THREE.SphereGeometry(radius, 16, 16);
-  const material = new THREE.MeshPhongMaterial({ color });
-  const mesh = new THREE.Mesh(geometry, material);
-  sceneRef.add(mesh);
+  const geometry2 = new THREE.SphereGeometry(radius, 16, 16);
+  const material2 = new THREE.MeshPhongMaterial({ color });
+  const mesh = new THREE.Mesh(geometry2, material2);
+  sceneRef$1.add(mesh);
   physicsObjects.push({ body, mesh });
   bodyCount++;
   updateCounter();
   console.log(`💣 [Cannon] Sphere added (${bodyCount} bodies)`);
 }
 function addBox(x, y, z) {
-  if (!world || !sceneRef) {
+  if (!world || !sceneRef$1) {
     console.error("❌ [Cannon] World or scene not initialized");
     return;
   }
@@ -5276,10 +5314,10 @@ function addBox(x, y, z) {
   body.sleepSpeedLimit = 0.5;
   body.sleepTimeLimit = 1;
   world.addBody(body);
-  const geometry = new THREE.BoxGeometry(size, size, size);
-  const material = new THREE.MeshPhongMaterial({ color });
-  const mesh = new THREE.Mesh(geometry, material);
-  sceneRef.add(mesh);
+  const geometry2 = new THREE.BoxGeometry(size, size, size);
+  const material2 = new THREE.MeshPhongMaterial({ color });
+  const mesh = new THREE.Mesh(geometry2, material2);
+  sceneRef$1.add(mesh);
   physicsObjects.push({ body, mesh });
   bodyCount++;
   updateCounter();
@@ -5300,10 +5338,10 @@ function updateCounter() {
   if (counter) counter.textContent = `Bodies: ${bodyCount}`;
 }
 function resetSimulation() {
-  if (!world || !sceneRef) return;
+  if (!world || !sceneRef$1) return;
   for (const { body, mesh } of physicsObjects) {
     world.removeBody(body);
-    sceneRef.remove(mesh);
+    sceneRef$1.remove(mesh);
     mesh.geometry.dispose();
     mesh.material.dispose();
   }
@@ -5337,10 +5375,10 @@ function cleanup() {
     cancelAnimationFrame(animationId);
     animationId = null;
   }
-  if (world && sceneRef) {
+  if (world && sceneRef$1) {
     for (const { body, mesh } of physicsObjects) {
       world.removeBody(body);
-      sceneRef.remove(mesh);
+      sceneRef$1.remove(mesh);
       mesh.geometry.dispose();
       mesh.material.dispose();
     }
@@ -5351,7 +5389,7 @@ function cleanup() {
   }
   physicsObjects = [];
   world = null;
-  sceneRef = null;
+  sceneRef$1 = null;
   cameraRef = null;
   bodyCount = 0;
   gravityIndex = 0;
@@ -5376,6 +5414,273 @@ const cannonTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePr
   preloadCannon,
   resetSimulation,
   toggleGravity
+}, Symbol.toStringTag, { value: "Module" }));
+const DEFAULT_CONFIG = {
+  count: 5e4,
+  areaSize: 20,
+  particleSizeRange: [1, 4],
+  speedMultiplier: 1,
+  colorMode: "rainbow",
+  pattern: "random"
+};
+let config = { ...DEFAULT_CONFIG };
+let particles = null;
+let material = null;
+let geometry = null;
+let sceneRef = null;
+let elapsedTime = 0;
+const vertexShader = `
+  attribute vec3 aVelocity;
+  attribute vec3 aColor;
+  attribute float aSize;
+  attribute float aLife;
+  
+  uniform float uTime;
+  uniform float uPixelRatio;
+  uniform float uSizeMultiplier;
+  uniform float uSpeedMultiplier;
+  
+  varying vec3 vColor;
+  varying float vAlpha;
+  
+  void main() {
+    float t = uTime * uSpeedMultiplier;
+    vec3 pos = position + aVelocity * mod(t, aLife);
+    
+    pos += 0.5 * sin(t * 0.5 + position.x * 2.0) * vec3(1.0, 0.5, 1.0);
+    
+    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+    
+    gl_PointSize = aSize * uSizeMultiplier * uPixelRatio * (300.0 / -mvPosition.z);
+    gl_Position = projectionMatrix * mvPosition;
+    
+    float lifeProgress = mod(t, aLife) / aLife;
+    vAlpha = smoothstep(0.0, 0.1, lifeProgress) * smoothstep(1.0, 0.8, lifeProgress);
+    vColor = aColor;
+  }
+`;
+const fragmentShader = `
+  varying vec3 vColor;
+  varying float vAlpha;
+  
+  void main() {
+    float dist = length(gl_PointCoord - vec2(0.5));
+    if (dist > 0.5) discard;
+    
+    float alpha = smoothstep(0.5, 0.2, dist) * vAlpha;
+    gl_FragColor = vec4(vColor, alpha);
+  }
+`;
+function generateColor(mode, index, total) {
+  const color = new THREE.Color();
+  switch (mode) {
+    case "rainbow":
+      color.setHSL(index / total * 0.8, 1, 0.6);
+      break;
+    case "monochrome":
+      color.setRGB(0.3, 0.6, 1);
+      break;
+    case "temperature":
+      const temp = index / total;
+      color.setRGB(temp, 0.5 - temp * 0.5, 1 - temp);
+      break;
+    case "fire":
+      color.setHSL(0.05 + index / total * 0.1, 1, 0.5 + index / total * 0.3);
+      break;
+    default:
+      color.setHSL(Math.random() * 0.8, 1, 0.6);
+  }
+  return [color.r, color.g, color.b];
+}
+function generatePosition(pattern, index, total, areaSize) {
+  let x, y, z;
+  switch (pattern) {
+    case "sphere": {
+      const phi = Math.acos(2 * Math.random() - 1);
+      const theta = Math.random() * Math.PI * 2;
+      const r = areaSize * 0.5;
+      x = r * Math.sin(phi) * Math.cos(theta);
+      y = r * Math.sin(phi) * Math.sin(theta);
+      z = r * Math.cos(phi);
+      break;
+    }
+    case "galaxy": {
+      const armCount = 4;
+      const armIndex = index % armCount;
+      const armOffset = armIndex / armCount * Math.PI * 2;
+      const radius = index / total * areaSize * 0.5;
+      const angle = armOffset + radius * 0.5;
+      x = Math.cos(angle) * radius;
+      y = (Math.random() - 0.5) * 2;
+      z = Math.sin(angle) * radius;
+      break;
+    }
+    case "torus": {
+      const R = areaSize * 0.3;
+      const r2 = areaSize * 0.15;
+      const u = Math.random() * Math.PI * 2;
+      const v = Math.random() * Math.PI * 2;
+      x = (R + r2 * Math.cos(v)) * Math.cos(u);
+      y = r2 * Math.sin(v);
+      z = (R + r2 * Math.cos(v)) * Math.sin(u);
+      break;
+    }
+    case "fountain":
+      x = (Math.random() - 0.5) * areaSize * 0.3;
+      y = -areaSize * 0.4;
+      z = (Math.random() - 0.5) * areaSize * 0.3;
+      break;
+    default:
+      x = (Math.random() - 0.5) * areaSize;
+      y = (Math.random() - 0.5) * areaSize;
+      z = (Math.random() - 0.5) * areaSize;
+  }
+  return [x, y, z];
+}
+function generateVelocity(pattern) {
+  let vx, vy, vz;
+  switch (pattern) {
+    case "fountain":
+      vx = (Math.random() - 0.5) * 2;
+      vy = Math.random() * 15 + 5;
+      vz = (Math.random() - 0.5) * 2;
+      break;
+    default:
+      vx = (Math.random() - 0.5) * 2;
+      vy = (Math.random() - 0.5) * 2;
+      vz = (Math.random() - 0.5) * 2;
+  }
+  return [vx, vy, vz];
+}
+function createGeometry(count) {
+  const positions = new Float32Array(count * 3);
+  const velocities = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+  const lives = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const [x, y, z] = generatePosition(config.pattern, i, count, config.areaSize);
+    positions[i * 3] = x;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = z;
+    const [vx, vy, vz] = generateVelocity(config.pattern);
+    velocities[i * 3] = vx;
+    velocities[i * 3 + 1] = vy;
+    velocities[i * 3 + 2] = vz;
+    const [r, g, b] = generateColor(config.colorMode, i, count);
+    colors[i * 3] = r;
+    colors[i * 3 + 1] = g;
+    colors[i * 3 + 2] = b;
+    const sizeMin = config.particleSizeRange[0];
+    const sizeMax = config.particleSizeRange[1];
+    sizes[i] = sizeMin + Math.random() * (sizeMax - sizeMin);
+    lives[i] = 2 + Math.random() * 3;
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geom.setAttribute("aVelocity", new THREE.BufferAttribute(velocities, 3));
+  geom.setAttribute("aColor", new THREE.BufferAttribute(colors, 3));
+  geom.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+  geom.setAttribute("aLife", new THREE.BufferAttribute(lives, 1));
+  return geom;
+}
+function createMaterial() {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      uSizeMultiplier: { value: 1 },
+      uSpeedMultiplier: { value: config.speedMultiplier }
+    },
+    vertexShader,
+    fragmentShader,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+}
+function buildParticleSystem(scene) {
+  if (particles) {
+    scene.remove(particles);
+    if (geometry) geometry.dispose();
+    if (material) material.dispose();
+  }
+  geometry = createGeometry(config.count);
+  material = createMaterial();
+  particles = new THREE.Points(geometry, material);
+  particles.frustumCulled = false;
+  scene.add(particles);
+  sceneRef = scene;
+  console.log(`✨ [Particles] System created: ${config.count} particles, pattern="${config.pattern}", color="${config.colorMode}"`);
+}
+function init(rendererData) {
+  if (!rendererData || !rendererData.scene) {
+    console.error("❌ [Particles] Renderer data or scene not available");
+    return;
+  }
+  buildParticleSystem(rendererData.scene);
+}
+function update(deltaTime) {
+  if (!material) return;
+  elapsedTime += deltaTime;
+  material.uniforms.uTime.value = elapsedTime;
+  material.uniforms.uSpeedMultiplier.value = config.speedMultiplier;
+}
+function dispose() {
+  if (particles && sceneRef) {
+    sceneRef.remove(particles);
+    particles = null;
+  }
+  if (geometry) {
+    geometry.dispose();
+    geometry = null;
+  }
+  if (material) {
+    material.dispose();
+    material = null;
+  }
+  elapsedTime = 0;
+  console.log("🗑️ [Particles] System disposed");
+}
+function setCount(count) {
+  config.count = Math.max(1e3, Math.min(2e5, count));
+  if (sceneRef) buildParticleSystem(sceneRef);
+}
+function setColorMode(mode) {
+  config.colorMode = mode;
+  if (sceneRef) buildParticleSystem(sceneRef);
+}
+function setPattern(pattern) {
+  config.pattern = pattern;
+  if (sceneRef) buildParticleSystem(sceneRef);
+}
+function setSpeedMultiplier(multiplier) {
+  config.speedMultiplier = Math.max(0, Math.min(5, multiplier));
+}
+function setSizeMultiplier(multiplier) {
+  if (material) {
+    material.uniforms.uSizeMultiplier.value = Math.max(0.1, Math.min(3, multiplier));
+  }
+}
+function getConfig() {
+  return { ...config };
+}
+function resetConfig() {
+  config = { ...DEFAULT_CONFIG };
+  if (sceneRef) buildParticleSystem(sceneRef);
+}
+const particlesTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  dispose,
+  getConfig,
+  init,
+  resetConfig,
+  setColorMode,
+  setCount,
+  setPattern,
+  setSizeMultiplier,
+  setSpeedMultiplier,
+  update
 }, Symbol.toStringTag, { value: "Module" }));
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 function injectStylesheet() {
@@ -5457,7 +5762,8 @@ function initUITest(rendererData, testModules) {
     audioTest: audioTest2,
     mermaidTest: mermaidTest2,
     matterTest: matterTest2,
-    cannonTest: cannonTest2
+    cannonTest: cannonTest2,
+    particlesTest: particlesTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -5486,7 +5792,8 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-audio-stop", name: "Audio Stop", fn: () => audioStopHandler() },
     { btnId: "btn-mermaid", name: "Mermaid", fn: () => mermaidHandler() },
     { btnId: "btn-matter", name: "Matter.js", fn: () => matterHandler() },
-    { btnId: "btn-cannon", name: "Cannon-es", fn: () => cannonHandler() }
+    { btnId: "btn-cannon", name: "Cannon-es", fn: () => cannonHandler() },
+    { btnId: "btn-particles", name: "Particles", fn: () => particlesHandler() }
   ];
   async function diceHandler() {
     console.log("🎲 Rolling dice...");
@@ -5707,6 +6014,21 @@ function initUITest(rendererData, testModules) {
     await cannonTest2.initPhysics3D();
     console.log("✅ Cannon-es: 3D Physics simulation initialized");
   }
+  async function particlesHandler() {
+    console.log("✨ Testing Particles...");
+    if (!particlesTest2) throw new Error("Particles not available");
+    if (!rendererData || !rendererData.scene) throw new Error("Scene not available");
+    if (particlesTest2.getConfig && particlesTest2.getConfig().count > 0) {
+      try {
+        particlesTest2.dispose();
+        console.log("🗑️ Particles: System disposed");
+        return;
+      } catch (e) {
+      }
+    }
+    particlesTest2.init(rendererData);
+    console.log("✅ Particles: 50,000 particles rendered");
+  }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
   panel.innerHTML = `
@@ -5737,6 +6059,7 @@ function initUITest(rendererData, testModules) {
       <button id="btn-raycaster" class="ui-test-btn ui-test-btn--render">🖱️ Raycaster</button>
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
+      <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
     </div>
     
     <div class="ui-test-category">
@@ -5810,6 +6133,7 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-mermaid").onclick = () => runTest("btn-mermaid", "Mermaid", mermaidHandler);
   document.getElementById("btn-matter").onclick = () => runTest("btn-matter", "Matter.js", matterHandler);
   document.getElementById("btn-cannon").onclick = () => runTest("btn-cannon", "Cannon-es", cannonHandler);
+  document.getElementById("btn-particles").onclick = () => runTest("btn-particles", "Particles", particlesHandler);
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
 const uiTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({

@@ -87,14 +87,48 @@ export function initRenderer(container) {
   scene.add(cube);
 
   // Loop de animação
+  const updateCallbacks = [];
+  let lastTime = performance.now();
+  
   const animate = () => {
     requestAnimationFrame(animate);
+    
+    const now = performance.now();
+    const deltaTime = (now - lastTime) / 1000;
+    lastTime = now;
+    
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
+    
+    // Call registered update callbacks
+    for (const callback of updateCallbacks) {
+      try {
+        callback(deltaTime);
+      } catch (e) {
+        console.error('[Renderer] Update callback error:', e.message);
+      }
+    }
+    
     renderer.render(scene, camera);
   };
   animate();
 
   console.log('🎨 [Renderer] Three.js inicializado com sucesso!');
-  return { scene, camera, renderer, cube };
+  
+  // Return renderer data with update callback registration
+  return { 
+    scene, 
+    camera, 
+    renderer, 
+    cube,
+    onUpdate: (callback) => {
+      if (typeof callback === 'function') {
+        updateCallbacks.push(callback);
+      }
+    },
+    removeUpdateCallback: (callback) => {
+      const index = updateCallbacks.indexOf(callback);
+      if (index > -1) updateCallbacks.splice(index, 1);
+    }
+  };
 }
