@@ -266,7 +266,7 @@ function updateGenericFile(filePath, version, versionWithoutPrefix, stats) {
   
   // Pattern 5: HTML comments in Portuguese (Versão)
   // Example: <!-- Versão: v1.3.0 -->
-  const htmlCommentPtPattern = /(<!--\s*Versão:\s*)(v?\d+\.\d+\.\d+)(\s*-->)/g;
+  const htmlCommentPtPattern = /(<!--\s*Versão:\s*)(v?\d+\.\d+\.\d+)([^>]*-->)/g;
   updatedContent = updatedContent.replace(htmlCommentPtPattern, (match, start, oldVersion, end) => {
     if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
       oldVersions.add(oldVersion);
