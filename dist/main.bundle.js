@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.8.4";
+const VERSION = "v1.9.0";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -144,6 +144,59 @@ function initLogic(seed, bioma) {
   console.log("💡 Debug: window.RPG disponível no console");
   console.log("✅ [Logic] Lógica inicializada com sucesso!");
 }
+const CSS_URL$1 = `${CDN_BASE}/src/styles/output-area.css`;
+let outputArea = null;
+let visualSlot = null;
+let textSlot = null;
+function injectStylesheet$1() {
+  if (document.getElementById("output-area-styles")) return;
+  const link = document.createElement("link");
+  link.id = "output-area-styles";
+  link.rel = "stylesheet";
+  link.href = CSS_URL$1;
+  document.head.appendChild(link);
+}
+function createOutputArea() {
+  if (outputArea) return;
+  outputArea = document.createElement("div");
+  outputArea.id = "output-area";
+  const header = document.createElement("div");
+  header.className = "output-area__header";
+  header.innerHTML = `
+    <span class="output-area__title">📊 Output</span>
+    <button class="output-area__clear" title="Clear all">🗑️</button>
+  `;
+  header.querySelector(".output-area__clear").onclick = () => clearAll();
+  visualSlot = document.createElement("div");
+  visualSlot.className = "output-area__slot output-area__slot--visual";
+  visualSlot.innerHTML = '<span class="output-area__placeholder">Visual results will appear here</span>';
+  textSlot = document.createElement("div");
+  textSlot.className = "output-area__slot output-area__slot--text";
+  textSlot.innerHTML = '<span class="output-area__placeholder">Text results will appear here</span>';
+  outputArea.appendChild(header);
+  outputArea.appendChild(visualSlot);
+  outputArea.appendChild(textSlot);
+  document.body.appendChild(outputArea);
+}
+function clearVisual() {
+  if (visualSlot) {
+    visualSlot.innerHTML = '<span class="output-area__placeholder">Visual results will appear here</span>';
+  }
+}
+function clearText() {
+  if (textSlot) {
+    textSlot.innerHTML = '<span class="output-area__placeholder">Text results will appear here</span>';
+  }
+}
+function clearAll() {
+  clearVisual();
+  clearText();
+}
+function initOutputArea() {
+  injectStylesheet$1();
+  createOutputArea();
+  console.log("📊 [OutputArea] Initialized");
+}
 (() => {
   const originalLog = console.log.bind(console);
   console.log = (...args) => {
@@ -229,7 +282,7 @@ function initTestModules(modules, rendererData) {
 }
 async function initGame() {
   if (window.GAME_INITIALIZED) {
-    console.warn("⏭️ Jogo já inicializado. Ignorando execução duplicada.");
+    console.warn("⏯️ Jogo já inicializado. Ignorando execução duplicada.");
     return;
   }
   window.GAME_INITIALIZED = true;
@@ -242,6 +295,8 @@ async function initGame() {
     const seed = getVar2("GAME_SEED", 999);
     const bioma = getList2("biomas", ["planície"]).selectOne;
     initLogic(seed, bioma);
+    console.log("📊 [Main] Inicializando OutputArea...");
+    initOutputArea();
     const testModules = await loadAllTestModules();
     console.log("📊 [Main] Starting Mermaid background preload...");
     const mermaidModule = await TEST_MODULES.mermaidTest();
