@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.8.3";
+const VERSION = "v1.8.4";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@${VERSION}`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -5405,9 +5405,11 @@ const cannonTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePr
   toggleGravity
 }, Symbol.toStringTag, { value: "Module" }));
 const DEFAULT_CONFIG = {
-  count: 5e4,
+  count: 1e4,
+  // Reduced from 50k for better browser performance
   areaSize: 20,
-  particleSizeRange: [1, 4],
+  particleSizeRange: [0.5, 2],
+  // Reduced from [1, 4]
   speedMultiplier: 1,
   colorMode: "rainbow",
   pattern: "random"
@@ -5438,11 +5440,14 @@ const vertexShader = `
     float t = uTime * uSpeedMultiplier;
     vec3 pos = position + aVelocity * mod(t, aLife);
     
-    pos += 0.5 * sin(t * 0.5 + position.x * 2.0) * vec3(1.0, 0.5, 1.0);
+    // Reduced oscillation from 0.5 to 0.1 for smoother motion
+    pos += 0.1 * sin(t * 0.3 + position.x * 1.5) * vec3(1.0, 0.5, 1.0);
     
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     
-    gl_PointSize = aSize * uSizeMultiplier * uPixelRatio * (300.0 / -mvPosition.z);
+    // Calculate point size with clamping to prevent saturation
+    float size = aSize * uSizeMultiplier * uPixelRatio * (300.0 / -mvPosition.z);
+    gl_PointSize = clamp(size, 1.0, 64.0);
     gl_Position = projectionMatrix * mvPosition;
     
     float lifeProgress = mod(t, aLife) / aLife;
@@ -5454,11 +5459,14 @@ const fragmentShader = `
   varying vec3 vColor;
   varying float vAlpha;
   
+  uniform float uAlphaMultiplier;
+  
   void main() {
     float dist = length(gl_PointCoord - vec2(0.5));
     if (dist > 0.5) discard;
     
-    float alpha = smoothstep(0.5, 0.2, dist) * vAlpha;
+    // Soft circle with reduced alpha
+    float alpha = smoothstep(0.5, 0.2, dist) * vAlpha * uAlphaMultiplier;
     gl_FragColor = vec4(vColor, alpha);
   }
 `;
@@ -5466,20 +5474,20 @@ function generateColor(mode, index, total) {
   const color = new THREE.Color();
   switch (mode) {
     case "rainbow":
-      color.setHSL(index / total * 0.8, 1, 0.6);
+      color.setHSL(index / total * 0.8, 0.8, 0.4);
       break;
     case "monochrome":
-      color.setRGB(0.3, 0.6, 1);
+      color.setRGB(0.2, 0.5, 0.9);
       break;
     case "temperature":
       const temp = index / total;
-      color.setRGB(temp, 0.5 - temp * 0.5, 1 - temp);
+      color.setRGB(temp * 0.8, 0.4 - temp * 0.4, 0.9 - temp * 0.8);
       break;
     case "fire":
-      color.setHSL(0.05 + index / total * 0.1, 1, 0.5 + index / total * 0.3);
+      color.setHSL(0.05 + index / total * 0.1, 0.9, 0.4 + index / total * 0.2);
       break;
     default:
-      color.setHSL(Math.random() * 0.8, 1, 0.6);
+      color.setHSL(Math.random() * 0.8, 0.8, 0.4);
   }
   return [color.r, color.g, color.b];
 }
@@ -5532,14 +5540,14 @@ function generateVelocity(pattern) {
   let vx, vy, vz;
   switch (pattern) {
     case "fountain":
-      vx = (Math.random() - 0.5) * 2;
-      vy = Math.random() * 15 + 5;
-      vz = (Math.random() - 0.5) * 2;
+      vx = (Math.random() - 0.5) * 1;
+      vy = Math.random() * 8 + 3;
+      vz = (Math.random() - 0.5) * 1;
       break;
     default:
-      vx = (Math.random() - 0.5) * 2;
-      vy = (Math.random() - 0.5) * 2;
-      vz = (Math.random() - 0.5) * 2;
+      vx = (Math.random() - 0.5) * 1;
+      vy = (Math.random() - 0.5) * 1;
+      vz = (Math.random() - 0.5) * 1;
   }
   return [vx, vy, vz];
 }
@@ -5581,13 +5589,16 @@ function createMaterial() {
       uTime: { value: 0 },
       uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
       uSizeMultiplier: { value: 1 },
-      uSpeedMultiplier: { value: config.speedMultiplier }
+      uSpeedMultiplier: { value: config.speedMultiplier },
+      uAlphaMultiplier: { value: 0.8 }
+      // New uniform to control alpha
     },
     vertexShader,
     fragmentShader,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending
+    blending: THREE.NormalBlending
+    // Changed from AdditiveBlending to prevent white saturation
   });
 }
 function buildParticleSystem(scene) {
@@ -5646,7 +5657,7 @@ function isActive() {
   return particles !== null && material !== null;
 }
 function setCount(count) {
-  config.count = Math.max(1e3, Math.min(2e5, count));
+  config.count = Math.max(1e3, Math.min(5e4, count));
   if (sceneRef) buildParticleSystem(sceneRef);
 }
 function setColorMode(mode) {
@@ -5665,6 +5676,11 @@ function setSizeMultiplier(multiplier) {
     material.uniforms.uSizeMultiplier.value = Math.max(0.1, Math.min(3, multiplier));
   }
 }
+function setAlphaMultiplier(alpha) {
+  if (material) {
+    material.uniforms.uAlphaMultiplier.value = Math.max(0.1, Math.min(1, alpha));
+  }
+}
 function getConfig() {
   return { ...config };
 }
@@ -5679,6 +5695,7 @@ const particlesTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defin
   init,
   isActive,
   resetConfig,
+  setAlphaMultiplier,
   setColorMode,
   setCount,
   setPattern,
