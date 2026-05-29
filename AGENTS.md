@@ -1,16 +1,12 @@
 # AGENTS.md — AI Agent Instructions
 
-This document defines the mandatory operational context for any AI agent working on this repository. Read before executing any action.
-
-## ⚠️ MANDATORY READING ORDER
-
-1. **Read FIRST:** `~/.ai-agent-instructions.md` (or `$AI_AGENT_INSTRUCTIONS`) — global WSL2 environment rules
+1. **Read FIRST:** `~/.ai-agent-instructions.md`
 2. **Then read this file** — project-specific context
-3. In case of conflict, global rules take precedence
+3. In case of conflict, warn user
 
 ## Project Overview
 
-This project modularizes JavaScript ES6 for use in Perchance (https://perchance.org), a procedural generation platform. Modules are served via GitHub + jsDelivr CDN because Perchance does not support bundlers. Each module in `src/modules/` tests a specific plugin or functionality within the Perchance ecosystem.
+This project modularizes JavaScript ES6 for use in Perchance (https://perchance.org), a procedural generation platform. Each module in `src/modules/` tests a specific plugin or functionality within the Perchance ecosystem.
 
 ## Project Structure
 
@@ -103,35 +99,15 @@ git tag -a v1.4.0 -m "Release v1.4.0"
 ✅ **Correct:**
 ```bash
 # Update constants.js first
-sed -i "s/VERSION = 'v1.8.0'/VERSION = 'v1.8.0'/" src/constants.js
+sed -i "s/VERSION = 'v1.8.1'/VERSION = 'v1.8.1'/" src/constants.js
 git add src/constants.js
-git commit -m "chore: release v1.4.0"
+git commit -m "chore: release v1.8.0"
 # Hook updates package.json and for-perchance.html automatically
 git add .
 git commit --amend --no-edit
-git tag -a v1.4.0 -m "Release v1.4.0"
+git tag -a v1.8.0 -m "Release v1.8.0"
 git push origin main --tags
 ```
-
-
-### Search Strategy
-
-The script uses **recursive search** with intelligent patterns to find version references:
-
-1. **Recursive file scanning** - Scans all text files in the project
-2. **Protected directories** - Excludes: `node_modules/`, `dist/`, `.git/`
-3. **Protected files** - Never modifies: `CHANGELOG.md`, `package-lock.json`, lock files
-4. **Pattern matching** - Only updates:
-   - Repository-specific CDN URLs (containing `test-perchance-git@`)
-   - Comments with explicit version markers (`// Version: vX.Y.Z`)
-   - Project constants (`BASE_URL`)
-   - HTML comments with version
-
-**Why recursive search?**
-- ✅ Automatic - no need to maintain a list of files
-- ✅ Scalable - works with any project structure
-- ✅ Defensive - patterns prevent false positives
-- ✅ Maintenance-free - new files are automatically included
 
 **To add new file types or patterns:**
 Edit `scripts/sync-version.cjs` and add patterns to the `patterns` array.
@@ -146,27 +122,8 @@ import { VERSION } from './constants.js';
 console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 
 // ❌ Wrong - requires manual update or script pattern
-console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.8.0');
+console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.8.1');
 ```
-
-This approach:
-- Eliminates hardcoded versions in source code
-- Reduces dependency on sync script for logs
-- Ensures logs always reflect the current version
-- Makes code more maintainable
-
-### Manual Sync (If Needed)
-
-You can run the sync script manually to verify or force synchronization:
-
-```bash
-node scripts/sync-version.cjs
-```
-
-This will:
-- Show the current version in `constants.js`
-- List all files that would be updated
-- Show Git status warnings (missing tags, uncommitted changes)
 
 ## Docs
 
@@ -174,9 +131,8 @@ This will:
 
 ## Defensive Restrictions
 
-- Never execute destructive commands without explicit confirmation
-- Never modify files in `/mnt/c/` except editor configs when requested
-- Perchance plugins require specific DOM context; `null.dataset` errors are known limitations (see README)
+- Never modify files in `/mnt/c/` except when requested
+- Perchance plugins require specific context; search for documentation before work with them.
 - jsDelivr caches by tag; never trust versionless URLs (`@main`) for production
 - Validate `git status` before any merge/rebase operation
 
@@ -193,7 +149,7 @@ All scripts are in `scripts/` and should be executed directly in WSL2:
 | `scripts/setup.sh` | Configure hooks and verify tools | `./scripts/setup.sh` |
 | `scripts/check-cdn.sh` | Check jsDelivr CDN availability | `./scripts/check-cdn.sh vX.Y.Z` |
 
-> ⚠️ **Note:** The `.bat` wrappers were removed. Execute `.sh` scripts directly.
+> ⚠️ **Note:**
 > The `dev-server.sh` uses `python` (pyenv shim), not `python3`.
 
 ## Useful Commands
@@ -205,14 +161,12 @@ git tag -l --sort=-v:refname
 node scripts/sync-version.cjs  # Manual version sync
 ```
 
-## Build Configuration
-
 ### Vite Configuration
 
 The project uses Vite to bundle all modules into a single file. Key configuration:
 
 - **Entry point:** `src/main.js`
-- **Output:** `dist/main.bundle.js` (196KB, 39KB gzipped)
+- **Output:** `dist/main.bundle.js`
 - **Three.js:** Kept external (loaded via CDN)
 - **JSX support:** Configured to process `.js` files as JSX (for template literals with HTML)
 
@@ -223,23 +177,3 @@ npm run dev      # Start dev server with HMR
 npm run build    # Generate production bundle
 npm run preview  # Preview production build locally
 ```
-
-## Performance Optimization
-
-Since v1.3.0, the project uses Vite bundling to optimize loading:
-
-| Metric | Before (v1.2.x) | After (v1.3.0+) |
-|--------|----------------|-----------------||
-| HTTP Requests | 16 | 1 |
-| Load Time | ~10-15s | ~1-2s |
-| Total Size | 70KB+ (fragmented) | 196KB (1 file) |
-| Gzipped | N/A | 39KB |
-
-## For Global Environment Rules
-
-Refer to `~/.ai-agent-instructions.md` for:
-- Available tools and versions
-- Workflow aliases
-- Security controls
-- Startup optimization details
-- Safety rules and escape hatch policy
