@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "release": "node scripts/release.js",
-    "refactor-imports": "node scripts/refactor-imports.js"
+    "refactor-imports": "node scripts/refactor-imports.js",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
   },
   "homepage": "https://github.com/Fahell/test-perchance-git#readme",
   "devDependencies": {
+    "husky": "^9.0.0",
     "terser": "^5.39.0",
     "vite": "^6.0.0"
   }
