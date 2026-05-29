@@ -1,4 +1,4 @@
-# Test Perchance Git
+# Test Perchance Git (v1.9.1)
 
 Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN.
 
@@ -40,28 +40,55 @@ npm run preview
 
 ## 📤 Release (Deploy)
 
-O projeto utiliza um **hook de pre-commit** para automatizar a sincronização de versões.
+O projeto utiliza **Husky** com pre-commit hook + script automatizado para gerenciar releases.
 
-### Fluxo de Release
+### Fluxo Automatizado (Recomendado)
+
+Use o script de release que automatiza TUDO:
+
+```bash
+npm run release 1.9.2
+```
+
+O script executa automaticamente:
+1. ✅ Atualiza `src/constants.js` (fonte da verdade)
+2. ✅ Sincroniza todos os arquivos via `sync-version.cjs`
+3. ✅ Gera bundle via `npm run build`
+4. ✅ Cria commit
+5. ✅ Cria tag
+6. ✅ Push para o GitHub
+
+### Fluxo Manual (Alternativo)
+
+Se preferir fazer manualmente:
 
 1. **Atualize `src/constants.js`** com a nova versão:
    ```javascript
-   export const VERSION = '1.4.1';
+   export const VERSION = 'v1.9.2';
    ```
 
-2. **Faça commit** - o hook detectará a mudança em `constants.js` e atualizará automaticamente:
+2. **Faça commit** - o pre-commit hook detectará a mudança e atualizará automaticamente:
    - `package.json`
    - `for-perchance.html`
-
-3. **Adicione os arquivos atualizados pelo hook** e faça o commit final:
+   - `README.md`
+   - `AGENTS.md`
+   - Outros arquivos com referências à versão
+   
    ```bash
-   git add .
-   git commit -m "chore: release v1.4.1"
+   git add src/constants.js
+   git commit -m "chore: release v1.9.2"
+   ```
+
+3. **Gere o bundle**:
+   ```bash
+   npm run build
+   git add dist/
+   git commit --amend --no-edit
    ```
 
 4. **Crie a tag e faça push**:
    ```bash
-   git tag -a v1.4.1 -m "Release v1.4.1"
+   git tag -a v1.9.2 -m "Release v1.9.2"
    git push origin main --tags
    ```
 
@@ -70,22 +97,23 @@ O projeto utiliza um **hook de pre-commit** para automatizar a sincronização d
 ### ⚠️ Importante
 
 - **Nunca** crie uma tag sem antes atualizar `constants.js`
-- O hook **só funciona** quando `constants.js` é modificado
-- Não edite manualmente `package.json` ou `for-perchance.html` para atualizar versões
-- Sempre verifique se todos os arquivos estão com a mesma versão antes de criar a tag
+- O pre-commit hook **sempre roda** em qualquer commit (idempotente, ~50ms)
+- Se tudo já estiver sincronizado, o hook não faz mudanças
+- Sempre use `npm run release X.Y.Z` para evitar esquecimentos
+- Não edite manualmente `package.json`, `for-perchance.html`, `README.md` ou `AGENTS.md` para atualizar versões
 
 ## 🎮 Uso no Perchance
 
 Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 
-**Exemplo para v1.7.5:**
+**Exemplo para v1.9.1:**
 ```html
 <div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" type="module"></script>
 
 <script type="module">
-  import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.7.5/dist/main.bundle.js")
+  import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.9.1/dist/main.bundle.js")
     .then(module => module.initGame())
     .catch(err => console.error('Erro:', err));
 </script>
@@ -98,92 +126,83 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 │   ├── main.js              # Entry point (imports estáticos + dynamic imports)
 │   ├── perchance-bridge.js  # Ponte segura para API do Perchance
 │   ├── constants.js         # Constantes globais (versão, CDN)
-│   └── modules/
-│       ├── renderer.js      # Renderizador Three.js
-│       ├── logic.js         # Lógica do jogo
-│       ├── ui-test.js       # UI de teste
-│       ├── particles-test.js # Sistema de partículas GPU-accelerado
-│       └── *-test.js        # Módulos de teste (15 módulos)
+│   ├── modules/             # Módulos independentes
+│   └── styles/              # Arquivos CSS
 ├── dist/
-│   ├── main.bundle.js       # Bundle único (gerado pelo Vite)
-│   └── main.bundle.js.map   # Source map
-├── docs/
-│   ├── iframe-access-perchance-guide.md  # Guia de acesso a iframes cross-origin
-│   └── particles-test-module.md          # Documentação do módulo de partículas
+│   └── main.bundle.js       # Bundle único gerado pelo Vite (committed)
 ├── scripts/
-│   ├── release.js           # Script de release automatizado
-│   └── refactor-imports.js  # Refatora imports CDN para relativos
-├── for-perchance.html       # HTML Panel para Perchance
-├── test-local.html          # Teste local fora do Perchance
-├── vite.config.js           # Configuração do Vite
-└── package.json
+│   ├── release.cjs          # Script de release automatizado
+│   ├── sync-version.cjs     # Sincroniza versão em todos os arquivos
+│   └── dev-server.sh        # Servidor HTTP local para testes
+├── .husky/
+│   └── pre-commit           # Hook que roda sync-version.cjs
+├── for-perchance.html       # HTML Panel para copy/paste no Perchance
+├── for-perchance-list-panel.txt  # List Panel para copy/paste no Perchance
+└── test-local.html          # Teste local fora do Perchance
 ```
 
-## 🔧 Tecnologias
+## 📚 Documentação
 
-- **Vite** - Bundler e dev server
-- **Three.js** - Renderização 3D (carregado externamente via CDN)
-- **Howler.js** - Sistema de áudio (SFX, música, sprites)
-- **ES6 Modules** - Módulos JavaScript nativos
-- **jsDelivr CDN** - Distribuição via GitHub
+- `docs/iframe-access-perchance-guide.md` — Como acessar iframes cross-origin do Perchance via CDP (automação de navegador)
+- `AGENTS.md` — Instruções para AI agents e contexto do projeto
 
-## 🎨 Módulos de Teste
+## 🔧 Scripts Disponíveis
 
-### Sistema de Partículas (particles-test.js)
+| Script | Função | Uso |
+|---|---|---|
+| `npm run dev` | Servidor de desenvolvimento com HMR | Desenvolvimento local |
+| `npm run build` | Gera bundle de produção | Antes de deploy |
+| `npm run preview` | Preview do build de produção | Testar build localmente |
+| `npm run release X.Y.Z` | Release automatizado completo | Deploy de nova versão |
+| `node scripts/sync-version.cjs` | Sincroniza versão manualmente | Quando necessário |
 
-Sistema de partículas GPU-accelerado usando `THREE.Points` + `ShaderMaterial`:
+## 🧪 Módulos de Teste
 
-- **50.000 partículas** padrão (até 200.000)
-- **1 draw call** para todas as partículas
-- **Animação 100% GPU-side** (zero CPU overhead)
-- **5 padrões de distribuição**: random, sphere, galaxy, torus, fountain
-- **4 modos de cor**: rainbow, monochrome, temperature, fire
-- **60fps constante** com 50k partículas
+O projeto inclui módulos de teste para validar integração com bibliotecas:
 
-**Documentação completa:** [docs/particles-test-module.md](docs/particles-test-module.md)
+- `renderer.js` — Three.js (3D)
+- `logic.js` — Lógica do jogo
+- `ui-test.js` — Interface de seleção de testes
+- `three-test.js` — Teste básico Three.js
+- `cannon-test.js` — Cannon-es (física 3D)
+- `matter-test.js` — Matter.js (física 2D)
+- `mermaid-test.js` — Mermaid (diagramas)
+- `apexcharts-test.js` — ApexCharts (gráficos)
+- `canvas-test.js` — Canvas 2D nativo
+- `image-test.js` — Preview de imagens
+- `howler-test.js` — Howler.js (áudio)
+- `kv-test.js` — Key-Value storage (Perchance)
+- `output-area.js` — Área de exibição organizada
 
-**Uso:**
-```javascript
-// Via UI: Clique em "✨ Particles" na seção Rendering
+## 🛡️ Boas Práticas
 
-// Programaticamente:
-import * as particlesTest from './modules/particles-test.js';
+1. **Sempre use `npm run release X.Y.Z`** para releases
+2. **Nunca edite manualmente** arquivos de versão (use `constants.js`)
+3. **Commit atômico**: uma mudança por vez
+4. **Teste localmente** com `npm run dev` antes de fazer release
+5. **Verifique o bundle** em `dist/main.bundle.js` após mudanças
+6. **Aguarde o CDN** propagar (~10 minutos) antes de testar no Perchance
 
-particlesTest.init({ scene, renderer });
-particlesTest.setCount(100000);
-particlesTest.setPattern('galaxy');
-particlesTest.setColorMode('rainbow');
-particlesTest.dispose();
-```
+## 📝 Versionamento
 
-## 📝 Fluxo de Trabalho
+Este projeto segue [Semantic Versioning](https://semver.org/):
 
-### Desenvolvimento
-1. Edite os arquivos em `src/`
-2. Teste localmente com `npm run dev`
-3. Faça commits seguindo Conventional Commits (`feat:`, `fix:`, etc.)
+- **MAJOR** (X.0.0): Mudanças incompatíveis na API
+- **MINOR** (0.X.0): Novas funcionalidades compatíveis
+- **PATCH** (0.0.X): Correções de bugs compatíveis
 
-### Deploy
-1. Atualize `src/constants.js` com a nova versão
-2. Faça commit (hook atualiza outros arquivos automaticamente)
-3. Crie tag anotada e faça push
-4. Aguarde ~10 minutos para o CDN processar
-5. Atualize a versão no HTML Panel do Perchance
+## 🤝 Contribuindo
 
-## 🐛 Debug
-
-### Console do Navegador
-Após o carregamento, o objeto `window.RPG` está disponível:
-```javascript
-window.RPG.renderer  // Dados do renderizador Three.js
-window.RPG.seed      // Seed do jogo
-window.RPG.bioma     // Bioma selecionado
-window.RPG.tests     // Módulos de teste carregados
-```
-
-### Source Maps
-O bundle inclui source maps (`main.bundle.js.map`) para debug no DevTools.
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
 ## 📄 Licença
 
 ISC
+
+---
+
+**Última atualização:** v1.9.1
