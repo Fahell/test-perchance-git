@@ -150,7 +150,7 @@ import { VERSION } from './constants.js';
 console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 
 // ❌ Wrong - requires manual update or script pattern
-console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.9.1)');
+console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.10.0)');
 ```
 
 ## Docs
