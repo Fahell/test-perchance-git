@@ -96,10 +96,55 @@ function build() {
 
 function gitCommitAndTag(version) {
   console.log('📝 Fazendo commit e criando tag...');
+  
+  // 1. Verifica se a tag já existe
+  try {
+    const tagExists = execSync(`git tag -l v${version}`, { cwd: ROOT_DIR }).toString().trim();
+    if (tagExists) {
+      console.error(`\n❌ Tag v${version} já existe!`);
+      console.error('\n👉 Opções:');
+      console.error(`   - Delete a tag: git tag -d v${version} && git push origin :v${version}`);
+      console.error('   - Use uma versão diferente');
+      process.exit(1);
+    }
+  } catch (error) {
+    // Tag não existe, podemos continuar
+  }
+  
+  // 2. Adiciona mudanças
   execSync('git add .', { cwd: ROOT_DIR });
-  execSync(`git commit -m "chore: release v${version}"`, { cwd: ROOT_DIR });
-  execSync(`git tag -a v${version} -m "Release v${version} - Vite bundle"`, { cwd: ROOT_DIR });
-  console.log(`✅ Tag v${version} criada`);
+  
+  // 3. Verifica se há mudanças para commitar
+  const status = execSync('git status --porcelain', { cwd: ROOT_DIR }).toString().trim();
+  
+  if (!status) {
+    console.log('ℹ️  Nenhuma mudança para commitar (arquivos já sincronizados)');
+    console.log(`✅ Pulando commit, criando apenas a tag v${version}`);
+  } else {
+    // 4. Faz commit
+    try {
+      execSync(`git commit -m "chore: release v${version}"`, { cwd: ROOT_DIR });
+      console.log(`✅ Commit criado: chore: release v${version}`);
+    } catch (error) {
+      console.error('\n❌ Erro ao criar commit:', error.message);
+      console.error('\n👉 Possíveis causas:');
+      console.error('   1. Pre-commit hook falhou - verifique os erros acima');
+      console.error('   2. Nenhuma mudança para commitar');
+      console.error('\n👉 Comandos úteis:');
+      console.error('   - git status (para ver o estado atual)');
+      console.error('   - git diff --cached (para ver mudanças staged)');
+      process.exit(1);
+    }
+  }
+  
+  // 5. Cria tag
+  try {
+    execSync(`git tag -a v${version} -m "Release v${version} - Vite bundle"`, { cwd: ROOT_DIR });
+    console.log(`✅ Tag v${version} criada`);
+  } catch (error) {
+    console.error(`\n❌ Erro ao criar tag v${version}:`, error.message);
+    process.exit(1);
+  }
 }
 
 function gitPush(version) {
