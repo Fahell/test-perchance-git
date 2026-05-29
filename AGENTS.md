@@ -99,7 +99,7 @@ git tag -a v1.4.0 -m "Release v1.4.0"
 ✅ **Correct:**
 ```bash
 # Update constants.js first
-sed -i "s/VERSION = 'v1.9.0'/VERSION = 'v1.9.0'/" src/constants.js
+sed -i "s/VERSION = 'v1.9.1'/VERSION = 'v1.9.1'/" src/constants.js
 git add src/constants.js
 git commit -m "chore: release v1.8.0"
 # Hook updates package.json and for-perchance.html automatically
@@ -122,7 +122,7 @@ import { VERSION } from './constants.js';
 console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 
 // ❌ Wrong - requires manual update or script pattern
-console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.9.0');
+console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.9.1');
 ```
 
 ## Docs

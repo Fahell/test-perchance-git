@@ -1,13 +1,13 @@
 {
   "name": "test-perchance-git",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN. Agora com Vite bundling para performance otimizada.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "release": "node scripts/release.js",
+    "release": "node scripts/release.cjs",
     "refactor-imports": "node scripts/refactor-imports.js",
     "prepare": "husky"
   },
