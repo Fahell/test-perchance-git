@@ -78,14 +78,14 @@ O projeto utiliza um **hook de pre-commit** para automatizar a sincronização d
 
 Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 
-**Exemplo para v1.4.0:**
+**Exemplo para v1.7.5:**
 ```html
 <div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" type="module"></script>
 
 <script type="module">
-  import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.4.0/dist/main.bundle.js")
+  import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.7.5/dist/main.bundle.js")
     .then(module => module.initGame())
     .catch(err => console.error('Erro:', err));
 </script>
@@ -102,10 +102,14 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 │       ├── renderer.js      # Renderizador Three.js
 │       ├── logic.js         # Lógica do jogo
 │       ├── ui-test.js       # UI de teste
-│       └── *-test.js        # Módulos de teste (14 módulos)
+│       ├── particles-test.js # Sistema de partículas GPU-accelerado
+│       └── *-test.js        # Módulos de teste (15 módulos)
 ├── dist/
 │   ├── main.bundle.js       # Bundle único (gerado pelo Vite)
 │   └── main.bundle.js.map   # Source map
+├── docs/
+│   ├── iframe-access-perchance-guide.md  # Guia de acesso a iframes cross-origin
+│   └── particles-test-module.md          # Documentação do módulo de partículas
 ├── scripts/
 │   ├── release.js           # Script de release automatizado
 │   └── refactor-imports.js  # Refatora imports CDN para relativos
@@ -122,6 +126,35 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 - **Howler.js** - Sistema de áudio (SFX, música, sprites)
 - **ES6 Modules** - Módulos JavaScript nativos
 - **jsDelivr CDN** - Distribuição via GitHub
+
+## 🎨 Módulos de Teste
+
+### Sistema de Partículas (particles-test.js)
+
+Sistema de partículas GPU-accelerado usando `THREE.Points` + `ShaderMaterial`:
+
+- **50.000 partículas** padrão (até 200.000)
+- **1 draw call** para todas as partículas
+- **Animação 100% GPU-side** (zero CPU overhead)
+- **5 padrões de distribuição**: random, sphere, galaxy, torus, fountain
+- **4 modos de cor**: rainbow, monochrome, temperature, fire
+- **60fps constante** com 50k partículas
+
+**Documentação completa:** [docs/particles-test-module.md](docs/particles-test-module.md)
+
+**Uso:**
+```javascript
+// Via UI: Clique em "✨ Particles" na seção Rendering
+
+// Programaticamente:
+import * as particlesTest from './modules/particles-test.js';
+
+particlesTest.init({ scene, renderer });
+particlesTest.setCount(100000);
+particlesTest.setPattern('galaxy');
+particlesTest.setColorMode('rainbow');
+particlesTest.dispose();
+```
 
 ## 📝 Fluxo de Trabalho
 
