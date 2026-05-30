@@ -197,6 +197,13 @@ export function initUITest(rendererData, testModules) {
   async function canvasHandler() {
     console.log('🎨 Testing Canvas 2D...');
     if (!canvasTest) throw new Error('Canvas not available');
+    
+    // Re-initialize if canvas was cleaned up (container was closed)
+    if (!canvasTest.ctx) {
+      console.log('🔄 [Canvas] Re-initializing canvas...');
+      canvasTest.init(rendererData);
+    }
+    
     canvasTest.drawGradient();
     canvasTest.drawCircles(15);
     canvasTest.drawText('RPG Paper Craft', 256, 256);
