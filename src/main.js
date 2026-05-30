@@ -1,7 +1,7 @@
 // src/main.js
 // Entry point - Vite bundling
 
-// ─── Console Filter: suprime ruído 'isTrusted' de eventos DOM (#19) ────
+// ─── Console Filter: suprime ruído 'isTrusted' de eventos DOM (#19) ───
 // Alguns plugins do Perchance logam objetos de evento com apenas {isTrusted: true}
 // em loop, poluindo o console. Este wrapper filtra esses logs espúrios.
 (() => {
@@ -22,7 +22,6 @@ import * as bridgeMod from './perchance-bridge.js';
 import { VERSION } from './constants.js';
 import { initRenderer } from './modules/renderer.js';
 import { initLogic } from './modules/logic.js';
-import { initOutputArea } from './modules/output-area.js';
 
 // Mapeamento de módulos de teste (dynamic imports)
 const TEST_MODULES = {
@@ -54,7 +53,7 @@ async function loadTestModule(moduleName) {
   if (loadedModules[moduleName]) {
     return loadedModules[moduleName];
   }
-  
+
   try {
     console.log(`🔍 [Main] Carregando ${moduleName}...`);
     const mod = await TEST_MODULES[moduleName]();
@@ -70,21 +69,21 @@ async function loadTestModule(moduleName) {
 // Carrega todos os módulos de teste em paralelo
 async function loadAllTestModules() {
   console.log('📦 [Main] Carregando módulos de teste em paralelo...');
-  
+
   const promises = Object.keys(TEST_MODULES).map(async (key) => {
     const mod = await loadTestModule(key);
     return { key, mod };
   });
-  
+
   const results = await Promise.all(promises);
   const modules = {};
-  
+
   for (const { key, mod } of results) {
     if (mod) {
       modules[key] = mod[key] || mod;
     }
   }
-  
+
   console.log(`✅ [Main] ${Object.keys(modules).length}/${Object.keys(TEST_MODULES).length} módulos carregados`);
   return modules;
 }
@@ -92,7 +91,7 @@ async function loadAllTestModules() {
 // Inicializa módulos que precisam de setup
 function initTestModules(modules, rendererData) {
   console.log('🔧 [Main] Inicializando módulos que precisam de setup...');
-  
+
   if (modules.canvasTest && modules.canvasTest.init) {
     try {
       modules.canvasTest.init(rendererData);
@@ -101,7 +100,7 @@ function initTestModules(modules, rendererData) {
       console.error('❌ [Main] Erro ao inicializar canvasTest:', e.message);
     }
   }
-  
+
   if (modules.raycasterTest && modules.raycasterTest.init) {
     try {
       modules.raycasterTest.init(rendererData);
@@ -110,12 +109,27 @@ function initTestModules(modules, rendererData) {
       console.error('❌ [Main] Erro ao inicializar raycasterTest:', e.message);
     }
   }
+
+  if (modules.particlesTest && modules.particlesTest.init) {
+    try {
+      modules.particlesTest.init(rendererData);
+
+      // Register update callback for particles animation
+      if (rendererData.onUpdate && modules.particlesTest.update) {
+        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
+      }
+
+      console.log('✅ [Main] particlesTest inicializado');
+    } catch (e) {
+      console.error('❌ [Main] Erro ao inicializar particlesTest:', e.message);
+    }
+  }
 }
 
 export async function initGame() {
   // 🛡️ Guard clause duplo para evitar execução duplicada
   if (window.GAME_INITIALIZED) {
-    console.warn('⏯️ Jogo já inicializado. Ignorando execução duplicada.');
+    console.warn('⏭️ Jogo já inicializado. Ignorando execução duplicada.');
     return;
   }
   window.GAME_INITIALIZED = true;
@@ -136,45 +150,41 @@ export async function initGame() {
     const bioma = getList('biomas', ['planície']).selectOne;
     initLogic(seed, bioma);
 
-    // 3. Inicializa OutputArea (área de exibição de resultados)
-    console.log('📊 [Main] Inicializando OutputArea...');
-    initOutputArea();
-
-    // 4. Carrega todos os módulos de teste em paralelo
+    // 3. Carrega todos os módulos de teste em paralelo
     const testModules = await loadAllTestModules();
 
-    // 4.5. Start preloading Mermaid in background (non-blocking)
+    // 3.5. Start preloading Mermaid in background (non-blocking)
     console.log('📊 [Main] Starting Mermaid background preload...');
     const mermaidModule = await TEST_MODULES.mermaidTest();
     if (mermaidModule && mermaidModule.mermaidTest && mermaidModule.mermaidTest.preloadMermaid) {
       mermaidModule.mermaidTest.preloadMermaid();
     }
 
-    // 4.6. Start preloading Matter.js in background (non-blocking)
+    // 3.6. Start preloading Matter.js in background (non-blocking)
     console.log('⚛️ [Main] Starting Matter.js background preload...');
     const matterModule = await TEST_MODULES.matterTest();
     if (matterModule && matterModule.matterTest && matterModule.matterTest.preloadMatter) {
       matterModule.matterTest.preloadMatter();
     }
 
-    // 4.7. Start preloading Cannon-es in background (non-blocking)
+    // 3.7. Start preloading Cannon-es in background (non-blocking)
     console.log('💣 [Main] Starting Cannon-es background preload...');
     const cannonModule = await TEST_MODULES.cannonTest();
     if (cannonModule && cannonModule.cannonTest && cannonModule.cannonTest.preloadCannon) {
       cannonModule.cannonTest.preloadCannon();
     }
 
-    // 5. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
+    // 4. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
     initTestModules(testModules, rendererData);
 
-    // 6. Carrega e inicializa UI de Teste
+    // 5. Carrega e inicializa UI de Teste
     console.log('🔍 [Main] Carregando módulo ui-test.js...');
     const uiTestMod = await import('./modules/ui-test.js');
-    
+
     if (uiTestMod && uiTestMod.initUITest) {
       console.log('🎮 [Main] Chamando initUITest...');
       console.log('📦 [Main] rendererData passado:', rendererData);
-      console.log('   renderer.cube:', rendererData.cube);
+      console.log(' renderer.cube:', rendererData.cube);
 
       // Passa todos os módulos de teste para a UI
       uiTestMod.initUITest(rendererData, testModules);
@@ -199,7 +209,7 @@ export async function initGame() {
 
     // Mostra mensagem de erro na tela
     const errorDiv = document.createElement('div');
-    errorDiv.style.cssText = ` 
+    errorDiv.style.cssText = `
       position: fixed; bottom: 20px; left: 20px; z-index: 9999;
       background: #ff0000; color: white; padding: 20px;
       border-radius: 8px; font-family: monospace; font-size: 14px;
@@ -207,11 +217,17 @@ export async function initGame() {
       max-height: 300px; overflow-y: auto;
     `;
     errorDiv.innerHTML = `
-      <strong>❌ Erro ao iniciar o jogo</strong><br>
-      <strong>Mensagem:</strong> ${error.message}<br>
-      <strong>Stack:</strong><br>
-      <pre style="font-size:11px; white-space:pre-wrap;">${error.stack || 'N/A'}</pre>
-      <small>Verifique o console (F12) para mais detalhes.</small>
+      **❌ Erro ao iniciar o jogo**
+
+      **Mensagem:** ${error.message}
+
+      **Stack:**
+
+      \`\`\`
+      ${error.stack || 'N/A'}
+      \`\`\`
+
+      Verifique o console (F12) para mais detalhes.
     `;
     document.body.appendChild(errorDiv);
   }
