@@ -2,6 +2,7 @@
 // Painel de testes com controles globais (console-only logging)
 import { root, getVar, getList } from '../perchance-bridge.js';
 import { VERSION, CDN_BASE } from '../constants.js';
+import { createTestContainer } from './test-container.js';
 
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 
@@ -136,34 +137,90 @@ export function initUITest(rendererData, testModules) {
   async function diceHandler() {
     console.log('🎲 Rolling dice...');
     if (!diceTest || !diceTest.available) throw new Error('Plugin not available');
-    const d20 = diceTest.rollD20();
-    const d6 = diceTest.roll3D6();
-    console.log(`🎲 1d20: ${d20.result} | 3d6: ${d6.result}`);
+    const { contentArea } = createTestContainer('🎲 Dice Test', { id: 'test-dice', width: 400, height: 300 });
+    const d4 = { dice: '1d4', result: root.dice('1d4') };
+    const d6 = { dice: '1d6', result: root.dice('1d6') };
+    const d8 = { dice: '1d8', result: root.dice('1d8') };
+    const d10 = { dice: '1d10', result: root.dice('1d10') };
+    const d12 = { dice: '1d12', result: root.dice('1d12') };
+    const d20 = { dice: '1d20', result: root.dice('1d20') };
+    const d100 = { dice: '1d100', result: root.dice('1d100') };
+    const allRolls = [d4, d6, d8, d10, d12, d20, d100];
+    contentArea.innerHTML = allRolls.map(r =>
+      `<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #333;">
+        <span style="color:#fbbf24;">${r.dice}</span>
+        <span style="color:#4ade80;font-weight:bold;font-size:18px;">${r.result}</span>
+      </div>`
+    ).join('');
+    console.log(`🎲 Results: ${allRolls.map(r => r.dice + '=' + r.result).join(' | ')}`);
   }
 
   async function seederHandler() {
     console.log('🌱 Testing Seeder...');
     if (!seederTest || !seederTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🌱 Seeder Test', { id: 'test-seeder', width: 500, height: 350 });
     const seed = seederTest.generateRandomSeed();
     seederTest.applySeed(seed);
+    const repro = seederTest.demonstrateReproducibility();
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="margin-bottom:15px;">
+          <div style="color:#94a3b8;font-size:12px;">Seed gerada:</div>
+          <div style="color:#4ade80;font-size:20px;font-family:monospace;margin-top:5px;">${seed}</div>
+        </div>
+        <div style="margin-bottom:15px;">
+          <div style="color:#94a3b8;font-size:12px;">Execução 1:</div>
+          <div style="color:#fbbf24;font-family:monospace;margin-top:5px;">${JSON.stringify(repro?.results1 || [])}</div>
+        </div>
+        <div style="margin-bottom:15px;">
+          <div style="color:#94a3b8;font-size:12px;">Execução 2 (mesma seed):</div>
+          <div style="color:#fbbf24;font-family:monospace;margin-top:5px;">${JSON.stringify(repro?.results2 || [])}</div>
+        </div>
+        <div style="padding:8px;background:${repro?.match ? '#166534' : '#991b1b'};border-radius:4px;text-align:center;">
+          ${repro?.match ? '✅ Resultados idênticos — Seed funciona!' : '⚠️ Resultados diferentes (esperado sem listas)'}
+        </div>
+      </div>`;
+    seederTest.resetSeed();
     console.log(`✅ Seed applied: ${seed}`);
   }
 
   async function patternHandler() {
     console.log('🎨 Generating procedural pattern...');
     if (!patternTest || !patternTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🎨 Pattern Test', { id: 'test-pattern', width: 500, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">Gerando padrão...</div>';
     const result = patternTest.generateEmojiPattern();
-    if (!result) throw new Error('Pattern generation failed');
+    if (!result) { contentArea.innerHTML = '<div style="color:#ff6b6b;text-align:center;padding:20px;">❌ Falha na geração</div>'; throw new Error('Pattern generation failed'); }
+    if (typeof result === 'string' && result.startsWith('data:image/')) {
+      contentArea.innerHTML = `<img src="${result}" style="width:100%;height:auto;border-radius:4px;" alt="Generated Pattern"/>`;
+    } else {
+      contentArea.innerHTML = `<div style="color:#fbbf24;padding:10px;">
+        <div style="margin-bottom:10px;">Tipo: ${typeof result}</div>
+        <div style="word-break:break-all;font-size:10px;max-height:300px;overflow:auto;">${String(result).substring(0, 500)}...</div>
+      </div>`;
+    }
     console.log('✅ Pattern generated!');
   }
 
   async function aiTextHandler() {
     console.log('🤖 Generating AI text...');
     if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text Test', { id: 'test-ai-text', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando texto com IA...</div>';
     const result = await aiTextTest.generateBasic('Escreva uma frase curta sobre um aventureiro.');
-    if (!result?.success || !result.text) throw new Error(result?.error || 'Empty response from AI');
-    const preview = result.text.substring(0, 80) + (result.text.length > 80 ? '...' : '');
-    console.log(`✅ AI Text: "${preview}"`);
+    if (!result?.success || !result.text) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Resposta vazia'}</div>`;
+      throw new Error(result?.error || 'Empty response from AI');
+    }
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">Prompt: "Escreva uma frase curta sobre um aventureiro."</div>
+        <div style="color:#e2e8f0;font-size:14px;line-height:1.6;padding:15px;background:#0f172a;border-radius:4px;border-left:3px solid #4ade80;">
+          ${result.text}
+        </div>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">Caracteres: ${result.text.length}</div>
+      </div>`;
+    console.log(`✅ AI Text: "${result.text.substring(0, 80)}..."`);
   }
 
   async function imageHandler() {
@@ -177,8 +234,32 @@ export function initUITest(rendererData, testModules) {
   async function ttsHandler() {
     console.log('🔊 Testing Text-to-Speech...');
     if (!ttsTest || !ttsTest.available) throw new Error('Plugin not available');
-    ttsTest.speakBasic('Olá! Este é um teste de síntese de voz.');
-    console.log('✅ Speech started!');
+    const { contentArea, container } = createTestContainer('🔊 TTS Test', { id: 'test-tts', width: 500, height: 350 });
+    const testText = 'Olá! Este é um teste de síntese de voz no Perchance.';
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">Texto:</div>
+        <div style="color:#e2e8f0;padding:10px;background:#0f172a;border-radius:4px;margin-bottom:15px;">"${testText}"</div>
+        <div style="display:flex;gap:10px;margin-bottom:15px;">
+          <button id="tts-play" style="flex:1;padding:10px;background:#166534;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;">▶ Falar</button>
+          <button id="tts-stop" style="flex:1;padding:10px;background:#991b1b;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;">⏹ Parar</button>
+        </div>
+        <div id="tts-status" style="color:#94a3b8;font-size:12px;text-align:center;">Pronto para falar</div>
+      </div>`;
+    const playBtn = container.querySelector('#tts-play');
+    const stopBtn = container.querySelector('#tts-stop');
+    const status = container.querySelector('#tts-status');
+    playBtn.addEventListener('click', () => {
+      ttsTest.speakBasic(testText);
+      status.textContent = '🔊 Falando...';
+      status.style.color = '#4ade80';
+    });
+    stopBtn.addEventListener('click', () => {
+      ttsTest.stopSpeech();
+      status.textContent = '⏹ Parado';
+      status.style.color = '#fbbf24';
+    });
+    console.log('✅ TTS container ready!');
   }
 
   async function cubeColorHandler() {
