@@ -210,14 +210,6 @@ async function loadAllTestModules() {
 }
 function initTestModules(modules, rendererData) {
   console.log("🔧 [Main] Inicializando módulos que precisam de setup...");
-  if (modules.canvasTest && modules.canvasTest.init) {
-    try {
-      modules.canvasTest.init(rendererData);
-      console.log("✅ [Main] canvasTest inicializado");
-    } catch (e) {
-      console.error("❌ [Main] Erro ao inicializar canvasTest:", e.message);
-    }
-  }
   if (modules.raycasterTest && modules.raycasterTest.init) {
     try {
       modules.raycasterTest.init(rendererData);
@@ -5968,6 +5960,10 @@ function initUITest(rendererData, testModules) {
   async function canvasHandler() {
     console.log("🎨 Testing Canvas 2D...");
     if (!canvasTest2) throw new Error("Canvas not available");
+    if (!canvasTest2.ctx) {
+      console.log("🔄 [Canvas] Re-initializing canvas...");
+      canvasTest2.init(rendererData);
+    }
     canvasTest2.drawGradient();
     canvasTest2.drawCircles(15);
     canvasTest2.drawText("RPG Paper Craft", 256, 256);

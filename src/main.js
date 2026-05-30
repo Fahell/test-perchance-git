@@ -92,14 +92,6 @@ async function loadAllTestModules() {
 function initTestModules(modules, rendererData) {
   console.log('🔧 [Main] Inicializando módulos que precisam de setup...');
 
-  if (modules.canvasTest && modules.canvasTest.init) {
-    try {
-      modules.canvasTest.init(rendererData);
-      console.log('✅ [Main] canvasTest inicializado');
-    } catch (e) {
-      console.error('❌ [Main] Erro ao inicializar canvasTest:', e.message);
-    }
-  }
 
   if (modules.raycasterTest && modules.raycasterTest.init) {
     try {
@@ -174,7 +166,7 @@ export async function initGame() {
       cannonModule.cannonTest.preloadCannon();
     }
 
-    // 4. Inicializa módulos que precisam de setup (canvasTest, raycasterTest)
+    // 4. Inicializa módulos que precisam de setup (raycasterTest, particlesTest)
     initTestModules(testModules, rendererData);
 
     // 5. Carrega e inicializa UI de Teste
