@@ -1,9 +1,12 @@
-// src/modules/canvas-test.js
-// Canvas 2D tests with Three.js integration (CanvasTexture)
-// Uses OutputArea for organized display
+/**
+ * Canvas 2D tests with Three.js integration (CanvasTexture)
+ * Uses modal container for display
+ */
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { showVisual, showText, clearVisual, clearText } from './output-area.js';
+import { createTestContainer } from './test-container.js';
+
+let currentContainer = null;
 
 export const canvasTest = {
   available: true,
@@ -11,17 +14,36 @@ export const canvasTest = {
   ctx: null,
   threeIntegration: null,
 
+  // Cria ou reutiliza o container modal
+  _getOrCreateContainer(title) {
+    if (currentContainer) {
+      currentContainer.close();
+    }
+    currentContainer = createTestContainer(title, {
+      width: 700,
+      height: 650,
+      onClose: () => {
+        this.cleanup();
+        currentContainer = null;
+        console.log('🗑️ [Canvas] Container fechado');
+      }
+    });
+    return currentContainer;
+  },
+
   init(rendererData) {
     console.log('🎨 [Canvas] Initializing Canvas 2D test...');
+
+    const { contentArea } = this._getOrCreateContainer('🎨 Canvas 2D Test');
 
     this.canvas2D = document.createElement('canvas');
     this.canvas2D.width = 512;
     this.canvas2D.height = 512;
-    this.canvas2D.style.cssText = 'border-radius: 4px; width: 100%; height: auto; max-width: 512px;';
+    this.canvas2D.style.cssText = 'border-radius: 4px; width: 100%; height: auto; max-width: 512px; display: block; margin: 0 auto;';
     this.ctx = this.canvas2D.getContext('2d');
 
-    showVisual(this.canvas2D, '🎨 Canvas 2D');
-    showText('<strong>Status:</strong> Canvas initialized (512x512)');
+    contentArea.innerHTML = '';
+    contentArea.appendChild(this.canvas2D);
 
     console.log('✅ [Canvas] Canvas 2D created (512x512)');
 
@@ -76,7 +98,6 @@ export const canvasTest = {
     this.ctx.fillRect(0, 0, 512, 512);
     console.log('🎨 [Canvas] Gradient drawn');
     if (this.threeIntegration) this.threeIntegration.update();
-    showText('<strong>Operation:</strong> Gradient<br><strong>Colors:</strong> #667eea → #764ba2');
   },
 
   drawCircles(count = 20) {
@@ -94,7 +115,6 @@ export const canvasTest = {
     }
     console.log(`🎨 [Canvas] ${count} circles drawn`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Circles<br><strong>Count:</strong> ${count}`);
   },
 
   drawText(text = 'RPG Paper Craft', x = 256, y = 256) {
@@ -112,7 +132,6 @@ export const canvasTest = {
 
     console.log(`🎨 [Canvas] Text "${text}" drawn`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Text<br><strong>Content:</strong> "${text}"<br><strong>Position:</strong> (${x}, ${y})`);
   },
 
   drawFogOfWar(revealX = 256, revealY = 256, revealRadius = 100) {
@@ -142,7 +161,6 @@ export const canvasTest = {
     this.ctx.restore();
     console.log(`🎨 [Canvas] Fog-of-war drawn at (${revealX}, ${revealY})`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Fog of War<br><strong>Center:</strong> (${revealX}, ${revealY})<br><strong>Radius:</strong> ${revealRadius}px`);
   },
 
   drawGrid(cellSize = 32) {
@@ -166,7 +184,6 @@ export const canvasTest = {
 
     console.log(`🎨 [Canvas] Grid drawn (cells of ${cellSize}px)`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Grid<br><strong>Cell Size:</strong> ${cellSize}px<br><strong>Cells:</strong> ${Math.floor(512 / cellSize)}x${Math.floor(512 / cellSize)}`);
   },
 
   showThreePlane() {
@@ -181,10 +198,15 @@ export const canvasTest = {
     }
   },
 
-  cleanup() {
-    clearVisual();
-    clearText();
+  close() {
+    if (currentContainer) {
+      currentContainer.close();
+      currentContainer = null;
+      console.log('🗑️ [Canvas] Container fechado manualmente');
+    }
+  },
 
+  cleanup() {
     if (this.threeIntegration && this.threeIntegration.plane) {
       this.threeIntegration.plane.parent.remove(this.threeIntegration.plane);
     }
