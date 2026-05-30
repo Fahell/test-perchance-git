@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.12.0";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.12.0`;
+const VERSION = "v1.12.1";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.12.1`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -144,85 +144,6 @@ function initLogic(seed, bioma) {
   console.log("💡 Debug: window.RPG disponível no console");
   console.log("✅ [Logic] Lógica inicializada com sucesso!");
 }
-const CSS_URL$1 = `${CDN_BASE}/src/styles/output-area.css`;
-let outputArea = null;
-let visualSlot = null;
-let textSlot = null;
-function injectStylesheet$1() {
-  if (document.getElementById("output-area-styles")) return;
-  const link = document.createElement("link");
-  link.id = "output-area-styles";
-  link.rel = "stylesheet";
-  link.href = CSS_URL$1;
-  document.head.appendChild(link);
-}
-function createOutputArea() {
-  if (outputArea) return;
-  outputArea = document.createElement("div");
-  outputArea.id = "output-area";
-  const header = document.createElement("div");
-  header.className = "output-area__header";
-  header.innerHTML = `
-    <span class="output-area__title">📊 Output</span>
-    <button class="output-area__clear" title="Clear all">🗑️</button>
-  `;
-  header.querySelector(".output-area__clear").onclick = () => clearAll();
-  visualSlot = document.createElement("div");
-  visualSlot.className = "output-area__slot output-area__slot--visual";
-  visualSlot.innerHTML = '<span class="output-area__placeholder">Visual results will appear here</span>';
-  textSlot = document.createElement("div");
-  textSlot.className = "output-area__slot output-area__slot--text";
-  textSlot.innerHTML = '<span class="output-area__placeholder">Text results will appear here</span>';
-  outputArea.appendChild(header);
-  outputArea.appendChild(visualSlot);
-  outputArea.appendChild(textSlot);
-  document.body.appendChild(outputArea);
-}
-function showVisual(content, title) {
-  if (!outputArea) createOutputArea();
-  const wrapper = document.createElement("div");
-  wrapper.className = "output-area__visual-wrapper";
-  if (title) {
-    const titleEl = document.createElement("div");
-    titleEl.className = "output-area__visual-title";
-    titleEl.textContent = title;
-    wrapper.appendChild(titleEl);
-  }
-  if (typeof content === "string") {
-    wrapper.innerHTML += content;
-  } else {
-    wrapper.appendChild(content);
-  }
-  visualSlot.innerHTML = "";
-  visualSlot.appendChild(wrapper);
-}
-function showText(html) {
-  if (!outputArea) createOutputArea();
-  const wrapper = document.createElement("div");
-  wrapper.className = "output-area__text-wrapper";
-  wrapper.innerHTML = html;
-  textSlot.innerHTML = "";
-  textSlot.appendChild(wrapper);
-}
-function clearVisual() {
-  if (visualSlot) {
-    visualSlot.innerHTML = '<span class="output-area__placeholder">Visual results will appear here</span>';
-  }
-}
-function clearText() {
-  if (textSlot) {
-    textSlot.innerHTML = '<span class="output-area__placeholder">Text results will appear here</span>';
-  }
-}
-function clearAll() {
-  clearVisual();
-  clearText();
-}
-function initOutputArea() {
-  injectStylesheet$1();
-  createOutputArea();
-  console.log("📊 [OutputArea] Initialized");
-}
 (() => {
   const originalLog = console.log.bind(console);
   console.log = (...args) => {
@@ -305,10 +226,21 @@ function initTestModules(modules, rendererData) {
       console.error("❌ [Main] Erro ao inicializar raycasterTest:", e.message);
     }
   }
+  if (modules.particlesTest && modules.particlesTest.init) {
+    try {
+      modules.particlesTest.init(rendererData);
+      if (rendererData.onUpdate && modules.particlesTest.update) {
+        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
+      }
+      console.log("✅ [Main] particlesTest inicializado");
+    } catch (e) {
+      console.error("❌ [Main] Erro ao inicializar particlesTest:", e.message);
+    }
+  }
 }
 async function initGame() {
   if (window.GAME_INITIALIZED) {
-    console.warn("⏯️ Jogo já inicializado. Ignorando execução duplicada.");
+    console.warn("⏭️ Jogo já inicializado. Ignorando execução duplicada.");
     return;
   }
   window.GAME_INITIALIZED = true;
@@ -321,8 +253,6 @@ async function initGame() {
     const seed = getVar2("GAME_SEED", 999);
     const bioma = getList2("biomas", ["planície"]).selectOne;
     initLogic(seed, bioma);
-    console.log("📊 [Main] Inicializando OutputArea...");
-    initOutputArea();
     const testModules = await loadAllTestModules();
     console.log("📊 [Main] Starting Mermaid background preload...");
     const mermaidModule = await TEST_MODULES.mermaidTest();
@@ -345,7 +275,7 @@ async function initGame() {
     if (uiTestMod && uiTestMod.initUITest) {
       console.log("🎮 [Main] Chamando initUITest...");
       console.log("📦 [Main] rendererData passado:", rendererData);
-      console.log("   renderer.cube:", rendererData.cube);
+      console.log(" renderer.cube:", rendererData.cube);
       uiTestMod.initUITest(rendererData, testModules);
     } else {
       console.error("❌ [Main] ui-test.js não carregou corretamente");
@@ -363,7 +293,7 @@ async function initGame() {
     console.error("❌ [Main] Erro fatal na inicialização:", error);
     console.error("Stack trace:", error.stack);
     const errorDiv = document.createElement("div");
-    errorDiv.style.cssText = ` 
+    errorDiv.style.cssText = `
       position: fixed; bottom: 20px; left: 20px; z-index: 9999;
       background: #ff0000; color: white; padding: 20px;
       border-radius: 8px; font-family: monospace; font-size: 14px;
@@ -371,16 +301,128 @@ async function initGame() {
       max-height: 300px; overflow-y: auto;
     `;
     errorDiv.innerHTML = `
-      <strong>❌ Erro ao iniciar o jogo</strong><br>
-      <strong>Mensagem:</strong> ${error.message}<br>
-      <strong>Stack:</strong><br>
-      <pre style="font-size:11px; white-space:pre-wrap;">${error.stack || "N/A"}</pre>
-      <small>Verifique o console (F12) para mais detalhes.</small>
+      **❌ Erro ao iniciar o jogo**
+
+      **Mensagem:** ${error.message}
+
+      **Stack:**
+
+      \`\`\`
+      ${error.stack || "N/A"}
+      \`\`\`
+
+      Verifique o console (F12) para mais detalhes.
     `;
     document.body.appendChild(errorDiv);
   }
 }
 console.log(`📦 [Main] main.js carregado (Vite bundle ${VERSION}). Aguardando initGame()...`);
+function createTestContainer(title, options = {}) {
+  const {
+    id = `test-container-${Date.now()}`,
+    className = "test-container",
+    width = 800,
+    height = 600,
+    onClose = null
+  } = options;
+  const container2 = document.createElement("div");
+  container2.id = id;
+  container2.className = className;
+  container2.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: ${width}px;
+    max-width: 95vw;
+    height: ${height}px;
+    max-height: 95vh;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #4ade80;
+    border-radius: 8px;
+    padding: 15px;
+    z-index: 10000;
+    overflow: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    font-family: monospace;
+    color: white;
+  `;
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "test-close-btn";
+  closeBtn.innerHTML = "✕";
+  closeBtn.style.cssText = `
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10001;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  `;
+  closeBtn.addEventListener("mouseover", () => {
+    closeBtn.style.background = "#ff4757";
+    closeBtn.style.transform = "scale(1.1)";
+    closeBtn.style.boxShadow = "0 4px 12px rgba(255, 107, 107, 0.4)";
+  });
+  closeBtn.addEventListener("mouseout", () => {
+    closeBtn.style.background = "#ff6b6b";
+    closeBtn.style.transform = "scale(1)";
+    closeBtn.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
+  });
+  const titleEl = document.createElement("h3");
+  titleEl.style.cssText = `
+    margin: 0 0 15px 0;
+    color: #4ade80;
+    font-size: 16px;
+    font-weight: 600;
+  `;
+  titleEl.textContent = title;
+  const contentArea = document.createElement("div");
+  contentArea.className = "test-content-area";
+  contentArea.style.cssText = `
+    width: 100%;
+    height: calc(100% - 50px);
+    overflow: auto;
+    background: #1a1a1a;
+    border-radius: 4px;
+    padding: 10px;
+    border: 1px solid #404040;
+  `;
+  container2.appendChild(closeBtn);
+  container2.appendChild(titleEl);
+  container2.appendChild(contentArea);
+  document.body.appendChild(container2);
+  const close = () => {
+    if (onClose) {
+      try {
+        onClose();
+      } catch (error) {
+        console.error("Error in onClose callback:", error);
+      }
+    }
+    container2.remove();
+    console.log(`🧹 [TestContainer] Closed: ${title}`);
+  };
+  closeBtn.addEventListener("click", close);
+  console.log(`📦 [TestContainer] Created: ${title} (${VERSION})`);
+  return {
+    container: container2,
+    contentArea,
+    close
+  };
+}
+let currentContainer$1 = null;
 const imageTest = {
   available: !!root.image,
   // Helper para extrair URL da imagem do retorno do plugin
@@ -394,10 +436,26 @@ const imageTest = {
     if (typeof result === "string" && result.startsWith("data:image/")) return result;
     return null;
   },
+  // Cria ou reutiliza o container modal
+  _getOrCreateContainer(title) {
+    if (currentContainer$1) {
+      currentContainer$1.close();
+    }
+    currentContainer$1 = createTestContainer(title, {
+      width: 900,
+      height: 700,
+      onClose: () => {
+        currentContainer$1 = null;
+        console.log("🗑️ [Image] Container fechado");
+      }
+    });
+    return currentContainer$1;
+  },
   // Teste 1: Geração básica com seed fixa
   async testBasicImage() {
     console.log("🖼️ [Image] Gerando imagem básica com seed fixa...");
-    showText("⏳ Gerando imagem...");
+    const { contentArea } = this._getOrCreateContainer("🖼️ Image Test - Basic Generation");
+    contentArea.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">⏳ Gerando imagem...</div>';
     try {
       const result = await root.image(
         "papercraft warrior with sword, fantasy art style",
@@ -410,38 +468,33 @@ const imageTest = {
       const imageUrl = this._extractImageUrl(result);
       if (imageUrl) {
         console.log("✅ [Image] Imagem gerada com sucesso!");
-        console.log("   Data URL length:", imageUrl.length, "chars");
-        console.log("   Tipo do resultado:", typeof result, result.constructor.name);
-        const imgHtml = `
-          <img src="${imageUrl}" style="
-            max-width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-            image-rendering: pixelated;
-            border-radius: 4px;
-          " />
+        console.log(" Data URL length:", imageUrl.length, "chars");
+        console.log(" Tipo do resultado:", typeof result, result.constructor.name);
+        contentArea.innerHTML = `
+          <div style="text-align:center;">
+            <img src="${imageUrl}" style="max-width:100%;height:auto;border:1px solid #404040;border-radius:4px;" />
+            <div style="margin-top:15px;color:#aaa;font-size:11px;">
+              <strong>✅ Seed:</strong> 12345 |
+              <strong>📐 Resolução:</strong> 512x512 |
+              <strong>📏 Tamanho:</strong> ${(imageUrl.length / 1024).toFixed(1)}KB
+            </div>
+          </div>
         `;
-        showVisual(imgHtml, "🖼️ Imagem Gerada");
-        const infoHtml = `
-          <strong>✅ Seed:</strong> 12345<br>
-          <strong>📐 Resolução:</strong> 512x512<br>
-          <strong>📏 Tamanho:</strong> ${(imageUrl.length / 1024).toFixed(1)}KB
-        `;
-        showText(infoHtml);
         return { success: true, url: imageUrl, seed: 12345 };
       } else {
         throw new Error("Não foi possível extrair URL da imagem");
       }
     } catch (error) {
       console.error("❌ [Image] Falha na geração:", error.message);
-      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:20px;">❌ Erro: ${error.message}</div>`;
       return { success: false, error: error.message };
     }
   },
   // Teste 2: Remove background (fundo transparente)
   async testRemoveBackground() {
     console.log("🖼️ [Image] Testando removeBackground...");
-    showText("⏳ Gerando imagem sem fundo...");
+    const { contentArea } = this._getOrCreateContainer("🔍 Image Test - Remove Background");
+    contentArea.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">⏳ Gerando imagem sem fundo...</div>';
     try {
       const result = await root.image(
         "papercraft character, simple background",
@@ -455,105 +508,79 @@ const imageTest = {
       const imageUrl = this._extractImageUrl(result);
       if (imageUrl) {
         console.log("✅ [Image] Imagem sem fundo gerada!");
-        const imgHtml = `
-          <div style="
-            background: 
-              linear-gradient(45deg, #333 25%, transparent 25%),
-              linear-gradient(-45deg, #333 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, #333 75%),
-              linear-gradient(-45deg, transparent 75%, #333 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            padding: 10px;
-            border-radius: 4px;
-            display: inline-block;
-          ">
-            <img src="${imageUrl}" style="
-              max-width: 100%;
-              max-height: 300px;
-              object-fit: contain;
-              image-rendering: pixelated;
-            " />
+        contentArea.innerHTML = `
+          <div style="text-align:center;">
+            <div style="display:inline-block;padding:20px;background:repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 20px 20px;">
+              <img src="${imageUrl}" style="max-width:400px;height:auto;" />
+            </div>
+            <div style="margin-top:15px;color:#aaa;font-size:11px;">
+              <strong>✅ Seed:</strong> 54321 |
+              <strong>🔍 RemoveBackground:</strong> true |
+              <strong>🎨 Fundo:</strong> transparente (quadriculado)
+            </div>
           </div>
         `;
-        showVisual(imgHtml, "🔍 Imagem Sem Fundo");
-        const infoHtml = `
-          <strong>✅ Seed:</strong> 54321<br>
-          <strong>🔍 RemoveBackground:</strong> true<br>
-          <strong>🎨 Fundo:</strong> transparente (quadriculado)
-        `;
-        showText(infoHtml);
         return { success: true, url: imageUrl, transparent: true };
       } else {
         throw new Error("Não foi possível extrair URL da imagem");
       }
     } catch (error) {
       console.error("❌ [Image] Falha:", error.message);
-      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:20px;">❌ Erro: ${error.message}</div>`;
       return { success: false, error: error.message };
     }
   },
   // Teste 3: Comparação de seeds diferentes
   async testSeedComparison() {
     console.log("🖼️ [Image] Comparando seeds diferentes...");
-    showText("⏳ Gerando 2 imagens com seeds diferentes...");
+    const { contentArea } = this._getOrCreateContainer("🎲 Image Test - Seed Comparison");
+    contentArea.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">⏳ Gerando 2 imagens com seeds diferentes...</div>';
     try {
       const seed1 = 11111;
       const seed2 = 99999;
       const prompt = "papercraft dragon, fantasy style";
-      console.log(`   Gerando com seed ${seed1}...`);
+      console.log(` Gerando com seed ${seed1}...`);
       const result1 = await root.image(prompt, { seed: seed1, resolution: "256x256" });
-      console.log(`   Gerando com seed ${seed2}...`);
+      console.log(` Gerando com seed ${seed2}...`);
       const result2 = await root.image(prompt, { seed: seed2, resolution: "256x256" });
       const url1 = this._extractImageUrl(result1);
       const url2 = this._extractImageUrl(result2);
       if (url1 && url2) {
         console.log("✅ [Image] Ambas imagens geradas!");
-        const imgHtml = `
-          <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
-            <div style="text-align: center;">
-              <img src="${url1}" style="
-                width: 150px;
-                height: 150px;
-                object-fit: contain;
-                border: 2px solid #4ade80;
-                border-radius: 4px;
-              " />
-              <div style="color: #4ade80; font-size: 11px; margin-top: 5px;">Seed: ${seed1}</div>
+        contentArea.innerHTML = `
+          <div style="text-align:center;">
+            <div style="display:flex;gap:20px;justify-content:center;align-items:center;">
+              <div style="text-align:center;">
+                <img src="${url1}" style="max-width:256px;height:auto;border:1px solid #404040;" />
+                <div style="margin-top:5px;color:#aaa;font-size:11px;">Seed: ${seed1}</div>
+              </div>
+              <div style="color:#4ade80;font-size:24px;font-weight:bold;">vs</div>
+              <div style="text-align:center;">
+                <img src="${url2}" style="max-width:256px;height:auto;border:1px solid #404040;" />
+                <div style="margin-top:5px;color:#aaa;font-size:11px;">Seed: ${seed2}</div>
+              </div>
             </div>
-            <div style="color: #888; font-size: 20px;">vs</div>
-            <div style="text-align: center;">
-              <img src="${url2}" style="
-                width: 150px;
-                height: 150px;
-                object-fit: contain;
-                border: 2px solid #4ade80;
-                border-radius: 4px;
-              " />
-              <div style="color: #4ade80; font-size: 11px; margin-top: 5px;">Seed: ${seed2}</div>
+            <div style="margin-top:15px;color:#aaa;font-size:11px;">
+              <strong>✅ Mesma prompt,</strong> seeds diferentes |
+              <strong>📐 Resolução:</strong> 256x256 cada
             </div>
           </div>
         `;
-        showVisual(imgHtml, "🎲 Comparação de Seeds");
-        const infoHtml = `
-          <strong>✅ Mesma prompt,</strong> seeds diferentes<br>
-          <strong>📐 Resolução:</strong> 256x256 cada
-        `;
-        showText(infoHtml);
         return { success: true, images: [url1, url2], seeds: [seed1, seed2] };
       } else {
         throw new Error("Falha ao gerar uma ou ambas imagens");
       }
     } catch (error) {
       console.error("❌ [Image] Falha na comparação:", error.message);
-      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:20px;">❌ Erro: ${error.message}</div>`;
       return { success: false, error: error.message };
     }
   },
   // Teste 4: Diferentes resoluções
   async testResolution() {
     console.log("🖼️ [Image] Testando resolução customizada...");
-    showText("⏳ Gerando imagem 768x384...");
+    const { contentArea } = this._getOrCreateContainer("📐 Image Test - Custom Resolution");
+    contentArea.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">⏳ Gerando imagem 768x384...</div>';
     try {
       const result = await root.image(
         "papercraft landscape, wide view",
@@ -566,36 +593,33 @@ const imageTest = {
       const imageUrl = this._extractImageUrl(result);
       if (imageUrl) {
         console.log("✅ [Image] Imagem wide gerada!");
-        const imgHtml = `
-          <img src="${imageUrl}" style="
-            max-width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-            image-rendering: pixelated;
-            border-radius: 4px;
-          " />
+        contentArea.innerHTML = `
+          <div style="text-align:center;">
+            <img src="${imageUrl}" style="max-width:100%;height:auto;border:1px solid #404040;border-radius:4px;" />
+            <div style="margin-top:15px;color:#aaa;font-size:11px;">
+              <strong>✅ Seed:</strong> 77777 |
+              <strong>📐 Resolução:</strong> 768x384 (16:9) |
+              <strong>🎨 Formato:</strong> wide/landscape
+            </div>
+          </div>
         `;
-        showVisual(imgHtml, "📐 Resolução Customizada");
-        const infoHtml = `
-          <strong>✅ Seed:</strong> 77777<br>
-          <strong>📐 Resolução:</strong> 768x384 (16:9)<br>
-          <strong>🎨 Formato:</strong> wide/landscape
-        `;
-        showText(infoHtml);
         return { success: true, url: imageUrl, resolution: "768x384" };
       } else {
         throw new Error("Não foi possível extrair URL da imagem");
       }
     } catch (error) {
       console.error("❌ [Image] Falha:", error.message);
-      showText(`<span style="color: #ff6b6b;">❌ Erro: ${error.message}</span>`);
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:20px;">❌ Erro: ${error.message}</div>`;
       return { success: false, error: error.message };
     }
   },
-  // Limpa o conteúdo visual
-  clear() {
-    clearVisual();
-    console.log("🗑️ [Image] Preview de imagem limpo");
+  // Fecha o container
+  close() {
+    if (currentContainer$1) {
+      currentContainer$1.close();
+      currentContainer$1 = null;
+      console.log("🗑️ [Image] Container fechado manualmente");
+    }
   }
 };
 console.log("🖼️ [Image] Inicializando teste do plugin de imagem...");
@@ -603,7 +627,7 @@ if (imageTest.available) {
   console.log("✅ [Image] Plugin text-to-image-plugin disponível");
 } else {
   console.warn("⚠️ [Image] Plugin text-to-image-plugin NÃO disponível");
-  console.warn("   Adicione no List Panel: image = {import:text-to-image-plugin}");
+  console.warn(" Adicione no List Panel: image = {import:text-to-image-plugin}");
 }
 const imageTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -1071,20 +1095,38 @@ const raycasterTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.def
   __proto__: null,
   raycasterTest
 }, Symbol.toStringTag, { value: "Module" }));
+let currentContainer = null;
 const canvasTest = {
   available: true,
   canvas2D: null,
   ctx: null,
   threeIntegration: null,
+  // Cria ou reutiliza o container modal
+  _getOrCreateContainer(title) {
+    if (currentContainer) {
+      currentContainer.close();
+    }
+    currentContainer = createTestContainer(title, {
+      width: 700,
+      height: 650,
+      onClose: () => {
+        this.cleanup();
+        currentContainer = null;
+        console.log("🗑️ [Canvas] Container fechado");
+      }
+    });
+    return currentContainer;
+  },
   init(rendererData) {
     console.log("🎨 [Canvas] Initializing Canvas 2D test...");
+    const { contentArea } = this._getOrCreateContainer("🎨 Canvas 2D Test");
     this.canvas2D = document.createElement("canvas");
     this.canvas2D.width = 512;
     this.canvas2D.height = 512;
-    this.canvas2D.style.cssText = "border-radius: 4px; width: 100%; height: auto; max-width: 512px;";
+    this.canvas2D.style.cssText = "border-radius: 4px; width: 100%; height: auto; max-width: 512px; display: block; margin: 0 auto;";
     this.ctx = this.canvas2D.getContext("2d");
-    showVisual(this.canvas2D, "🎨 Canvas 2D");
-    showText("<strong>Status:</strong> Canvas initialized (512x512)");
+    contentArea.innerHTML = "";
+    contentArea.appendChild(this.canvas2D);
     console.log("✅ [Canvas] Canvas 2D created (512x512)");
     if (rendererData && rendererData.scene) {
       console.log("🎨 [Canvas] Integrating with Three.js...");
@@ -1129,7 +1171,6 @@ const canvasTest = {
     this.ctx.fillRect(0, 0, 512, 512);
     console.log("🎨 [Canvas] Gradient drawn");
     if (this.threeIntegration) this.threeIntegration.update();
-    showText("<strong>Operation:</strong> Gradient<br><strong>Colors:</strong> #667eea → #764ba2");
   },
   drawCircles(count = 20) {
     if (!this.ctx) return;
@@ -1145,7 +1186,6 @@ const canvasTest = {
     }
     console.log(`🎨 [Canvas] ${count} circles drawn`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Circles<br><strong>Count:</strong> ${count}`);
   },
   drawText(text = "RPG Paper Craft", x = 256, y = 256) {
     if (!this.ctx) return;
@@ -1160,7 +1200,6 @@ const canvasTest = {
     this.ctx.shadowBlur = 0;
     console.log(`🎨 [Canvas] Text "${text}" drawn`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Text<br><strong>Content:</strong> "${text}"<br><strong>Position:</strong> (${x}, ${y})`);
   },
   drawFogOfWar(revealX = 256, revealY = 256, revealRadius = 100) {
     if (!this.ctx) return;
@@ -1184,7 +1223,6 @@ const canvasTest = {
     this.ctx.restore();
     console.log(`🎨 [Canvas] Fog-of-war drawn at (${revealX}, ${revealY})`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Fog of War<br><strong>Center:</strong> (${revealX}, ${revealY})<br><strong>Radius:</strong> ${revealRadius}px`);
   },
   drawGrid(cellSize = 32) {
     if (!this.ctx) return;
@@ -1204,7 +1242,6 @@ const canvasTest = {
     }
     console.log(`🎨 [Canvas] Grid drawn (cells of ${cellSize}px)`);
     if (this.threeIntegration) this.threeIntegration.update();
-    showText(`<strong>Operation:</strong> Grid<br><strong>Cell Size:</strong> ${cellSize}px<br><strong>Cells:</strong> ${Math.floor(512 / cellSize)}x${Math.floor(512 / cellSize)}`);
   },
   showThreePlane() {
     if (this.threeIntegration) {
@@ -1216,9 +1253,14 @@ const canvasTest = {
       this.threeIntegration.hide();
     }
   },
+  close() {
+    if (currentContainer) {
+      currentContainer.close();
+      currentContainer = null;
+      console.log("🗑️ [Canvas] Container fechado manualmente");
+    }
+  },
   cleanup() {
-    clearVisual();
-    clearText();
     if (this.threeIntegration && this.threeIntegration.plane) {
       this.threeIntegration.plane.parent.remove(this.threeIntegration.plane);
     }
