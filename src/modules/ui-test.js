@@ -731,14 +731,13 @@ export function initUITest(rendererData, testModules) {
     gsapTest.cleanup();
   }
 
-  }
 
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
   panel.innerHTML = `
     <h3>🧪 Test Panel ${VERSION}</h3>
-
+    
     <div class="ui-test-controls">
       <button id="btn-run-all" class="ui-test-btn ui-test-btn--system">▶ Run All</button>
     </div>
