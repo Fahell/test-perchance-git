@@ -24,36 +24,6 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - `scripts/snapshot.sh` — Environment snapshot system
 - `.husky/pre-commit` — Pre-commit hook that runs sync-version.cjs
 
-## Coding Rules
-
-- No `var`, use `const`/`let`
-- No `console.log` in production (use logger)
-- No `==`, use `===`
-- No `any` type
-- ESLint + Prettier mandatory
-
-## Testing
-
-No automated tests. Manual testing via `npm run dev` (HMR) and `npm run build` (verify `dist/` output).
-
-## ⚠️ Critical Guidelines
-
-### Known Errors to Avoid
-1. Never create `test.html`
-2. Avoid unnecessary `try/catch` in async functions
-3. Never import Three.js from Perchance URLs
-4. Always use relative imports: `import {...} from './module.js'`
-
-### Perchance Restrictions
-- CORS restrictions on iframe access
-- Read `docs/iframe-access-perchance-guide.md` for Perchance-specific workarounds
-
-### Mandatory Workflow
-- Use feature branches: `feature/auth-refactor`
-- Never commit directly to `main`
-- **Use snapshots** — create snapshots before complex refactors. `git stash` for minor changes.
-- Use `npm run release X.Y.Z` for automated release. See module.
-
 ## 📚 Context Modules
 
 **Before starting specific tasks, read the corresponding guide:**
@@ -64,3 +34,25 @@ No automated tests. Manual testing via `npm run dev` (HMR) and `npm run build` (
 | How make a New release (patch/minor/major) | `docs/release-guide.md` |
 | When user reports that your task has closed unexpectedly, restore the context and see where you left off: | `docs/agent-resume-guide.md` |
 | Before accessing Perchance via openbrowser, please read: | `docs/iframe-access-perchance-guide.md` |
+
+## Coding Rules
+
+- No `var`, use `const`/`let`
+- No `console.log` in production (use logger)
+- No `==`, use `===`
+- No `any` type
+- ESLint + Prettier mandatory
+
+## ⚠️ Critical Guidelines
+
+### Known Errors to Avoid
+1. Never create `test.html`
+2. Avoid unnecessary `try/catch` in async functions
+3. Never import Three.js from Perchance URLs
+4. Always use relative imports: `import {...} from './module.js'`
+
+### Mandatory Workflow
+- Use feature branches: `feature/auth-refactor`
+- Never commit directly to `main`
+- **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
+- Use `npm run release X.Y.Z` for automated release (update, sync, build, commit, tag, push). See docs/release-guide.md.
