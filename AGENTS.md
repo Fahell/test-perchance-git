@@ -56,3 +56,35 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - Never commit directly to `main`
 - **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
 - Use `npm run release X.Y.Z` for automated release (update, sync, build, commit, tag, push). See docs/release-guide.md.
+
+## Agent Notes
+
+**Última sessão:** Release v1.17.4 — Restauração de ui-test.js corrompido
+
+### Estado Atual
+
+- **Versão:** v1.17.4
+- **Último commit:** `4bf49f3` — chore: release v1.17.4
+- **Branch:** main (sincronizado com origin/main)
+
+### O que foi feito nesta sessão
+
+1. **Problema identificado:** `ui-test.js` foi corrompido durante edições parciais (edit_file removeu estrutura do objeto)
+2. **Solução:** Restaurado arquivo do commit v1.17.1 (872 linhas)
+3. **Release:** v1.17.4 com build 290.56 kB
+
+### Módulos de teste implementados
+
+| Módulo | Arquivo | CDN | Status |
+|--------|---------|-----|--------|
+| Mermaid | mermaid-test.js | mermaid@11 | ✅ v1.8.0 |
+| Matter.js | matter-test.js | matter-js@0.20 | ✅ v1.12.0 |
+| Cannon.js | cannon-test.js | cannon-es@0.20 | ✅ v1.12.0 |
+| IndexedDB | indexeddb-test.js | idb@8 | ✅ v1.15.0 |
+| GSAP | gsap-test.js | gsap@3.12 | ✅ v1.17.0 |
+
+### Pendente
+
+- Testar módulo GSAP no browser (Perchance)
+- Verificar se todas as animações funcionam corretamente
+- Implementar próximos módulos de teste conforme necessário
