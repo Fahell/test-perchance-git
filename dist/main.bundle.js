@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.15.0";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.15.0`;
+const VERSION = "v1.16.0";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.16.0`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -6097,8 +6097,6 @@ const cellularAutomataTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Obj
   __proto__: null,
   cellularAutomataTest
 }, Symbol.toStringTag, { value: "Module" }));
-const DB_NAME = "rpg_indexeddb_test";
-const DB_VERSION = 2;
 const STORE_TEST_DATA = "test_data";
 const STORE_AI_RESULTS = "ai_results";
 const AI_LIMITS = { maxTexts: 3, maxImages: 3 };
@@ -6177,6 +6175,9 @@ const indexeddbTest = {
   },
   async put(storeName, key, value) {
     const store = await this._tx(storeName, "readwrite");
+    if (store.keyPath) {
+      return this._request(store.put(value));
+    }
     return this._request(store.put(value, key));
   },
   async get(storeName, key) {
@@ -6226,7 +6227,6 @@ const indexeddbTest = {
   async runPrimitiveTestSuite() {
     console.log("🗃️ [IDB] Running primitive test suite...");
     await this.openDB();
-    await this.clearStore(STORE_TEST_DATA);
     const saveResults = await this.saveAllTypes();
     const keys = await this.getAllKeys(STORE_TEST_DATA);
     const roundTrips = [];
