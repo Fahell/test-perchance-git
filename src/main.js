@@ -42,7 +42,8 @@ const TEST_MODULES = {
   mermaidTest: () => import('./modules/mermaid-test.js'),
   matterTest: () => import('./modules/matter-test.js'),
   cannonTest: () => import('./modules/cannon-test.js'),
-  particlesTest: () => import('./modules/particles-test.js')
+  particlesTest: () => import('./modules/particles-test.js'),
+  cellularAutomataTest: () => import('./modules/cellular-automata-test.js')
 };
 
 // Cache de módulos carregados
