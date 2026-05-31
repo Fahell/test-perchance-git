@@ -688,6 +688,9 @@ export function initUITest(rendererData, testModules) {
     }
     
     cellularAutomataTest.init(rendererData);
+    console.log('✅ Cellular Automata: 128x128 grid initialized');
+  }
+
   async function gsapBasicHandler() {
     console.log('🎬 Testing GSAP Basic Tween...');
     if (!gsapTest) throw new Error('GSAP not available');
@@ -728,7 +731,6 @@ export function initUITest(rendererData, testModules) {
     gsapTest.cleanup();
   }
 
-    console.log('\u2705 Cellular Automata: 128x128 grid initialized');
   }
 
   const panel = document.createElement('div');
@@ -736,7 +738,7 @@ export function initUITest(rendererData, testModules) {
 
   panel.innerHTML = `
     <h3>🧪 Test Panel ${VERSION}</h3>
-    
+
     <div class="ui-test-controls">
       <button id="btn-run-all" class="ui-test-btn ui-test-btn--system">▶ Run All</button>
     </div>
