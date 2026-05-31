@@ -139,7 +139,32 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-gsap-from', name: 'GSAP From', fn: () => gsapFromHandler() },
     { btnId: 'btn-gsap-timeline', name: 'GSAP Timeline', fn: () => gsapTimelineHandler() },
     { btnId: 'btn-gsap-stagger', name: 'GSAP Stagger', fn: () => gsapStaggerHandler() },
-    { btnId: 'btn-gsap-easing', name: 'GSAP Easing', fn: () => gsapEasingHandler() },
+    { btnId: 'btn-gsap-easing', name: 'GSAP Easing', fn: () => gsapEasingHandler() }
+  ];
+  const HOW_IT_WORKS_DATA = [
+    { id: 'dice', title: '🎲 Dice', what: 'Tests Perchance native dice rolling syntax (1d4, 1d6, 1d20, etc.).', how: 'Calls <code>root.dice()</code> for each standard RPG die, captures results, and renders a comparison table.', key: 'Perchance <code>root.dice()</code>, RNG, string parsing.' },
+    { id: 'seeder', title: '🌱 Seeder', what: 'Validates deterministic seed generation for reproducible randomness.', how: 'Generates multiple seeds from the same input string and verifies they produce identical outputs across runs.', key: 'Seeded RNG, hash functions, reproducibility.' },
+    { id: 'pattern', title: '🎨 Pattern', what: 'Generates procedural textures/patterns using Perchance generators.', how: 'Creates a canvas, fills it with algorithmic patterns driven by Perchance lists, and displays the result.', key: 'Canvas 2D, procedural generation, Perchance lists.' },
+    { id: 'ai-text', title: '🤖 AI Text', what: 'Tests AI text generation via Perchance AI plugins.', how: 'Calls the AI text plugin with a prompt, waits for async response, and renders the generated text.', key: 'Async/await, plugin bridge, AI API integration.' },
+    { id: 'image', title: '🖼️ Image', what: 'Tests AI image generation and rendering.', how: 'Requests an image from the AI plugin, handles loading state, and displays the resulting image URL.', key: 'Async image loading, error handling, DOM insertion.' },
+    { id: 'tts', title: '🔊 TTS', what: 'Tests Text-to-Speech using the Web Speech API.', how: 'Initializes speech synthesis, configures voice/rate/pitch, and speaks a test phrase. Includes stop control.', key: 'Web Speech API, <code>speechSynthesis</code>, async audio.' },
+    { id: '3d', title: '🎲 Cube Color', what: 'Tests Three.js basic rendering and material color updates.', how: 'Creates a Three.js scene with a rotating cube, updates its material color dynamically, and renders to canvas.', key: 'Three.js, WebGL, animation loop, material updates.' },
+    { id: 'raycaster', title: '🖱️ Raycaster', what: 'Tests 3D click detection using Three.js Raycaster.', how: 'Sets up a scene with multiple objects, casts a ray from camera on click, and highlights the intersected object.', key: 'Three.js Raycaster, mouse coordinates, intersection testing.' },
+    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext("2d")</code>, drawing commands.' },
+    { id: 'rpg-icon', title: '⚔️ RPG Icons', what: 'Tests sprite sheet extraction and rendering for RPG-style icons.', how: 'Loads a sprite sheet, calculates tile coordinates, and draws specific icons to canvas.', key: 'Sprite sheets, <code>drawImage</code> slicing, asset management.' },
+    { id: 'particles', title: '✨ Particles', what: 'Tests a custom particle system with physics and lifecycle.', how: 'Spawns particles with velocity, gravity, and fade-out. Updates and renders them each frame.', key: 'RequestAnimationFrame, particle lifecycle, vector math.' },
+    { id: 'cellular-automata', title: '🧬 Cellular Automata', what: 'Tests grid-based simulation (e.g., Game of Life rules).', how: 'Initializes a grid, applies neighbor-based rules each tick, and renders the evolving state.', key: '2D arrays, neighbor counting, simulation loops.' },
+    { id: 'gsap', title: '🎬 GSAP', what: 'Tests GSAP animation library (tweens, timelines, staggers, easing).', how: 'Creates DOM elements, applies GSAP animations with various configs, and verifies cleanup.', key: 'GSAP core, timelines, stagger, easing, memory cleanup.' },
+    { id: 'charts', title: '📊 Charts', what: 'Tests ApexCharts integration (Bar, Line, Donut, Radar).', how: 'Initializes chart instances with mock data, renders responsive SVGs, and tests updates.', key: 'ApexCharts, data binding, SVG rendering, responsive design.' },
+    { id: 'audio', title: '🔊 Audio', what: 'Tests Web Audio/Howler.js (SFX, Music, Sprites, Volume, Stop).', how: 'Loads audio assets, plays loops/one-shots, adjusts gain, tests sprite markers, and stops playback.', key: 'Web Audio API, Howler.js, audio sprites, gain control.' },
+    { id: 'mermaid', title: '📊 Mermaid', what: 'Tests Mermaid.js diagram rendering from markdown syntax.', how: 'Passes mermaid syntax to the library, renders SVG/HTML output, and injects into container.', key: 'Mermaid.js, markdown parsing, SVG injection.' },
+    { id: 'matter', title: '⚛️ Matter.js', what: 'Tests 2D physics simulation with rigid bodies.', how: 'Creates a Matter.js world with bodies, constraints, and gravity. Runs simulation loop.', key: 'Matter.js, rigid bodies, constraints, 2D physics loop.' },
+    { id: 'cannon', title: '💣 Cannon-es', what: 'Tests 3D physics simulation and collision detection.', how: 'Sets up a Cannon-es world with spheres/boxes, applies forces, and syncs with visual mesh.', key: 'Cannon-es, 3D collisions, physics step, mesh sync.' },
+    { id: 'lists', title: '📋 Lists', what: 'Tests Perchance list evaluation and random selection.', how: 'Fetches lists via <code>getList()</code>, evaluates items, and displays random picks.', key: 'Perchance lists, <code>getList()</code>, random evaluation.' },
+    { id: 'bridge', title: '🔗 Bridge', what: 'Tests the Perchance plugin bridge communication.', how: 'Sends/receives data between JS and Perchance runtime, verifying payload integrity.', key: 'Plugin bridge, message passing, data serialization.' },
+    { id: 'state', title: '💾 Save/Load', what: 'Tests localStorage state persistence.', how: 'Serializes game state to JSON, saves to localStorage, reloads, and hydrates state.', key: '<code>localStorage</code>, JSON serialization, state hydration.' },
+    { id: 'kv', title: '🗄️ KV', what: 'Tests key-value storage plugin for structured data.', how: 'Sets/gets/deletes KV pairs, verifies persistence and type handling.', key: 'KV plugin, structured storage, CRUD operations.' },
+    { id: 'indexeddb', title: '🗃️ IndexedDB', what: 'Tests native browser NoSQL database for large/complex data.', how: 'Opens DB, saves primitives & AI results (FIFO cache), loads them back, and clears stores.', key: 'IndexedDB, async transactions, Blobs, FIFO eviction.' }
   ];
 
   async function diceHandler() {
@@ -631,50 +656,6 @@ export function initUITest(rendererData, testModules) {
     await indexeddbTest.deleteDB();
     console.log('✅ IndexedDB: All data cleared');
   }
-  async function indexeddbHowHandler() {
-    console.log('📖 Showing IndexedDB How It Works...');
-    const { contentArea } = createTestContainer('📖 IndexedDB - How It Works', { id: 'test-indexeddb-how', width: 650, height: 550 });
-    contentArea.innerHTML = `
-      <div style="padding:15px;line-height:1.7;font-size:13px;">
-        <h3 style="color:#4ade80;margin:0 0 15px;">📖 What is IndexedDB?</h3>
-        <p style="color:#e2e8f0;margin:0 0 12px;">
-          IndexedDB is a <strong style="color:#fbbf24;">native browser NoSQL database</strong> that persists data between sessions.
-          Unlike localStorage, it has no 5MB limit and supports complex data types.
-        </p>
-
-        <h3 style="color:#4ade80;margin:15px 0 10px;">📊 IndexedDB vs localStorage</h3>
-        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:15px;">
-          <tr style="background:#1e293b;">
-            <th style="padding:6px;color:#94a3b8;text-align:left;">Feature</th>
-            <th style="padding:6px;color:#fbbf24;text-align:left;">localStorage</th>
-            <th style="padding:6px;color:#4ade80;text-align:left;">IndexedDB</th>
-          </tr>
-          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Capacity</td><td style="padding:4px;border-bottom:1px solid #333;color:#ff6b6b;">~5MB</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Hundreds of MB to GB</td></tr>
-          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Data Types</td><td style="padding:4px;border-bottom:1px solid #333;color:#ff6b6b;">Strings only</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Any (Blob, Array, Object...)</td></tr>
-          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Async</td><td style="padding:4px;border-bottom:1px solid #333;color:#ff6b6b;">No (blocks UI)</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Yes (non-blocking)</td></tr>
-          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Persistence</td><td style="padding:4px;border-bottom:1px solid #333;color:#fbbf24;">Per origin</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Per origin</td></tr>
-          <tr><td style="padding:4px;color:#e2e8f0;">Transactions</td><td style="padding:4px;color:#ff6b6b;">No</td><td style="padding:4px;color:#4ade80;">Yes</td></tr>
-        </table>
-
-        <h3 style="color:#4ade80;margin:15px 0 10px;">🔧 How This Test Works</h3>
-        <ol style="color:#e2e8f0;margin:0;padding-left:20px;">
-          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB Types</strong> — Opens database <code style="background:#0f172a;padding:2px 4px;border-radius:2px;">rpg_indexeddb_test</code>, saves 9 primitive types, reads them back, and validates integrity via round-trip comparison.</li>
-          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB+AI</strong> — Generates 3 AI texts + 3 AI images using existing plugins, saves them to the <code style="background:#0f172a;padding:2px 4px;border-radius:2px;">ai_results</code> store with FIFO eviction (max 3 of each).</li>
-          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB Load</strong> — Reads all saved AI results from IndexedDB and displays texts + image thumbnails.</li>
-          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB Clear</strong> — Deletes the entire database (both stores).</li>
-        </ol>
-
-        <h3 style="color:#4ade80;margin:15px 0 10px;">🎯 When to Use IndexedDB</h3>
-        <ul style="color:#e2e8f0;margin:0;padding-left:20px;">
-          <li style="margin-bottom:4px;">Offline asset caching (images, models, audio)</li>
-          <li style="margin-bottom:4px;">AI conversation history</li>
-          <li style="margin-bottom:4px;">Game state exceeding 5MB</li>
-          <li style="margin-bottom:4px;">Binary data (Blob, ArrayBuffer, Uint8Array)</li>
-        </ul>
-      </div>`;
-    console.log('✅ How It Works displayed');
-  }
-
 
   async function cellularAutomataHandler() {
     console.log('\ud83e\uddec Testing Cellular Automata...');
@@ -740,6 +721,11 @@ export function initUITest(rendererData, testModules) {
     
     <div class="ui-test-controls">
       <button id="btn-run-all" class="ui-test-btn ui-test-btn--system">▶ Run All</button>
+    </div>
+    
+    <div class="how-it-works-section">
+      <strong style="color:#4ade80;display:block;margin-bottom:8px;">📖 How It Works</strong>
+      <div id="how-it-works-container"></div>
     </div>
     
     <div class="ui-test-category">
@@ -808,11 +794,36 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-indexeddb-ai" class="ui-test-btn ui-test-btn--data">🤖 IDB+AI</button>
       <button id="btn-indexeddb-load" class="ui-test-btn ui-test-btn--data">📂 IDB Load</button>
       <button id="btn-indexeddb-clear" class="ui-test-btn ui-test-btn--data">🗑️ IDB Clear</button>
-      <button id="btn-indexeddb-how" class="ui-test-btn ui-test-btn--data">📖 How It Works</button>
     </div>
   `;
 
   document.body.appendChild(panel);
+
+  // Render How It Works Accordion
+  const howContainer = document.getElementById('how-it-works-container');
+  if (howContainer) {
+    HOW_IT_WORKS_DATA.forEach(item => {
+      const details = document.createElement('details');
+      details.innerHTML = `
+        <summary>${item.title}</summary>
+        <div class="how-it-works-content">
+          <h4>📌 What</h4><p>${item.what}</p>
+          <h4>⚙️ How</h4><p>${item.how}</p>
+          <h4>🔑 Key Concepts</h4><p>${item.key}</p>
+        </div>
+      `;
+      howContainer.appendChild(details);
+    });
+    // Accordion behavior: only one open at a time
+    howContainer.addEventListener('toggle', (e) => {
+      if (e.target.open) {
+        howContainer.querySelectorAll('details').forEach(d => {
+          if (d !== e.target) d.open = false;
+        });
+      }
+    });
+  }
+
   console.log('📎 [UI-Test] Panel attached to document.body');
 
   const rect = panel.getBoundingClientRect();
@@ -847,7 +858,6 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-indexeddb-ai').onclick = () => runTest('btn-indexeddb-ai', 'IndexedDB AI', indexeddbAIHandler);
   document.getElementById('btn-indexeddb-load').onclick = () => runTest('btn-indexeddb-load', 'IndexedDB Load', indexeddbLoadHandler);
   document.getElementById('btn-indexeddb-clear').onclick = () => runTest('btn-indexeddb-clear', 'IndexedDB Clear', indexeddbClearHandler);
-  document.getElementById('btn-indexeddb-how').onclick = () => runTest('btn-indexeddb-how', 'IndexedDB How', indexeddbHowHandler);
   document.getElementById('btn-chart-bar').onclick = () => runTest('btn-chart-bar', 'Bar Chart', chartBarHandler);
   document.getElementById('btn-chart-line').onclick = () => runTest('btn-chart-line', 'Line Chart', chartLineHandler);
   document.getElementById('btn-chart-pie').onclick = () => runTest('btn-chart-pie', 'Pie Chart', chartPieHandler);
