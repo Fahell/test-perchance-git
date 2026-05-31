@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.14.1";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.14.1`;
+const VERSION = "v1.14.2";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.14.2`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -6177,7 +6177,8 @@ function initUITest(rendererData, testModules) {
     mermaidTest: mermaidTest2,
     matterTest: matterTest2,
     cannonTest: cannonTest2,
-    particlesTest: particlesTest2
+    particlesTest: particlesTest2,
+    cellularAutomataTest: cellularAutomataTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -6527,6 +6528,17 @@ function initUITest(rendererData, testModules) {
     particlesTest2.init(rendererData);
     console.log("✅ Particles: 50,000 particles rendered");
   }
+  async function cellularAutomataHandler() {
+    console.log("🧬 Testing Cellular Automata...");
+    if (!cellularAutomataTest2) throw new Error("Cellular Automata not available");
+    if (cellularAutomataTest2.running) {
+      cellularAutomataTest2.cleanup();
+      console.log("🗑️ Cellular Automata: Disposed");
+      return;
+    }
+    cellularAutomataTest2.init(rendererData);
+    console.log("✅ Cellular Automata: 128x128 grid initialized");
+  }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
   panel.innerHTML = `
@@ -6558,6 +6570,7 @@ function initUITest(rendererData, testModules) {
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
       <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
+      <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">🧬 Cellular Automata</button>
     </div>
     
     <div class="ui-test-category">
@@ -6632,6 +6645,7 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-matter").onclick = () => runTest("btn-matter", "Matter.js", matterHandler);
   document.getElementById("btn-cannon").onclick = () => runTest("btn-cannon", "Cannon-es", cannonHandler);
   document.getElementById("btn-particles").onclick = () => runTest("btn-particles", "Particles", particlesHandler);
+  document.getElementById("btn-cellular-automata").onclick = () => runTest("btn-cellular-automata", "Cellular Automata", cellularAutomataHandler);
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
 const uiTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
