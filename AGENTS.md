@@ -21,6 +21,7 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - `test-local.html` — Local testing outside Perchance (open in browser)
 - `scripts/release.cjs` — Automated release script
 - `scripts/sync-version.cjs` — Version synchronization script
+- `scripts/snapshot.sh` — Environment snapshot system
 - `.husky/pre-commit` — Pre-commit hook that runs sync-version.cjs
 
 ## 🧪 Git Pre-Commit Hook: Versioning Automation
@@ -153,6 +154,102 @@ console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.16.1)');
 ```
 
+## 📸 Sistema de Snapshots de Estado
+
+Snapshots permitem criar pontos de restauração antes de refatorações complexas. O sistema combina Git tags (código) + tarballs (node_modules) para restauração rápida e completa.
+
+### Uso Rápido
+
+```bash
+# Criar snapshot antes de refatoração
+npm run snapshot:create pre-refactor -- --include-deps
+
+# Se der errado, restaurar
+npm run snapshot:restore pre-refactor
+
+# Se der certo, limpar
+npm run snapshot:delete pre-refactor
+```
+
+### Comandos Disponíveis
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run snapshot:create <nome>` | Cria snapshot do estado atual |
+| `npm run snapshot:restore <nome>` | Restaura snapshot específico |
+| `npm run snapshot:list` | Lista todos os snapshots |
+| `npm run snapshot:delete <nome>` | Remove snapshot |
+| `npm run snapshot:cleanup` | Remove snapshots antigos (>7 dias) |
+| `npm run snapshot:info <nome>` | Mostra detalhes do snapshot |
+
+### Flags Importantes
+
+**Para create:**
+- `--include-deps` → Inclui `node_modules` no snapshot (recomendado)
+- `--description "texto"` → Adiciona descrição ao snapshot
+- `--force` → Sobrescreve snapshot existente (cuidado!)
+- `--no-commit` → Não cria commit WIP se working tree sujo
+
+**Para restore:**
+- `--no-backup` → Não cria backup automático antes de restaurar
+- `--no-deps` → Não restaura node_modules
+
+**Para cleanup:**
+- `--force` → Remove sem confirmação
+
+### Cenário Típico
+
+```bash
+# 1. Antes de refatoração complexa
+npm run snapshot:create pre-auth-refactor -- --include-deps --description "Antes de refatorar módulo auth"
+
+# 2. Trabalha na refatoração...
+# (modifica arquivos, instala deps, quebra coisas)
+
+# 3. Se der errado:
+npm run snapshot:restore pre-auth-refactor
+# → Restaura tudo em ~5 segundos
+
+# 4. Se der certo:
+npm run snapshot:delete pre-auth-refactor
+# → Libera espaço
+```
+
+### Como Funciona
+
+1. **Criação**: 
+   - Cria tag Git `snapshot/<nome>` com estado atual
+   - Se `--include-deps`, comprime `node_modules` para `.snapshots/<nome>-deps.tar.gz`
+   - Salva metadados em `.snapshots/<nome>.metadata.json`
+
+2. **Restauração**:
+   - Cria backup automático (`auto-backup-<timestamp>`) por segurança
+   - Checkout do tag `snapshot/<nome>`
+   - Se archive existe, extrai `node_modules`
+
+3. **Armazenamento**:
+   - Snapshots ficam em `.snapshots/` (ignorado pelo Git)
+   - Cada snapshot ocupa ~15-20 MB (com node_modules)
+   - Auto-cleanup remove snapshots >7 dias
+
+### Performance
+
+| Operação | Tempo Estimado |
+|----------|----------------|
+| Criar (sem deps) | ~1-2s |
+| Criar (com deps) | ~5-10s |
+| Restaurar (sem deps) | ~2-3s |
+| Restaurar (com deps) | ~10-15s |
+
+### Boas Práticas
+
+- ✅ Sempre use `--include-deps` para refatorações que podem quebrar dependências
+- ✅ Use nomes descritivos: `pre-auth-refactor`, `before-threejs-upgrade`
+- ✅ Adicione descrições para contexto futuro
+- ✅ Limpe snapshots antigos regularmente (`npm run snapshot:cleanup`)
+- ❌ Não crie snapshots para pequenas mudanças (use git stash)
+- ❌ Não mantenha snapshots por mais de 7 dias (use cleanup)
+
 ## Docs
 
 - `docs/iframe-access-perchance-guide.md` — How to access cross-origin Perchance iframes via CDP (browser automation).
@@ -172,6 +269,7 @@ All scripts are in `scripts/` and should be executed directly in WSL2:
 |---|---|---|
 | `scripts/release.cjs` | Automated release (updates versions, builds, commits, tags, pushes) | `npm run release 1.4.1` |
 | `scripts/sync-version.cjs` | Synchronize version across project files | `node scripts/sync-version.cjs` |
+| `scripts/snapshot.sh` | Environment snapshot system (create/restore/list/delete) | `npm run snapshot:create <name>` |
 | `scripts/dev-server.sh` | Local HTTP server for testing | `./scripts/dev-server.sh [port]` |
 | `scripts/sync.sh` | Sync with remote repository | `./scripts/sync.sh` |
 | `scripts/setup.sh` | Configure hooks and verify tools | `./scripts/setup.sh` |
@@ -188,6 +286,8 @@ find src/ -name '*.js' | head -20
 git tag -l --sort=-v:refname
 node scripts/sync-version.cjs  # Manual version sync
 npm run release X.Y.Z          # Automated release
+npm run snapshot:list          # List all snapshots
+npm run snapshot:cleanup       # Remove old snapshots
 ```
 
 ### Vite Configuration
@@ -206,6 +306,7 @@ npm run dev      # Start dev server with HMR
 npm run build    # Generate production bundle
 npm run preview  # Preview production build locally
 npm run release X.Y.Z  # Automated release
+npm run snapshot:create <name>  # Create environment snapshot
 ```
 
 ## 🎯 Output Area Module
@@ -229,3 +330,4 @@ import { showVisual, showText, showModal, clearAll } from './modules/output-area
 4. **Test locally** — use `npm run dev` before releases
 5. **Verify bundle** — check `dist/main.bundle.js` after changes
 6. **Wait for CDN** — allow ~10 minutes for jsDelivr propagation
+7. **Use snapshots** — create snapshots before complex refactors
