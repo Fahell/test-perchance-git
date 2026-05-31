@@ -1,3 +1,6 @@
+const DB_NAME = 'TestPerchanceDB';
+const DB_VERSION = 1;
+
 const STORE_TEST_DATA = 'test_data';
 const STORE_AI_RESULTS = 'ai_results';
 const AI_LIMITS = { maxTexts: 3, maxImages: 3 };
