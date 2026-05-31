@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.16.0";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.16.0`;
+const VERSION = "v1.16.1";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.16.1`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -6097,6 +6097,8 @@ const cellularAutomataTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Obj
   __proto__: null,
   cellularAutomataTest
 }, Symbol.toStringTag, { value: "Module" }));
+const DB_NAME = "TestPerchanceDB";
+const DB_VERSION = 1;
 const STORE_TEST_DATA = "test_data";
 const STORE_AI_RESULTS = "ai_results";
 const AI_LIMITS = { maxTexts: 3, maxImages: 3 };
