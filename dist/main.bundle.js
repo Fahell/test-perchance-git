@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.17.8";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.17.8`;
+const VERSION = "v1.17.9";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.17.9`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -7394,6 +7394,40 @@ function initUITest(rendererData, testModules) {
     }
     cellularAutomataTest2.init(rendererData);
     console.log("✅ Cellular Automata: 128x128 grid initialized");
+  }
+  async function gsapBasicHandler() {
+    console.log("🎬 Testing GSAP Basic Tween...");
+    if (!gsapTest2) throw new Error("GSAP not available");
+    if (gsapTest2.isLoading && gsapTest2.isLoading()) {
+      console.log("⏳ GSAP still loading, waiting...");
+      await gsapTest2.getGsap();
+    }
+    await gsapTest2.testBasicTween();
+  }
+  async function gsapFromHandler() {
+    console.log("🎬 Testing GSAP From Tween...");
+    if (!gsapTest2) throw new Error("GSAP not available");
+    await gsapTest2.testFromTween();
+  }
+  async function gsapTimelineHandler() {
+    console.log("🎬 Testing GSAP Timeline...");
+    if (!gsapTest2) throw new Error("GSAP not available");
+    await gsapTest2.testTimeline();
+  }
+  async function gsapStaggerHandler() {
+    console.log("🎬 Testing GSAP Stagger...");
+    if (!gsapTest2) throw new Error("GSAP not available");
+    await gsapTest2.testStagger();
+  }
+  async function gsapEasingHandler() {
+    console.log("🎬 Testing GSAP Easing...");
+    if (!gsapTest2) throw new Error("GSAP not available");
+    await gsapTest2.testEasing();
+  }
+  async function gsapCleanupHandler() {
+    console.log("🧹 GSAP Cleanup...");
+    if (!gsapTest2) throw new Error("GSAP not available");
+    gsapTest2.cleanup();
   }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
