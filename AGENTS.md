@@ -59,32 +59,38 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 
 ## Agent Notes
 
-**Última sessão:** Release v1.17.6 — Bump de versão para bypass de cache CDN
+**Última sessão:** Release v1.17.7 — Fix GSAP handlers exposed to window scope
 
 ### Estado Atual
 
-- **Versão:** v1.17.6
-- **Último commit:** `2395b23` — chore: release v1.17.6
+- **Versão:** v1.17.7
+- **Último commit:** `72b2733` — chore: release v1.17.7
 - **Branch:** main (sincronizado com origin/main)
 
 ### O que foi feito nesta sessão
 
-1. **Problema:** Cache do CDN jsDelivr estava servindo versão antiga (v1.17.1)
-2. **Solução:** Bump de versão v1.17.4 → v1.17.6 (pulo v1.17.5 por tag conflitante)
-3. **Release:** v1.17.6 com build 290.56 kB
+1. **Problema:** `ReferenceError: gsapTimelineHandler is not defined` (e handlers similares)
+2. **Causa:** Handlers GSAP definidos com `const` dentro do escopo de `initTestUI()`, mas botões HTML usavam `onclick` inline que tentavam acessá-los do escopo global
+3. **Solução:** Restaurado `ui-test.js` do commit `079cbc4` que já continha as linhas `window.gsap*Handler = ...` expondo os handlers ao escopo global
+4. **Release:** v1.17.7 com build 245.54 kB
 
 ### Módulos de teste implementados
 
 | Módulo | Arquivo | CDN | Status |
 |--------|---------|-----|--------|
 | Mermaid | mermaid-test.js | mermaid@11 | ✅ v1.8.0 |
-| Matter.js | matter-test.js | matter-js@0.20 | ✅ v1.12.0 |
-| Cannon.js | cannon-test.js | cannon-es@0.20 | ✅ v1.12.0 |
-| IndexedDB | indexeddb-test.js | idb@8 | ✅ v1.15.0 |
+| Matter | matter-test.js | matter-js@0.19 | ✅ v1.9.0 |
+| Cannon | cannon-test.js | cannon-es@0.20 | ✅ v1.10.0 |
+| IndexedDB | indexeddb-test.js | idb@7.1 | ✅ v1.14.0 |
+| Audio | audio-test.js | tone@14.8 | ✅ v1.15.0 |
+| TTS | tts-test.js | Web Speech API | ✅ v1.15.0 |
+| Seeder | seeder-test.js | seedrandom@3.0 | ✅ v1.15.0 |
+| Chart | chart-test.js | chart.js@4.4 | ✅ v1.16.0 |
+| Cellular Automata | cellular-automata-test.js | N/A | ✅ v1.16.0 |
 | GSAP | gsap-test.js | gsap@3.12 | ✅ v1.17.0 |
 
-### Pendente
+### Lições aprendidas
 
-- Testar módulo GSAP no browser (Perchance)
-- Verificar se todas as animações funcionam corretamente
-- Implementar próximos módulos de teste conforme necessário
+1. **Snapshot antes de edições:** Sempre usar `git stash push -m "snapshot: before <change>"` antes de edições parciais com `edit_file`
+2. **Handlers globais para onclick:** Quando botões HTML usam `onclick` inline, os handlers DEVEM ser expostos ao `window` explicitamente
+3. **Verificar arquivo após restauração:** Sempre verificar o conteúdo do arquivo após `git checkout` para garantir que não há corrupção
