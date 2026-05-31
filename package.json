@@ -9,7 +9,13 @@
     "preview": "vite preview",
     "release": "node scripts/release.cjs",
     "refactor-imports": "node scripts/refactor-imports.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "snapshot:create": "bash scripts/snapshot.sh create",
+    "snapshot:restore": "bash scripts/snapshot.sh restore",
+    "snapshot:list": "bash scripts/snapshot.sh list",
+    "snapshot:delete": "bash scripts/snapshot.sh delete",
+    "snapshot:cleanup": "bash scripts/snapshot.sh cleanup",
+    "snapshot:info": "bash scripts/snapshot.sh info"
   },
   "repository": {
     "type": "git",
