@@ -30,10 +30,27 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 
 | Situation | File to Read |
 |-----------|--------------|
-| Before Major refactoring or risky change | `docs/snapshot-guide.md` |
-| How make a New release (patch/minor/major) | `docs/release-guide.md` |
-| When user reports that your task has closed unexpectedly, restore the context and see where you left off: | `docs/agent-resume-guide.md` |
-| Before accessing Perchance via openbrowser, please read: | `docs/iframe-access-perchance-guide.md` |
+| Before starting any task or after session resume | `.agent-notes.md` |
+| Before major refactoring or risky change | `docs/snapshot-guide.md` |
+| How to make a new release (patch/minor/major) | `docs/release-guide.md` |
+| When session drops unexpectedly and you need to restore context | `docs/agent-resume-guide.md` |
+| Before accessing Perchance via openbrowser | `docs/iframe-access-perchance-guide.md` |
+
+## 📝 Agent Task Log (`.agent-notes.md`)
+
+This file is the **structured working memory** for AI agents. It tracks planned tasks, progress, and blockers per release version.
+
+### How to use it
+1. **Before starting work:** Create a new version block with `🟡 IN PROGRESS` and list all planned steps
+2. **During execution:** Mark each task with `[x]` immediately after completion and validation
+3. **On release:** Update status to `✅ COMPLETED`, add technical notes, and close the block
+4. **After session drop:** Read the `🟡 IN PROGRESS` block to resume exactly where you left off. Combine with `docs/agent-resume-guide.md` for full context restoration
+
+### Rules
+- Never delete completed blocks; they serve as an agent-level changelog
+- Keep descriptions concise and action-oriented
+- Always reference commits, snapshots, or docs when relevant
+- This file complements git history; it does not replace it
 
 ## Coding Rules
 
