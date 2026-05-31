@@ -2,7 +2,7 @@
 
 1. **Read FIRST:** `~/.ai-agent-instructions.md`
 2. **Then read this file** — project-specific context
-3. In case of conflict, warn user
+3. Always read `AGENTS.md` to refresh your context before carrying out new tasks; your context window loses information over time
 
 ## Project Overview
 
@@ -23,15 +23,6 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - `scripts/sync-version.cjs` — Version synchronization script
 - `scripts/snapshot.sh` — Environment snapshot system
 - `.husky/pre-commit` — Pre-commit hook that runs sync-version.cjs
-
-## Build & Development
-
-```bash
-npm run dev      # Start dev server with HMR
-npm run build    # Generate production bundle
-npm run preview  # Preview production build locally
-npm run release X.Y.Z  # Automated release
-```
 
 ## Coding Rules
 
@@ -58,19 +49,10 @@ No automated tests. Manual testing via `npm run dev` (HMR) and `npm run build` (
 - Read `docs/iframe-access-perchance-guide.md` for Perchance-specific workarounds
 
 ### Mandatory Workflow
-- One PR per change, avoid mega-PRs
 - Use feature branches: `feature/auth-refactor`
 - Never commit directly to `main`
-
-## 🛡️ Security & Best Practices
-
-1. **One change at a time** — avoid mega PRs
-2. **Defensive programming** — validate inputs, handle errors
-3. **Read before editing** — understand existing code before modifying
-4. **Test locally** — use `npm run dev` before releases
-5. **Verify bundle** — check `dist/main.bundle.js` after changes
-6. **Wait for CDN** — allow ~10 minutes for jsDelivr propagation
-7. **Use snapshots** — create snapshots before complex refactors
+- **Use snapshots** — create snapshots before complex refactors. `git stash` for minor changes.
+- Use `npm run release X.Y.Z` for automated release. See module.
 
 ## 📚 Context Modules
 
@@ -78,9 +60,7 @@ No automated tests. Manual testing via `npm run dev` (HMR) and `npm run build` (
 
 | Situation | File to Read |
 |-----------|--------------|
-| Major refactoring or risky change | `docs/snapshot-guide.md` |
-| New release (patch/minor/major) | `docs/release-guide.md` |
-| Session persistence needed | `docs/agent-resume-guide.md` |
-| Perchance CORS/iframe issues | `docs/iframe-access-perchance-guide.md` |
-
-**Note:** Only load modules when relevant to the current task to save tokens and maintain focus.
+| Before Major refactoring or risky change | `docs/snapshot-guide.md` |
+| How make a New release (patch/minor/major) | `docs/release-guide.md` |
+| When user reports that your task has closed unexpectedly, restore the context and see where you left off: | `docs/agent-resume-guide.md` |
+| Before accessing Perchance via openbrowser, please read: | `docs/iframe-access-perchance-guide.md` |
