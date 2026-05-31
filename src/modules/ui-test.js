@@ -101,7 +101,8 @@ export function initUITest(rendererData, testModules) {
     cannonTest,
     particlesTest,
     cellularAutomataTest,
-    indexeddbTest
+    indexeddbTest,
+    gsapTest
   } = testModules;
 
   // Test definitions for Run All
@@ -134,6 +135,11 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-matter', name: 'Matter.js', fn: () => matterHandler() },
     { btnId: 'btn-cannon', name: 'Cannon-es', fn: () => cannonHandler() },
     { btnId: 'btn-particles', name: 'Particles', fn: () => particlesHandler() },
+    { btnId: 'btn-gsap-basic', name: 'GSAP Tween', fn: () => gsapBasicHandler() },
+    { btnId: 'btn-gsap-from', name: 'GSAP From', fn: () => gsapFromHandler() },
+    { btnId: 'btn-gsap-timeline', name: 'GSAP Timeline', fn: () => gsapTimelineHandler() },
+    { btnId: 'btn-gsap-stagger', name: 'GSAP Stagger', fn: () => gsapStaggerHandler() },
+    { btnId: 'btn-gsap-easing', name: 'GSAP Easing', fn: () => gsapEasingHandler() },
   ];
 
   async function diceHandler() {
@@ -682,6 +688,46 @@ export function initUITest(rendererData, testModules) {
     }
     
     cellularAutomataTest.init(rendererData);
+  async function gsapBasicHandler() {
+    console.log('🎬 Testing GSAP Basic Tween...');
+    if (!gsapTest) throw new Error('GSAP not available');
+    if (gsapTest.isLoading && gsapTest.isLoading()) {
+      console.log('⏳ GSAP still loading, waiting...');
+      await gsapTest.getGsap();
+    }
+    await gsapTest.testBasicTween();
+  }
+
+  async function gsapFromHandler() {
+    console.log('🎬 Testing GSAP From Tween...');
+    if (!gsapTest) throw new Error('GSAP not available');
+    await gsapTest.testFromTween();
+  }
+
+  async function gsapTimelineHandler() {
+    console.log('🎬 Testing GSAP Timeline...');
+    if (!gsapTest) throw new Error('GSAP not available');
+    await gsapTest.testTimeline();
+  }
+
+  async function gsapStaggerHandler() {
+    console.log('🎬 Testing GSAP Stagger...');
+    if (!gsapTest) throw new Error('GSAP not available');
+    await gsapTest.testStagger();
+  }
+
+  async function gsapEasingHandler() {
+    console.log('🎬 Testing GSAP Easing...');
+    if (!gsapTest) throw new Error('GSAP not available');
+    await gsapTest.testEasing();
+  }
+
+  async function gsapCleanupHandler() {
+    console.log('🧹 GSAP Cleanup...');
+    if (!gsapTest) throw new Error('GSAP not available');
+    gsapTest.cleanup();
+  }
+
     console.log('\u2705 Cellular Automata: 128x128 grid initialized');
   }
 
@@ -718,6 +764,12 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
       <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
       <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">\ud83e\uddec Cellular Automata</button>
+      <button id="btn-gsap-basic" class="ui-test-btn ui-test-btn--render">🎬 GSAP Tween</button>
+      <button id="btn-gsap-from" class="ui-test-btn ui-test-btn--render">🎬 GSAP From</button>
+      <button id="btn-gsap-timeline" class="ui-test-btn ui-test-btn--render">🎬 Timeline</button>
+      <button id="btn-gsap-stagger" class="ui-test-btn ui-test-btn--render">🎬 Stagger</button>
+      <button id="btn-gsap-easing" class="ui-test-btn ui-test-btn--render">🎬 Easing</button>
+      <button id="btn-gsap-cleanup" class="ui-test-btn ui-test-btn--render">🧹 Cleanup</button>
     </div>
     
     <div class="ui-test-category">
@@ -809,6 +861,12 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-cannon').onclick = () => runTest('btn-cannon', 'Cannon-es', cannonHandler);
   document.getElementById('btn-particles').onclick = () => runTest('btn-particles', 'Particles', particlesHandler);
   document.getElementById('btn-cellular-automata').onclick = () => runTest('btn-cellular-automata', 'Cellular Automata', cellularAutomataHandler);
+  document.getElementById('btn-gsap-basic').onclick = () => runTest('btn-gsap-basic', 'GSAP Tween', gsapBasicHandler);
+  document.getElementById('btn-gsap-from').onclick = () => runTest('btn-gsap-from', 'GSAP From', gsapFromHandler);
+  document.getElementById('btn-gsap-timeline').onclick = () => runTest('btn-gsap-timeline', 'GSAP Timeline', gsapTimelineHandler);
+  document.getElementById('btn-gsap-stagger').onclick = () => runTest('btn-gsap-stagger', 'GSAP Stagger', gsapStaggerHandler);
+  document.getElementById('btn-gsap-easing').onclick = () => runTest('btn-gsap-easing', 'GSAP Easing', gsapEasingHandler);
+  document.getElementById('btn-gsap-cleanup').onclick = () => runTest('btn-gsap-cleanup', 'GSAP Cleanup', gsapCleanupHandler);
 
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }

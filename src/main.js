@@ -44,7 +44,8 @@ const TEST_MODULES = {
   cannonTest: () => import('./modules/cannon-test.js'),
   particlesTest: () => import('./modules/particles-test.js'),
   cellularAutomataTest: () => import('./modules/cellular-automata-test.js'),
-  indexeddbTest: () => import('./modules/indexeddb-test.js')
+  indexeddbTest: () => import('./modules/indexeddb-test.js'),
+  gsapTest: () => import('./modules/gsap-test.js')
 };
 
 // Cache de módulos carregados
@@ -167,6 +168,13 @@ export async function initGame() {
     if (cannonModule && cannonModule.cannonTest && cannonModule.cannonTest.preloadCannon) {
       cannonModule.cannonTest.preloadCannon();
     }
+    // 3.8. Start preloading GSAP in background (non-blocking)
+    console.log('🎬 [Main] Starting GSAP background preload...');
+    const gsapModule = await TEST_MODULES.gsapTest();
+    if (gsapModule && gsapModule.gsapTest && gsapModule.gsapTest.preloadGsap) {
+      gsapModule.gsapTest.preloadGsap();
+    }
+
 
     // 4. Inicializa módulos que precisam de setup (raycasterTest, particlesTest)
     initTestModules(testModules, rendererData);
