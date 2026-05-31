@@ -1,4 +1,4 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import * as THREE$1 from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 const getPerchanceRoot = () => {
   if (typeof window !== "undefined") {
     if (window.root) return window.root;
@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.13.0";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.13.0`;
+const VERSION = "v1.14.0";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.14.0`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -74,11 +74,11 @@ function initRenderer(container2) {
       console.log("🗑️ [Renderer] Elemento com z-index alto removido.");
     }
   });
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(2105381);
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1e3);
+  const scene = new THREE$1.Scene();
+  scene.background = new THREE$1.Color(2105381);
+  const camera = new THREE$1.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1e3);
   camera.position.z = 5;
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE$1.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.domElement.style.position = "fixed";
   renderer.domElement.style.top = "0";
@@ -87,14 +87,14 @@ function initRenderer(container2) {
   renderer.domElement.style.pointerEvents = "auto";
   renderer.domElement.setAttribute("data-threejs", "true");
   document.body.appendChild(renderer.domElement);
-  const ambientLight = new THREE.AmbientLight(16777215, 0.6);
+  const ambientLight = new THREE$1.AmbientLight(16777215, 0.6);
   scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(16777215, 0.8);
+  const directionalLight = new THREE$1.DirectionalLight(16777215, 0.8);
   directionalLight.position.set(5, 5, 5);
   scene.add(directionalLight);
-  const geometry2 = new THREE.BoxGeometry(1, 1, 1);
-  const material2 = new THREE.MeshStandardMaterial({ color: 3900150 });
-  const cube = new THREE.Mesh(geometry2, material2);
+  const geometry2 = new THREE$1.BoxGeometry(1, 1, 1);
+  const material2 = new THREE$1.MeshStandardMaterial({ color: 3900150 });
+  const cube = new THREE$1.Mesh(geometry2, material2);
   scene.add(cube);
   const updateCallbacks = [];
   let lastTime = performance.now();
@@ -174,7 +174,8 @@ const TEST_MODULES = {
   mermaidTest: () => Promise.resolve().then(() => mermaidTest$1),
   matterTest: () => Promise.resolve().then(() => matterTest),
   cannonTest: () => Promise.resolve().then(() => cannonTest),
-  particlesTest: () => Promise.resolve().then(() => particlesTest)
+  particlesTest: () => Promise.resolve().then(() => particlesTest),
+  cellularAutomataTest: () => Promise.resolve().then(() => cellularAutomataTest$1)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -414,7 +415,7 @@ function createTestContainer(title, options = {}) {
     close
   };
 }
-let currentContainer$1 = null;
+let currentContainer$2 = null;
 const imageTest = {
   available: !!root.image,
   // Helper para extrair URL da imagem do retorno do plugin
@@ -430,18 +431,18 @@ const imageTest = {
   },
   // Cria ou reutiliza o container modal
   _getOrCreateContainer(title) {
-    if (currentContainer$1) {
-      currentContainer$1.close();
+    if (currentContainer$2) {
+      currentContainer$2.close();
     }
-    currentContainer$1 = createTestContainer(title, {
+    currentContainer$2 = createTestContainer(title, {
       width: 900,
       height: 700,
       onClose: () => {
-        currentContainer$1 = null;
+        currentContainer$2 = null;
         console.log("🗑️ [Image] Container fechado");
       }
     });
-    return currentContainer$1;
+    return currentContainer$2;
   },
   // Teste 1: Geração básica com seed fixa
   async testBasicImage() {
@@ -607,9 +608,9 @@ const imageTest = {
   },
   // Fecha o container
   close() {
-    if (currentContainer$1) {
-      currentContainer$1.close();
-      currentContainer$1 = null;
+    if (currentContainer$2) {
+      currentContainer$2.close();
+      currentContainer$2 = null;
       console.log("🗑️ [Image] Container fechado manualmente");
     }
   }
@@ -995,18 +996,18 @@ const raycasterTest = {
       return false;
     }
     this.rendererData = rendererData;
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
+    this.raycaster = new THREE$1.Raycaster();
+    this.mouse = new THREE$1.Vector2();
     const { scene, camera, renderer } = rendererData;
     const colors = [16739179, 5164484, 16770669, 9822675];
     for (let i = 0; i < 4; i++) {
-      const geometry2 = new THREE.SphereGeometry(0.5, 16, 16);
-      const material2 = new THREE.MeshStandardMaterial({
+      const geometry2 = new THREE$1.SphereGeometry(0.5, 16, 16);
+      const material2 = new THREE$1.MeshStandardMaterial({
         color: colors[i],
         roughness: 0.3,
         metalness: 0.7
       });
-      const sphere = new THREE.Mesh(geometry2, material2);
+      const sphere = new THREE$1.Mesh(geometry2, material2);
       sphere.position.x = (i - 1.5) * 2;
       sphere.position.y = -2;
       sphere.position.z = -3;
@@ -1087,7 +1088,7 @@ const raycasterTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.def
   __proto__: null,
   raycasterTest
 }, Symbol.toStringTag, { value: "Module" }));
-let currentContainer = null;
+let currentContainer$1 = null;
 const canvasTest = {
   available: true,
   canvas2D: null,
@@ -1095,19 +1096,19 @@ const canvasTest = {
   threeIntegration: null,
   // Cria ou reutiliza o container modal
   _getOrCreateContainer(title) {
-    if (currentContainer) {
-      currentContainer.close();
+    if (currentContainer$1) {
+      currentContainer$1.close();
     }
-    currentContainer = createTestContainer(title, {
+    currentContainer$1 = createTestContainer(title, {
       width: 700,
       height: 650,
       onClose: () => {
         this.cleanup();
-        currentContainer = null;
+        currentContainer$1 = null;
         console.log("🗑️ [Canvas] Container fechado");
       }
     });
-    return currentContainer;
+    return currentContainer$1;
   },
   init(rendererData) {
     console.log("🎨 [Canvas] Initializing Canvas 2D test...");
@@ -1122,15 +1123,15 @@ const canvasTest = {
     console.log("✅ [Canvas] Canvas 2D created (512x512)");
     if (rendererData && rendererData.scene) {
       console.log("🎨 [Canvas] Integrating with Three.js...");
-      const texture = new THREE.CanvasTexture(this.canvas2D);
+      const texture = new THREE$1.CanvasTexture(this.canvas2D);
       texture.needsUpdate = true;
-      const geometry2 = new THREE.PlaneGeometry(4, 4);
-      const material2 = new THREE.MeshBasicMaterial({
+      const geometry2 = new THREE$1.PlaneGeometry(4, 4);
+      const material2 = new THREE$1.MeshBasicMaterial({
         map: texture,
-        side: THREE.DoubleSide,
+        side: THREE$1.DoubleSide,
         transparent: true
       });
-      const plane = new THREE.Mesh(geometry2, material2);
+      const plane = new THREE$1.Mesh(geometry2, material2);
       plane.position.set(0, 0, -5);
       plane.visible = false;
       rendererData.scene.add(plane);
@@ -1246,9 +1247,9 @@ const canvasTest = {
     }
   },
   close() {
-    if (currentContainer) {
-      currentContainer.close();
-      currentContainer = null;
+    if (currentContainer$1) {
+      currentContainer$1.close();
+      currentContainer$1 = null;
       console.log("🗑️ [Canvas] Container fechado manualmente");
     }
   },
@@ -5306,18 +5307,18 @@ async function initPhysics3D() {
     createContainer();
     const width = canvasContainer.clientWidth || 600;
     const height = canvasContainer.clientHeight || 400;
-    sceneRef$1 = new THREE.Scene();
-    sceneRef$1.background = new THREE.Color(1710638);
-    cameraRef = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+    sceneRef$1 = new THREE$1.Scene();
+    sceneRef$1.background = new THREE$1.Color(1710638);
+    cameraRef = new THREE$1.PerspectiveCamera(60, width / height, 0.1, 100);
     cameraRef.position.set(8, 8, 8);
     cameraRef.lookAt(0, 0, 0);
-    rendererRef = new THREE.WebGLRenderer({ antialias: true });
+    rendererRef = new THREE$1.WebGLRenderer({ antialias: true });
     rendererRef.setSize(width, height);
     rendererRef.setPixelRatio(window.devicePixelRatio);
     canvasContainer.appendChild(rendererRef.domElement);
-    const ambientLight = new THREE.AmbientLight(4210752, 2);
+    const ambientLight = new THREE$1.AmbientLight(4210752, 2);
     sceneRef$1.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(16777215, 1.5);
+    const directionalLight = new THREE$1.DirectionalLight(16777215, 1.5);
     directionalLight.position.set(5, 10, 5);
     sceneRef$1.add(directionalLight);
     world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
@@ -5335,7 +5336,7 @@ async function initPhysics3D() {
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     groundBody.material = defaultMaterial;
     world.addBody(groundBody);
-    const gridHelper = new THREE.GridHelper(20, 20, 4868682, 2763306);
+    const gridHelper = new THREE$1.GridHelper(20, 20, 4868682, 2763306);
     sceneRef$1.add(gridHelper);
     addSpheres(5);
     const fixedTimeStep = 1 / 60;
@@ -5363,9 +5364,9 @@ function addSphere(x, y, z) {
   body.sleepSpeedLimit = 0.5;
   body.sleepTimeLimit = 1;
   world.addBody(body);
-  const geometry2 = new THREE.SphereGeometry(radius, 16, 16);
-  const material2 = new THREE.MeshPhongMaterial({ color });
-  const mesh = new THREE.Mesh(geometry2, material2);
+  const geometry2 = new THREE$1.SphereGeometry(radius, 16, 16);
+  const material2 = new THREE$1.MeshPhongMaterial({ color });
+  const mesh = new THREE$1.Mesh(geometry2, material2);
   sceneRef$1.add(mesh);
   physicsObjects.push({ body, mesh });
   bodyCount++;
@@ -5390,9 +5391,9 @@ function addBox(x, y, z) {
   body.sleepSpeedLimit = 0.5;
   body.sleepTimeLimit = 1;
   world.addBody(body);
-  const geometry2 = new THREE.BoxGeometry(size, size, size);
-  const material2 = new THREE.MeshPhongMaterial({ color });
-  const mesh = new THREE.Mesh(geometry2, material2);
+  const geometry2 = new THREE$1.BoxGeometry(size, size, size);
+  const material2 = new THREE$1.MeshPhongMaterial({ color });
+  const mesh = new THREE$1.Mesh(geometry2, material2);
   sceneRef$1.add(mesh);
   physicsObjects.push({ body, mesh });
   bodyCount++;
@@ -5558,7 +5559,7 @@ const fragmentShader = `
   }
 `;
 function generateColor(mode, index, total) {
-  const color = new THREE.Color();
+  const color = new THREE$1.Color();
   switch (mode) {
     case "rainbow":
       color.setHSL(index / total * 0.8, 0.8, 0.4);
@@ -5662,16 +5663,16 @@ function createGeometry(count) {
     sizes[i] = sizeMin + Math.random() * (sizeMax - sizeMin);
     lives[i] = 2 + Math.random() * 3;
   }
-  const geom = new THREE.BufferGeometry();
-  geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geom.setAttribute("aVelocity", new THREE.BufferAttribute(velocities, 3));
-  geom.setAttribute("aColor", new THREE.BufferAttribute(colors, 3));
-  geom.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
-  geom.setAttribute("aLife", new THREE.BufferAttribute(lives, 1));
+  const geom = new THREE$1.BufferGeometry();
+  geom.setAttribute("position", new THREE$1.BufferAttribute(positions, 3));
+  geom.setAttribute("aVelocity", new THREE$1.BufferAttribute(velocities, 3));
+  geom.setAttribute("aColor", new THREE$1.BufferAttribute(colors, 3));
+  geom.setAttribute("aSize", new THREE$1.BufferAttribute(sizes, 1));
+  geom.setAttribute("aLife", new THREE$1.BufferAttribute(lives, 1));
   return geom;
 }
 function createMaterial() {
-  return new THREE.ShaderMaterial({
+  return new THREE$1.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
       uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
@@ -5684,7 +5685,7 @@ function createMaterial() {
     fragmentShader,
     transparent: true,
     depthWrite: false,
-    blending: THREE.NormalBlending
+    blending: THREE$1.NormalBlending
     // Changed from AdditiveBlending to prevent white saturation
   });
 }
@@ -5696,7 +5697,7 @@ function buildParticleSystem(scene) {
   }
   geometry = createGeometry(config.count);
   material = createMaterial();
-  particles = new THREE.Points(geometry, material);
+  particles = new THREE$1.Points(geometry, material);
   particles.frustumCulled = false;
   scene.add(particles);
   sceneRef = scene;
@@ -5789,6 +5790,311 @@ const particlesTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defin
   setSizeMultiplier,
   setSpeedMultiplier,
   update
+}, Symbol.toStringTag, { value: "Module" }));
+const PRESETS = {
+  life: { born: [3], survive: [2, 3], name: "Game of Life" },
+  seeds: { born: [2], survive: [], name: "Seeds" },
+  dayNight: { born: [3, 6, 7, 8], survive: [3, 4, 6, 7, 8], name: "Day & Night" },
+  highLife: { born: [3, 6], survive: [2, 3], name: "HighLife" },
+  replicator: { born: [1, 3, 5, 7], survive: [1, 3, 5, 7], name: "Replicator" }
+};
+let currentContainer = null;
+const cellularAutomataTest = {
+  available: true,
+  canvas: null,
+  ctx: null,
+  imageData: null,
+  gridCurrent: null,
+  gridNext: null,
+  cols: 0,
+  rows: 0,
+  cellSize: 4,
+  animationId: null,
+  running: false,
+  generation: 0,
+  fps: 30,
+  lastFrameTime: 0,
+  rule: PRESETS.life,
+  threeIntegration: null,
+  _getOrCreateContainer(title) {
+    if (currentContainer) {
+      currentContainer.close();
+    }
+    currentContainer = createTestContainer(title, {
+      width: 750,
+      height: 700,
+      onClose: () => {
+        this.cleanup();
+        currentContainer = null;
+        console.log("🗑️ [CellularAutomata] Container fechado");
+      }
+    });
+    return currentContainer;
+  },
+  init(rendererData) {
+    console.log("🧬 [CellularAutomata] Initializing...");
+    const { contentArea } = this._getOrCreateContainer("🧬 Cellular Automata");
+    this.canvas = document.createElement("canvas");
+    this.canvas.width = 512;
+    this.canvas.height = 512;
+    this.canvas.style.cssText = "border-radius: 4px; width: 100%; height: auto; max-width: 512px; display: block; margin: 0 auto; cursor: crosshair; image-rendering: pixelated;";
+    this.ctx = this.canvas.getContext("2d", { willReadFrequently: true });
+    this.cols = Math.floor(this.canvas.width / this.cellSize);
+    this.rows = Math.floor(this.canvas.height / this.cellSize);
+    this.gridCurrent = new Uint8Array(this.cols * this.rows);
+    this.gridNext = new Uint8Array(this.cols * this.rows);
+    this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+    this._buildControls(contentArea);
+    contentArea.appendChild(this.canvas);
+    this.randomize(0.3);
+    this._render();
+    this.canvas.addEventListener("click", (e) => this._handleCanvasClick(e));
+    if (rendererData && rendererData.scene && typeof THREE !== "undefined") {
+      this._initThreeIntegration(rendererData);
+    }
+    console.log(`✅ [CellularAutomata] Grid ${this.cols}x${this.rows}, cell=${this.cellSize}px`);
+  },
+  _buildControls(container2) {
+    const controls = document.createElement("div");
+    controls.style.cssText = "display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; justify-content: center;";
+    const btnStyle = "padding: 4px 10px; border: 1px solid #555; border-radius: 4px; background: #2a2a2a; color: #eee; cursor: pointer; font-size: 12px;";
+    const btnPlay = document.createElement("button");
+    btnPlay.textContent = "▶ Play";
+    btnPlay.style.cssText = btnStyle;
+    btnPlay.onclick = () => {
+      if (this.running) {
+        this.stop();
+        btnPlay.textContent = "▶ Play";
+      } else {
+        this.start();
+        btnPlay.textContent = "⏸ Pause";
+      }
+    };
+    const btnStep = document.createElement("button");
+    btnStep.textContent = "⏭ Step";
+    btnStep.style.cssText = btnStyle;
+    btnStep.onclick = () => {
+      this.stop();
+      btnPlay.textContent = "▶ Play";
+      this.step();
+    };
+    const btnRandom = document.createElement("button");
+    btnRandom.textContent = "🎲 Random";
+    btnRandom.style.cssText = btnStyle;
+    btnRandom.onclick = () => this.randomize(0.3);
+    const btnClear = document.createElement("button");
+    btnClear.textContent = "🗑 Clear";
+    btnClear.style.cssText = btnStyle;
+    btnClear.onclick = () => this.clear();
+    const selectRule = document.createElement("select");
+    selectRule.style.cssText = "padding: 4px; border-radius: 4px; background: #2a2a2a; color: #eee; border: 1px solid #555; font-size: 12px;";
+    for (const [key, preset] of Object.entries(PRESETS)) {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = preset.name;
+      selectRule.appendChild(opt);
+    }
+    selectRule.onchange = () => this.setRule(selectRule.value);
+    const lblSpeed = document.createElement("label");
+    lblSpeed.style.cssText = "color: #ccc; font-size: 12px; display: flex; align-items: center; gap: 4px;";
+    lblSpeed.textContent = "FPS: ";
+    const sliderSpeed = document.createElement("input");
+    sliderSpeed.type = "range";
+    sliderSpeed.min = "1";
+    sliderSpeed.max = "60";
+    sliderSpeed.value = String(this.fps);
+    sliderSpeed.style.width = "80px";
+    const spanFps = document.createElement("span");
+    spanFps.textContent = String(this.fps);
+    spanFps.style.cssText = "min-width: 20px; color: #aaa; font-size: 12px;";
+    sliderSpeed.oninput = () => {
+      this.fps = parseInt(sliderSpeed.value, 10);
+      spanFps.textContent = String(this.fps);
+    };
+    lblSpeed.appendChild(sliderSpeed);
+    lblSpeed.appendChild(spanFps);
+    const spanGen = document.createElement("span");
+    spanGen.id = "ca-gen-counter";
+    spanGen.style.cssText = "color: #aaa; font-size: 12px; min-width: 60px; text-align: right;";
+    spanGen.textContent = "Gen: 0";
+    controls.append(btnPlay, btnStep, btnRandom, btnClear, selectRule, lblSpeed, spanGen);
+    container2.appendChild(controls);
+  },
+  setRule(presetKey) {
+    const preset = PRESETS[presetKey];
+    if (!preset) {
+      console.warn(`[CellularAutomata] Unknown preset: ${presetKey}`);
+      return;
+    }
+    this.rule = preset;
+    console.log(`🧬 [CellularAutomata] Rule set to ${preset.name} (B${preset.born.join("")}/S${preset.survive.join("")})`);
+  },
+  randomize(density = 0.3) {
+    for (let i = 0; i < this.gridCurrent.length; i++) {
+      this.gridCurrent[i] = Math.random() < density ? 1 : 0;
+    }
+    this.generation = 0;
+    this._updateGenCounter();
+    this._render();
+    console.log(`🎲 [CellularAutomata] Randomized (density=${density})`);
+  },
+  clear() {
+    this.gridCurrent.fill(0);
+    this.generation = 0;
+    this._updateGenCounter();
+    this._render();
+    console.log("🗑️ [CellularAutomata] Grid cleared");
+  },
+  step() {
+    const { cols, rows, gridCurrent, gridNext, rule } = this;
+    const bornSet = new Set(rule.born);
+    const surviveSet = new Set(rule.survive);
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        let neighbors = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const nx = (x + dx + cols) % cols;
+            const ny = (y + dy + rows) % rows;
+            neighbors += gridCurrent[ny * cols + nx];
+          }
+        }
+        const idx = y * cols + x;
+        const alive = gridCurrent[idx] === 1;
+        gridNext[idx] = (alive ? surviveSet.has(neighbors) : bornSet.has(neighbors)) ? 1 : 0;
+      }
+    }
+    const temp = this.gridCurrent;
+    this.gridCurrent = this.gridNext;
+    this.gridNext = temp;
+    this.generation++;
+    this._updateGenCounter();
+    this._render();
+  },
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.lastFrameTime = performance.now();
+    this._loop();
+    console.log("▶ [CellularAutomata] Started");
+  },
+  stop() {
+    this.running = false;
+    if (this.animationId !== null) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+    console.log("⏸ [CellularAutomata] Stopped");
+  },
+  _loop() {
+    if (!this.running) return;
+    this.animationId = requestAnimationFrame((now) => {
+      const interval = 1e3 / this.fps;
+      if (now - this.lastFrameTime >= interval) {
+        this.step();
+        this.lastFrameTime = now;
+      }
+      this._loop();
+    });
+  },
+  _render() {
+    if (!this.ctx || !this.imageData) return;
+    const data = this.imageData.data;
+    const { cols, rows, cellSize, gridCurrent } = this;
+    const w = this.canvas.width;
+    data.fill(0);
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        if (gridCurrent[y * cols + x] === 0) continue;
+        const px = x * cellSize;
+        const py = y * cellSize;
+        for (let dy = 0; dy < cellSize; dy++) {
+          for (let dx = 0; dx < cellSize; dx++) {
+            const i = ((py + dy) * w + (px + dx)) * 4;
+            data[i] = 100;
+            data[i + 1] = 220;
+            data[i + 2] = 100;
+            data[i + 3] = 255;
+          }
+        }
+      }
+    }
+    this.ctx.putImageData(this.imageData, 0, 0);
+    if (this.threeIntegration) {
+      this.threeIntegration.update();
+    }
+  },
+  _handleCanvasClick(e) {
+    if (!this.canvas) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const cx = Math.floor((e.clientX - rect.left) * scaleX / this.cellSize);
+    const cy = Math.floor((e.clientY - rect.top) * scaleY / this.cellSize);
+    if (cx >= 0 && cx < this.cols && cy >= 0 && cy < this.rows) {
+      const idx = cy * this.cols + cx;
+      this.gridCurrent[idx] = this.gridCurrent[idx] ? 0 : 1;
+      this._render();
+    }
+  },
+  _updateGenCounter() {
+    const el = document.getElementById("ca-gen-counter");
+    if (el) el.textContent = `Gen: ${this.generation}`;
+  },
+  _initThreeIntegration(rendererData) {
+    try {
+      const texture = new THREE.CanvasTexture(this.canvas);
+      texture.needsUpdate = true;
+      texture.magFilter = THREE.NearestFilter;
+      texture.minFilter = THREE.NearestFilter;
+      const geometry2 = new THREE.PlaneGeometry(4, 4);
+      const material2 = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true });
+      const plane = new THREE.Mesh(geometry2, material2);
+      plane.position.set(0, 0, -5);
+      plane.visible = false;
+      rendererData.scene.add(plane);
+      this.threeIntegration = {
+        plane,
+        texture,
+        show: () => {
+          plane.visible = true;
+          texture.needsUpdate = true;
+        },
+        hide: () => {
+          plane.visible = false;
+        },
+        update: () => {
+          texture.needsUpdate = true;
+        }
+      };
+      console.log("✅ [CellularAutomata] Three.js integration ready");
+    } catch (err) {
+      console.warn("[CellularAutomata] Three.js integration failed:", err.message);
+    }
+  },
+  cleanup() {
+    var _a, _b, _c, _d;
+    this.stop();
+    if (this.threeIntegration && this.threeIntegration.plane) {
+      (_a = this.threeIntegration.plane.parent) == null ? void 0 : _a.remove(this.threeIntegration.plane);
+      (_b = this.threeIntegration.plane.geometry) == null ? void 0 : _b.dispose();
+      (_c = this.threeIntegration.plane.material) == null ? void 0 : _c.dispose();
+      (_d = this.threeIntegration.texture) == null ? void 0 : _d.dispose();
+    }
+    this.canvas = null;
+    this.ctx = null;
+    this.imageData = null;
+    this.gridCurrent = null;
+    this.gridNext = null;
+    this.threeIntegration = null;
+    console.log("🗑️ [CellularAutomata] Resources cleaned up");
+  }
+};
+console.log("🧬 [CellularAutomata] Module loaded");
+const cellularAutomataTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  cellularAutomataTest
 }, Symbol.toStringTag, { value: "Module" }));
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 function injectStylesheet() {
