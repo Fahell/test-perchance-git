@@ -47,3 +47,7 @@ debug.log
 
 # TypeScript (future-proof)
 *.tsbuildinfo
+
+# Snapshots de ambiente (não versionar)
+.snapshots/
+*.tar.gz.backup
