@@ -99,7 +99,8 @@ export function initUITest(rendererData, testModules) {
     mermaidTest,
     matterTest,
     cannonTest,
-    particlesTest
+    particlesTest,
+    cellularAutomataTest
   } = testModules;
 
   // Test definitions for Run All
@@ -482,6 +483,22 @@ export function initUITest(rendererData, testModules) {
     console.log('✅ Particles: 50,000 particles rendered');
   }
 
+
+  async function cellularAutomataHandler() {
+    console.log('\ud83e\uddec Testing Cellular Automata...');
+    if (!cellularAutomataTest) throw new Error('Cellular Automata not available');
+    
+    // Toggle on/off
+    if (cellularAutomataTest.running) {
+      cellularAutomataTest.cleanup();
+      console.log('\ud83d\uddd1\ufe0f Cellular Automata: Disposed');
+      return;
+    }
+    
+    cellularAutomataTest.init(rendererData);
+    console.log('\u2705 Cellular Automata: 128x128 grid initialized');
+  }
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -514,6 +531,7 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
       <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
+      <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">\ud83e\uddec Cellular Automata</button>
     </div>
     
     <div class="ui-test-category">
@@ -594,6 +612,7 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-matter').onclick = () => runTest('btn-matter', 'Matter.js', matterHandler);
   document.getElementById('btn-cannon').onclick = () => runTest('btn-cannon', 'Cannon-es', cannonHandler);
   document.getElementById('btn-particles').onclick = () => runTest('btn-particles', 'Particles', particlesHandler);
+  document.getElementById('btn-cellular-automata').onclick = () => runTest('btn-cellular-automata', 'Cellular Automata', cellularAutomataHandler);
 
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
