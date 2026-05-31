@@ -2,7 +2,8 @@
 <!-- Versão: v1.15.0 (Vite Bundle) -->
 <!-- Cole este conteúdo no HTML Panel do seu gerador Perchance -->
 
-<div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;"></div>
+<div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;">
+</div>
 
 <!-- Three.js deve ser carregado antes do bundle (dependência externa) -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" type="module"></script>
@@ -14,7 +15,7 @@
   } else {
     window.__RPG_INITIALIZED = true;
     console.log('📄 HTML Panel injetado, carregando bundle v1.15.0...');
-    
+
     // Importa o bundle único do GitHub via jsDelivr CDN
     // ⚠️ SEMPRE use tags de versão (ex: @v1.8.0) para evitar cache do CDN
     import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.15.0/dist/main.bundle.js")

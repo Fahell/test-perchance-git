@@ -1,13 +1,6 @@
-// src/modules/indexeddb-test.js
-// IndexedDB test module - native browser API, no dependencies
-
-const DB_NAME = 'rpg_indexeddb_test';
-const DB_VERSION = 2;
 const STORE_TEST_DATA = 'test_data';
 const STORE_AI_RESULTS = 'ai_results';
-
 const AI_LIMITS = { maxTexts: 3, maxImages: 3 };
-
 const TEST_VALUES = {
   str_test: 'Hello, IndexedDB!',
   num_int: 42,
@@ -25,7 +18,6 @@ export const indexeddbTest = {
   db: null,
 
   // ─── Lifecycle ───
-
   async openDB() {
     if (this.db) return this.db;
     return new Promise((resolve, reject) => {
@@ -71,7 +63,6 @@ export const indexeddbTest = {
   },
 
   // ─── Generic Store Operations ───
-
   async _tx(storeName, mode) {
     const db = await this.openDB();
     return db.transaction(storeName, mode).objectStore(storeName);
@@ -86,6 +77,10 @@ export const indexeddbTest = {
 
   async put(storeName, key, value) {
     const store = await this._tx(storeName, 'readwrite');
+    // For stores with keyPath, the key is inside the object - don't pass it separately
+    if (store.keyPath) {
+      return this._request(store.put(value));
+    }
     return this._request(store.put(value, key));
   },
 
@@ -120,7 +115,6 @@ export const indexeddbTest = {
   },
 
   // ─── Test Data Store ───
-
   async saveAllTypes() {
     const results = [];
     for (const [key, value] of Object.entries(TEST_VALUES)) {
@@ -145,7 +139,6 @@ export const indexeddbTest = {
   async runPrimitiveTestSuite() {
     console.log('🗃️ [IDB] Running primitive test suite...');
     await this.openDB();
-    await this.clearStore(STORE_TEST_DATA);
 
     const saveResults = await this.saveAllTypes();
     const keys = await this.getAllKeys(STORE_TEST_DATA);
@@ -173,7 +166,6 @@ export const indexeddbTest = {
   },
 
   // ─── AI Results Store ───
-
   async _enforceLimit(type) {
     const max = type === 'text' ? AI_LIMITS.maxTexts : AI_LIMITS.maxImages;
     const all = await this.loadAIResults();
@@ -255,7 +247,6 @@ export const indexeddbTest = {
   },
 
   // ─── Cross-store ───
-
   async clearAll() {
     await this.openDB();
     await this.clearStore(STORE_TEST_DATA);
@@ -264,7 +255,6 @@ export const indexeddbTest = {
   },
 
   // ─── Diagnostics ───
-
   async getStorageEstimate() {
     if (!navigator.storage || !navigator.storage.estimate) {
       return { available: false };
