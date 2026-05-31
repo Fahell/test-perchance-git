@@ -59,19 +59,19 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 
 ## Agent Notes
 
-**Última sessão:** Release v1.17.4 — Restauração de ui-test.js corrompido
+**Última sessão:** Release v1.17.6 — Bump de versão para bypass de cache CDN
 
 ### Estado Atual
 
-- **Versão:** v1.17.4
-- **Último commit:** `4bf49f3` — chore: release v1.17.4
+- **Versão:** v1.17.6
+- **Último commit:** `2395b23` — chore: release v1.17.6
 - **Branch:** main (sincronizado com origin/main)
 
 ### O que foi feito nesta sessão
 
-1. **Problema identificado:** `ui-test.js` foi corrompido durante edições parciais (edit_file removeu estrutura do objeto)
-2. **Solução:** Restaurado arquivo do commit v1.17.1 (872 linhas)
-3. **Release:** v1.17.4 com build 290.56 kB
+1. **Problema:** Cache do CDN jsDelivr estava servindo versão antiga (v1.17.1)
+2. **Solução:** Bump de versão v1.17.4 → v1.17.6 (pulo v1.17.5 por tag conflitante)
+3. **Release:** v1.17.6 com build 290.56 kB
 
 ### Módulos de teste implementados
 
