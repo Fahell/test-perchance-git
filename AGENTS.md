@@ -24,7 +24,7 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - `scripts/snapshot.sh` — Environment snapshot system
 - `.husky/pre-commit` — Pre-commit hook that runs sync-version.cjs
 
-## 📚 Context Modules
+## 📚 Context Modules For AI Agents
 
 **Before starting specific tasks, read the corresponding guide:**
 
@@ -56,19 +56,3 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - Never commit directly to `main`
 - **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
 - Use `npm run release X.Y.Z` for automated release (update, sync, build, commit, tag, push). See docs/release-guide.md.
-
-## 📦 Latest Releases
-
-### v1.17.1
-- GSAP test module implemented with 8 animation demos
-- CDN loading: non-blocking with progress tracking
-- Functions: basic tween, from, fromTo, timeline, stagger, easing comparison, CSS animation, SVG animation
-- UI integration: 6 new buttons in test panel
-- Build size: 290.56 kB (gzip: 60.57 kB)
-
-### v1.17.0
-- GSAP test module implemented with 8 animation demos
-- CDN loading: non-blocking with progress tracking
-- Functions: basic tween, from, fromTo, timeline, stagger, easing comparison, CSS animation, SVG animation
-- UI integration: 6 new buttons in test panel
-- Build size: 290.56 kB (gzip: 60.57 kB)
