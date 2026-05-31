@@ -175,7 +175,8 @@ const TEST_MODULES = {
   matterTest: () => Promise.resolve().then(() => matterTest),
   cannonTest: () => Promise.resolve().then(() => cannonTest),
   particlesTest: () => Promise.resolve().then(() => particlesTest),
-  cellularAutomataTest: () => Promise.resolve().then(() => cellularAutomataTest$1)
+  cellularAutomataTest: () => Promise.resolve().then(() => cellularAutomataTest$1),
+  indexeddbTest: () => Promise.resolve().then(() => indexeddbTest$1)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -6096,6 +6097,266 @@ const cellularAutomataTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Obj
   __proto__: null,
   cellularAutomataTest
 }, Symbol.toStringTag, { value: "Module" }));
+const DB_NAME = "rpg_indexeddb_test";
+const DB_VERSION = 2;
+const STORE_TEST_DATA = "test_data";
+const STORE_AI_RESULTS = "ai_results";
+const AI_LIMITS = { maxTexts: 3, maxImages: 3 };
+const TEST_VALUES = {
+  str_test: "Hello, IndexedDB!",
+  num_int: 42,
+  num_float: 3.14159,
+  bool_val: true,
+  obj_player: { name: "Hero", level: 5, inventory: ["sword", "potion"], stats: { hp: 100, mp: 50 } },
+  arr_items: ["espada", "pocao", "mapa", "escudo"],
+  null_val: null,
+  date_val: /* @__PURE__ */ new Date("2024-01-15T10:30:00Z"),
+  u8_val: new Uint8Array([1, 2, 3, 4, 5])
+};
+const indexeddbTest = {
+  available: typeof indexedDB !== "undefined",
+  db: null,
+  // ─── Lifecycle ───
+  async openDB() {
+    if (this.db) return this.db;
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_TEST_DATA)) {
+          db.createObjectStore(STORE_TEST_DATA);
+        }
+        if (!db.objectStoreNames.contains(STORE_AI_RESULTS)) {
+          const aiStore = db.createObjectStore(STORE_AI_RESULTS, { keyPath: "key" });
+          aiStore.createIndex("type", "type", { unique: false });
+          aiStore.createIndex("timestamp", "timestamp", { unique: false });
+        }
+      };
+      request.onsuccess = (e) => {
+        this.db = e.target.result;
+        console.log("✅ [IDB] Database opened");
+        resolve(this.db);
+      };
+      request.onerror = (e) => {
+        console.error("❌ [IDB] Open failed:", e.target.error);
+        reject(e.target.error);
+      };
+    });
+  },
+  closeDB() {
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+      console.log("🔒 [IDB] Database closed");
+    }
+  },
+  async deleteDB() {
+    this.closeDB();
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(DB_NAME);
+      request.onsuccess = () => {
+        console.log("🗑️ [IDB] Database deleted");
+        resolve(true);
+      };
+      request.onerror = (e) => {
+        console.error("❌ [IDB] Delete failed:", e.target.error);
+        reject(e.target.error);
+      };
+    });
+  },
+  // ─── Generic Store Operations ───
+  async _tx(storeName, mode) {
+    const db = await this.openDB();
+    return db.transaction(storeName, mode).objectStore(storeName);
+  },
+  async _request(req) {
+    return new Promise((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  },
+  async put(storeName, key, value) {
+    const store = await this._tx(storeName, "readwrite");
+    return this._request(store.put(value, key));
+  },
+  async get(storeName, key) {
+    const store = await this._tx(storeName, "readonly");
+    return this._request(store.get(key));
+  },
+  async getAllKeys(storeName) {
+    const store = await this._tx(storeName, "readonly");
+    return this._request(store.getAllKeys());
+  },
+  async getAll(storeName) {
+    const store = await this._tx(storeName, "readonly");
+    return this._request(store.getAll());
+  },
+  async deleteKey(storeName, key) {
+    const store = await this._tx(storeName, "readwrite");
+    return this._request(store.delete(key));
+  },
+  async clearStore(storeName) {
+    const store = await this._tx(storeName, "readwrite");
+    return this._request(store.clear());
+  },
+  async count(storeName) {
+    const store = await this._tx(storeName, "readonly");
+    return this._request(store.count());
+  },
+  // ─── Test Data Store ───
+  async saveAllTypes() {
+    const results = [];
+    for (const [key, value] of Object.entries(TEST_VALUES)) {
+      try {
+        await this.put(STORE_TEST_DATA, key, value);
+        results.push({ key, type: typeof value, saved: true });
+      } catch (e) {
+        results.push({ key, type: typeof value, saved: false, error: e.message });
+      }
+    }
+    console.log(`✅ [IDB] Saved ${results.filter((r) => r.saved).length}/${results.length} types`);
+    return results;
+  },
+  async roundTrip(key, value) {
+    await this.put(STORE_TEST_DATA, key, value);
+    const retrieved = await this.get(STORE_TEST_DATA, key);
+    const match = JSON.stringify(value) === JSON.stringify(retrieved);
+    return { key, saved: value, retrieved, match };
+  },
+  async runPrimitiveTestSuite() {
+    console.log("🗃️ [IDB] Running primitive test suite...");
+    await this.openDB();
+    await this.clearStore(STORE_TEST_DATA);
+    const saveResults = await this.saveAllTypes();
+    const keys = await this.getAllKeys(STORE_TEST_DATA);
+    const roundTrips = [];
+    for (const [key, value] of Object.entries(TEST_VALUES)) {
+      const retrieved = await this.get(STORE_TEST_DATA, key);
+      const match = JSON.stringify(value) === JSON.stringify(retrieved);
+      roundTrips.push({ key, expected: typeof value, saved: value, retrieved, match });
+    }
+    const deleteResult = await this.deleteKey(STORE_TEST_DATA, "str_test");
+    const keysAfterDelete = await this.getAllKeys(STORE_TEST_DATA);
+    const estimate = await this.getStorageEstimate();
+    return {
+      saved: saveResults,
+      totalKeys: keys.length,
+      roundTrips,
+      deleteSuccess: !!deleteResult,
+      keysAfterDelete: keysAfterDelete.length,
+      storageEstimate: estimate
+    };
+  },
+  // ─── AI Results Store ───
+  async _enforceLimit(type) {
+    const max = type === "text" ? AI_LIMITS.maxTexts : AI_LIMITS.maxImages;
+    const all = await this.loadAIResults();
+    const ofType = all.filter((r) => r.type === type).sort((a, b) => a.timestamp - b.timestamp);
+    while (ofType.length >= max) {
+      const oldest = ofType.shift();
+      await this.deleteKey(STORE_AI_RESULTS, oldest.key);
+    }
+  },
+  async saveAIText(text, metadata = {}) {
+    await this._enforceLimit("text");
+    const key = `ai_text_${Date.now()}`;
+    const record = {
+      key,
+      type: "text",
+      content: text,
+      timestamp: Date.now(),
+      metadata: { chars: text.length, ...metadata }
+    };
+    await this.put(STORE_AI_RESULTS, key, record);
+    console.log(`✅ [IDB] AI text saved: ${key}`);
+    return record;
+  },
+  async saveAIImage(dataUrl, metadata = {}) {
+    await this._enforceLimit("image");
+    const key = `ai_image_${Date.now()}`;
+    const record = {
+      key,
+      type: "image",
+      content: dataUrl,
+      timestamp: Date.now(),
+      metadata: { sizeKB: Math.round(dataUrl.length / 1024), ...metadata }
+    };
+    await this.put(STORE_AI_RESULTS, key, record);
+    console.log(`✅ [IDB] AI image saved: ${key}`);
+    return record;
+  },
+  async saveAIBatch(texts, images) {
+    const results = { texts: [], images: [] };
+    for (const t of (texts || []).slice(0, AI_LIMITS.maxTexts)) {
+      results.texts.push(await this.saveAIText(t.text, t.metadata));
+    }
+    for (const img of (images || []).slice(0, AI_LIMITS.maxImages)) {
+      results.images.push(await this.saveAIImage(img.dataUrl, img.metadata));
+    }
+    return results;
+  },
+  async loadAIResults() {
+    const all = await this.getAll(STORE_AI_RESULTS);
+    return all.sort((a, b) => b.timestamp - a.timestamp);
+  },
+  async loadAITexts() {
+    const all = await this.loadAIResults();
+    return all.filter((r) => r.type === "text");
+  },
+  async loadAIImages() {
+    const all = await this.loadAIResults();
+    return all.filter((r) => r.type === "image");
+  },
+  async clearAIResults() {
+    await this.clearStore(STORE_AI_RESULTS);
+    console.log("🗑️ [IDB] AI results cleared");
+  },
+  async getAIResultsCount() {
+    const all = await this.loadAIResults();
+    return {
+      texts: all.filter((r) => r.type === "text").length,
+      images: all.filter((r) => r.type === "image").length,
+      total: all.length
+    };
+  },
+  // ─── Cross-store ───
+  async clearAll() {
+    await this.openDB();
+    await this.clearStore(STORE_TEST_DATA);
+    await this.clearStore(STORE_AI_RESULTS);
+    console.log("🗑️ [IDB] All stores cleared");
+  },
+  // ─── Diagnostics ───
+  async getStorageEstimate() {
+    if (!navigator.storage || !navigator.storage.estimate) {
+      return { available: false };
+    }
+    const est = await navigator.storage.estimate();
+    return {
+      available: true,
+      quota: (est.quota / (1024 * 1024)).toFixed(2) + " MB",
+      usage: (est.usage / (1024 * 1024)).toFixed(4) + " MB",
+      percent: (est.usage / est.quota * 100).toFixed(4) + "%"
+    };
+  },
+  checkSupport() {
+    return {
+      indexedDB: typeof indexedDB !== "undefined",
+      idbKeyRange: typeof IDBKeyRange !== "undefined",
+      storageEstimate: !!(navigator.storage && navigator.storage.estimate)
+    };
+  }
+};
+console.log("🗃️ [IDB] IndexedDB test module loaded");
+if (indexeddbTest.available) {
+  console.log("✅ [IDB] IndexedDB available");
+} else {
+  console.warn("⚠️ [IDB] IndexedDB NOT available");
+}
+const indexeddbTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  indexeddbTest
+}, Symbol.toStringTag, { value: "Module" }));
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 function injectStylesheet() {
   if (document.getElementById("ui-test-styles")) return;
@@ -6178,7 +6439,8 @@ function initUITest(rendererData, testModules) {
     matterTest: matterTest2,
     cannonTest: cannonTest2,
     particlesTest: particlesTest2,
-    cellularAutomataTest: cellularAutomataTest2
+    cellularAutomataTest: cellularAutomataTest2,
+    indexeddbTest: indexeddbTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -6528,6 +6790,186 @@ function initUITest(rendererData, testModules) {
     particlesTest2.init(rendererData);
     console.log("✅ Particles: 50,000 particles rendered");
   }
+  async function indexeddbPrimitivesHandler() {
+    console.log("🗃️ Testing IndexedDB primitives...");
+    if (!indexeddbTest2 || !indexeddbTest2.available) throw new Error("IndexedDB not available");
+    const { contentArea } = createTestContainer("🗃️ IndexedDB - Primitive Types", { id: "test-indexeddb", width: 700, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Running test suite...</div>';
+    const result = await indexeddbTest2.runPrimitiveTestSuite();
+    const rows = result.roundTrips.map((r) => {
+      const savedStr = JSON.stringify(r.saved).substring(0, 40);
+      const retrievedStr = JSON.stringify(r.retrieved).substring(0, 40);
+      return `<tr>
+        <td style="color:#fbbf24;padding:6px;border-bottom:1px solid #333;">${r.key}</td>
+        <td style="color:#94a3b8;padding:6px;border-bottom:1px solid #333;">${r.expected}</td>
+        <td style="color:#e2e8f0;padding:6px;border-bottom:1px solid #333;font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">${savedStr}</td>
+        <td style="color:#e2e8f0;padding:6px;border-bottom:1px solid #333;font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;">${retrievedStr}</td>
+        <td style="padding:6px;border-bottom:1px solid #333;text-align:center;">${r.match ? "✅" : "❌"}</td>
+      </tr>`;
+    }).join("");
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="background:#1e293b;">
+            <th style="padding:8px;color:#94a3b8;text-align:left;">Key</th>
+            <th style="padding:8px;color:#94a3b8;text-align:left;">Type</th>
+            <th style="padding:8px;color:#94a3b8;text-align:left;">Saved</th>
+            <th style="padding:8px;color:#94a3b8;text-align:left;">Retrieved</th>
+            <th style="padding:8px;color:#94a3b8;text-align:center;">Match</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="margin-top:15px;display:flex;gap:15px;flex-wrap:wrap;">
+          <div style="padding:8px;background:#1e293b;border-radius:4px;font-size:11px;">
+            <span style="color:#94a3b8;">Keys saved:</span> <span style="color:#4ade80;">${result.totalKeys}</span>
+          </div>
+          <div style="padding:8px;background:#1e293b;border-radius:4px;font-size:11px;">
+            <span style="color:#94a3b8;">After delete:</span> <span style="color:#fbbf24;">${result.keysAfterDelete}</span>
+          </div>
+          <div style="padding:8px;background:#1e293b;border-radius:4px;font-size:11px;">
+            <span style="color:#94a3b8;">Quota:</span> <span style="color:#e2e8f0;">${result.storageEstimate.quota || "N/A"}</span>
+          </div>
+          <div style="padding:8px;background:#1e293b;border-radius:4px;font-size:11px;">
+            <span style="color:#94a3b8;">Usage:</span> <span style="color:#e2e8f0;">${result.storageEstimate.usage || "N/A"}</span>
+          </div>
+        </div>
+      </div>`;
+    console.log(`✅ IndexedDB: ${result.totalKeys} types saved, ${result.keysAfterDelete} after delete`);
+  }
+  async function indexeddbAIHandler() {
+    console.log("🤖 Generating AI + saving to IndexedDB...");
+    if (!indexeddbTest2 || !indexeddbTest2.available) throw new Error("IndexedDB not available");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("AI Text not available");
+    if (!imageTest2 || !imageTest2.available) throw new Error("Image not available");
+    const { contentArea } = createTestContainer("🤖 IndexedDB - AI Results", { id: "test-indexeddb-ai", width: 700, height: 600 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating 3 texts + 3 images and saving to IndexedDB...</div>';
+    await indexeddbTest2.openDB();
+    await indexeddbTest2.clearAIResults();
+    const texts = [];
+    const prompts = [
+      "Write a short phrase about a brave knight.",
+      "Describe a mysterious forest in one sentence.",
+      "Write a riddle about a dragon."
+    ];
+    for (const p of prompts) {
+      const r = await aiTextTest2.generateBasic(p);
+      if (r == null ? void 0 : r.success) texts.push({ text: r.text, metadata: { prompt: p } });
+    }
+    const images = [];
+    const imgPrompts = ["papercraft warrior", "papercraft wizard", "papercraft dragon"];
+    for (const p of imgPrompts) {
+      const r = await imageTest2.testBasicImage();
+      if ((r == null ? void 0 : r.success) && r.url) images.push({ dataUrl: r.url, metadata: { prompt: p } });
+      if (images.length >= 3) break;
+    }
+    await indexeddbTest2.saveAIBatch(texts, images);
+    const loaded = await indexeddbTest2.loadAIResults();
+    const count = await indexeddbTest2.getAIResultsCount();
+    const textHtml = loaded.filter((r) => r.type === "text").map(
+      (r) => `<div style="padding:8px;background:#0f172a;border-radius:4px;margin-bottom:8px;border-left:3px solid #4ade80;">
+        <div style="color:#e2e8f0;font-size:12px;">${r.content}</div>
+        <div style="color:#64748b;font-size:10px;margin-top:4px;">${r.metadata.chars} chars | ${new Date(r.timestamp).toLocaleTimeString()}</div>
+      </div>`
+    ).join("");
+    const imgHtml = loaded.filter((r) => r.type === "image").map(
+      (r) => `<div style="display:inline-block;margin:4px;">
+        <img src="${r.content}" style="width:100px;height:100px;object-fit:cover;border-radius:4px;border:1px solid #404040;" />
+        <div style="color:#64748b;font-size:9px;text-align:center;">${r.metadata.sizeKB}KB</div>
+      </div>`
+    ).join("");
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#4ade80;font-weight:bold;margin-bottom:10px;">📝 Saved Texts (${count.texts}/3)</div>
+        ${textHtml || '<div style="color:#ff6b6b;">No texts saved</div>'}
+        <div style="color:#4ade80;font-weight:bold;margin:15px 0 10px;">🖼️ Saved Images (${count.images}/3)</div>
+        <div style="display:flex;flex-wrap:wrap;">${imgHtml || '<div style="color:#ff6b6b;">No images saved</div>'}</div>
+        <div style="margin-top:15px;padding:8px;background:#1e293b;border-radius:4px;font-size:11px;text-align:center;">
+          <span style="color:#94a3b8;">Total records:</span> <span style="color:#4ade80;font-weight:bold;">${count.total}</span>
+        </div>
+      </div>`;
+    console.log(`✅ IndexedDB AI: ${count.texts} texts + ${count.images} images saved`);
+  }
+  async function indexeddbLoadHandler() {
+    console.log("📂 Loading saved AI results from IndexedDB...");
+    if (!indexeddbTest2 || !indexeddbTest2.available) throw new Error("IndexedDB not available");
+    const { contentArea } = createTestContainer("📂 IndexedDB - Load Saved", { id: "test-indexeddb-load", width: 700, height: 500 });
+    await indexeddbTest2.openDB();
+    const loaded = await indexeddbTest2.loadAIResults();
+    const count = await indexeddbTest2.getAIResultsCount();
+    if (loaded.length === 0) {
+      contentArea.innerHTML = '<div style="color:#fbbf24;text-align:center;padding:20px;">⚠️ No saved results. Run "Generate AI + Save" first.</div>';
+      return;
+    }
+    const textHtml = loaded.filter((r) => r.type === "text").map(
+      (r) => `<div style="padding:8px;background:#0f172a;border-radius:4px;margin-bottom:8px;border-left:3px solid #4ade80;">
+        <div style="color:#e2e8f0;font-size:12px;">${r.content}</div>
+        <div style="color:#64748b;font-size:10px;margin-top:4px;">${r.metadata.chars} chars | ${new Date(r.timestamp).toLocaleTimeString()}</div>
+      </div>`
+    ).join("");
+    const imgHtml = loaded.filter((r) => r.type === "image").map(
+      (r) => `<div style="display:inline-block;margin:4px;">
+        <img src="${r.content}" style="width:120px;height:120px;object-fit:cover;border-radius:4px;border:1px solid #404040;" />
+        <div style="color:#64748b;font-size:9px;text-align:center;">${r.metadata.sizeKB}KB</div>
+      </div>`
+    ).join("");
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#4ade80;font-weight:bold;margin-bottom:10px;">📝 Texts (${count.texts})</div>
+        ${textHtml || '<div style="color:#94a3b8;">No texts</div>'}
+        <div style="color:#4ade80;font-weight:bold;margin:15px 0 10px;">🖼️ Images (${count.images})</div>
+        <div style="display:flex;flex-wrap:wrap;">${imgHtml || '<div style="color:#94a3b8;">No images</div>'}</div>
+      </div>`;
+    console.log(`✅ Loaded: ${count.texts} texts + ${count.images} images`);
+  }
+  async function indexeddbClearHandler() {
+    console.log("🗑️ Clearing all IndexedDB test data...");
+    if (!indexeddbTest2 || !indexeddbTest2.available) throw new Error("IndexedDB not available");
+    await indexeddbTest2.deleteDB();
+    console.log("✅ IndexedDB: All data cleared");
+  }
+  async function indexeddbHowHandler() {
+    console.log("📖 Showing IndexedDB How It Works...");
+    const { contentArea } = createTestContainer("📖 IndexedDB - How It Works", { id: "test-indexeddb-how", width: 650, height: 550 });
+    contentArea.innerHTML = `
+      <div style="padding:15px;line-height:1.7;font-size:13px;">
+        <h3 style="color:#4ade80;margin:0 0 15px;">📖 What is IndexedDB?</h3>
+        <p style="color:#e2e8f0;margin:0 0 12px;">
+          IndexedDB is a <strong style="color:#fbbf24;">native browser NoSQL database</strong> that persists data between sessions.
+          Unlike localStorage, it has no 5MB limit and supports complex data types.
+        </p>
+
+        <h3 style="color:#4ade80;margin:15px 0 10px;">📊 IndexedDB vs localStorage</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:15px;">
+          <tr style="background:#1e293b;">
+            <th style="padding:6px;color:#94a3b8;text-align:left;">Feature</th>
+            <th style="padding:6px;color:#fbbf24;text-align:left;">localStorage</th>
+            <th style="padding:6px;color:#4ade80;text-align:left;">IndexedDB</th>
+          </tr>
+          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Capacity</td><td style="padding:4px;border-bottom:1px solid #333;color:#ff6b6b;">~5MB</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Hundreds of MB to GB</td></tr>
+          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Data Types</td><td style="padding:4px;border-bottom:1px solid #333;color:#ff6b6b;">Strings only</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Any (Blob, Array, Object...)</td></tr>
+          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Async</td><td style="padding:4px;border-bottom:1px solid #333;color:#ff6b6b;">No (blocks UI)</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Yes (non-blocking)</td></tr>
+          <tr><td style="padding:4px;border-bottom:1px solid #333;color:#e2e8f0;">Persistence</td><td style="padding:4px;border-bottom:1px solid #333;color:#fbbf24;">Per origin</td><td style="padding:4px;border-bottom:1px solid #333;color:#4ade80;">Per origin</td></tr>
+          <tr><td style="padding:4px;color:#e2e8f0;">Transactions</td><td style="padding:4px;color:#ff6b6b;">No</td><td style="padding:4px;color:#4ade80;">Yes</td></tr>
+        </table>
+
+        <h3 style="color:#4ade80;margin:15px 0 10px;">🔧 How This Test Works</h3>
+        <ol style="color:#e2e8f0;margin:0;padding-left:20px;">
+          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB Types</strong> — Opens database <code style="background:#0f172a;padding:2px 4px;border-radius:2px;">rpg_indexeddb_test</code>, saves 9 primitive types, reads them back, and validates integrity via round-trip comparison.</li>
+          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB+AI</strong> — Generates 3 AI texts + 3 AI images using existing plugins, saves them to the <code style="background:#0f172a;padding:2px 4px;border-radius:2px;">ai_results</code> store with FIFO eviction (max 3 of each).</li>
+          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB Load</strong> — Reads all saved AI results from IndexedDB and displays texts + image thumbnails.</li>
+          <li style="margin-bottom:6px;"><strong style="color:#fbbf24;">IDB Clear</strong> — Deletes the entire database (both stores).</li>
+        </ol>
+
+        <h3 style="color:#4ade80;margin:15px 0 10px;">🎯 When to Use IndexedDB</h3>
+        <ul style="color:#e2e8f0;margin:0;padding-left:20px;">
+          <li style="margin-bottom:4px;">Offline asset caching (images, models, audio)</li>
+          <li style="margin-bottom:4px;">AI conversation history</li>
+          <li style="margin-bottom:4px;">Game state exceeding 5MB</li>
+          <li style="margin-bottom:4px;">Binary data (Blob, ArrayBuffer, Uint8Array)</li>
+        </ul>
+      </div>`;
+    console.log("✅ How It Works displayed");
+  }
   async function cellularAutomataHandler() {
     console.log("🧬 Testing Cellular Automata...");
     if (!cellularAutomataTest2) throw new Error("Cellular Automata not available");
@@ -6604,6 +7046,11 @@ function initUITest(rendererData, testModules) {
       <button id="btn-state-save" class="ui-test-btn ui-test-btn--data">💾 Save</button>
       <button id="btn-state-load" class="ui-test-btn ui-test-btn--data">📂 Load</button>
       <button id="btn-kv" class="ui-test-btn ui-test-btn--data">💾 KV</button>
+      <button id="btn-indexeddb-types" class="ui-test-btn ui-test-btn--data">🗃️ IDB Types</button>
+      <button id="btn-indexeddb-ai" class="ui-test-btn ui-test-btn--data">🤖 IDB+AI</button>
+      <button id="btn-indexeddb-load" class="ui-test-btn ui-test-btn--data">📂 IDB Load</button>
+      <button id="btn-indexeddb-clear" class="ui-test-btn ui-test-btn--data">🗑️ IDB Clear</button>
+      <button id="btn-indexeddb-how" class="ui-test-btn ui-test-btn--data">📖 How It Works</button>
     </div>
   `;
   document.body.appendChild(panel);
@@ -6632,6 +7079,11 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-state-save").onclick = () => runTest("btn-state-save", "Save", stateSaveHandler);
   document.getElementById("btn-state-load").onclick = () => runTest("btn-state-load", "Load", stateLoadHandler);
   document.getElementById("btn-kv").onclick = () => runTest("btn-kv", "KV", kvHandler);
+  document.getElementById("btn-indexeddb-types").onclick = () => runTest("btn-indexeddb-types", "IndexedDB Types", indexeddbPrimitivesHandler);
+  document.getElementById("btn-indexeddb-ai").onclick = () => runTest("btn-indexeddb-ai", "IndexedDB AI", indexeddbAIHandler);
+  document.getElementById("btn-indexeddb-load").onclick = () => runTest("btn-indexeddb-load", "IndexedDB Load", indexeddbLoadHandler);
+  document.getElementById("btn-indexeddb-clear").onclick = () => runTest("btn-indexeddb-clear", "IndexedDB Clear", indexeddbClearHandler);
+  document.getElementById("btn-indexeddb-how").onclick = () => runTest("btn-indexeddb-how", "IndexedDB How", indexeddbHowHandler);
   document.getElementById("btn-chart-bar").onclick = () => runTest("btn-chart-bar", "Bar Chart", chartBarHandler);
   document.getElementById("btn-chart-line").onclick = () => runTest("btn-chart-line", "Line Chart", chartLineHandler);
   document.getElementById("btn-chart-pie").onclick = () => runTest("btn-chart-pie", "Pie Chart", chartPieHandler);

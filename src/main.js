@@ -43,7 +43,8 @@ const TEST_MODULES = {
   matterTest: () => import('./modules/matter-test.js'),
   cannonTest: () => import('./modules/cannon-test.js'),
   particlesTest: () => import('./modules/particles-test.js'),
-  cellularAutomataTest: () => import('./modules/cellular-automata-test.js')
+  cellularAutomataTest: () => import('./modules/cellular-automata-test.js'),
+  indexeddbTest: () => import('./modules/indexeddb-test.js')
 };
 
 // Cache de módulos carregados
