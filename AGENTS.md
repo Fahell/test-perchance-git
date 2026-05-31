@@ -154,101 +154,101 @@ console.log(`🚀 [Main] Iniciando jogo (Vite bundle ${VERSION})`);
 console.log('🚀 [Main] Iniciando jogo (Vite bundle v1.16.1)');
 ```
 
-## 📸 Sistema de Snapshots de Estado
+## 📸 Environment Snapshot System
 
-Snapshots permitem criar pontos de restauração antes de refatorações complexas. O sistema combina Git tags (código) + tarballs (node_modules) para restauração rápida e completa.
+Snapshots allow creating restore points before complex refactors. The system combines Git tags (code) + tarballs (node_modules) for fast and complete restoration.
 
-### Uso Rápido
+### Quick Start
 
 ```bash
-# Criar snapshot antes de refatoração
+# Create snapshot before refactoring
 npm run snapshot:create pre-refactor -- --include-deps
 
-# Se der errado, restaurar
+# If something goes wrong, restore
 npm run snapshot:restore pre-refactor
 
-# Se der certo, limpar
+# If successful, cleanup
 npm run snapshot:delete pre-refactor
 ```
 
-### Comandos Disponíveis
+### Available Commands
 
-| Comando | Descrição |
+| Command | Description |
 |---------|-----------|
-| `npm run snapshot:create <nome>` | Cria snapshot do estado atual |
-| `npm run snapshot:restore <nome>` | Restaura snapshot específico |
-| `npm run snapshot:list` | Lista todos os snapshots |
-| `npm run snapshot:delete <nome>` | Remove snapshot |
-| `npm run snapshot:cleanup` | Remove snapshots antigos (>7 dias) |
-| `npm run snapshot:info <nome>` | Mostra detalhes do snapshot |
+| `npm run snapshot:create <name>` | Creates snapshot of current state |
+| `npm run snapshot:restore <name>` | Restores specific snapshot |
+| `npm run snapshot:list` | Lists all snapshots |
+| `npm run snapshot:delete <name>` | Deletes snapshot |
+| `npm run snapshot:cleanup` | Removes old snapshots (>7 days) |
+| `npm run snapshot:info <name>` | Shows snapshot details |
 
-### Flags Importantes
+### Important Flags
 
-**Para create:**
-- `--include-deps` → Inclui `node_modules` no snapshot (recomendado)
-- `--description "texto"` → Adiciona descrição ao snapshot
-- `--force` → Sobrescreve snapshot existente (cuidado!)
-- `--no-commit` → Não cria commit WIP se working tree sujo
+**For create:**
+- `--include-deps` - Includes `node_modules` in snapshot (recommended)
+- `--description "text"` - Adds description to snapshot
+- `--force` - Overwrites existing snapshot (careful!)
+- `--no-commit` - Does not create WIP commit if working tree is dirty
 
-**Para restore:**
-- `--no-backup` → Não cria backup automático antes de restaurar
-- `--no-deps` → Não restaura node_modules
+**For restore:**
+- `--no-backup` - Does not create auto backup before restoring
+- `--no-deps` - Does not restore node_modules
 
-**Para cleanup:**
-- `--force` → Remove sem confirmação
+**For cleanup:**
+- `--force` - Removes without confirmation
 
-### Cenário Típico
+### Typical Scenario
 
 ```bash
-# 1. Antes de refatoração complexa
-npm run snapshot:create pre-auth-refactor -- --include-deps --description "Antes de refatorar módulo auth"
+# 1. Before complex refactoring
+npm run snapshot:create pre-auth-refactor -- --include-deps --description "Before refactoring auth module"
 
-# 2. Trabalha na refatoração...
-# (modifica arquivos, instala deps, quebra coisas)
+# 2. Working on refactoring...
+# (modify files, install deps, break things)
 
-# 3. Se der errado:
+# 3. If something goes wrong:
 npm run snapshot:restore pre-auth-refactor
-# → Restaura tudo em ~5 segundos
+# -> Restores everything in ~5 seconds
 
-# 4. Se der certo:
+# 4. If successful:
 npm run snapshot:delete pre-auth-refactor
-# → Libera espaço
+# -> Frees up space
 ```
 
-### Como Funciona
+### How It Works
 
-1. **Criação**: 
-   - Cria tag Git `snapshot/<nome>` com estado atual
-   - Se `--include-deps`, comprime `node_modules` para `.snapshots/<nome>-deps.tar.gz`
-   - Salva metadados em `.snapshots/<nome>.metadata.json`
+1. **Create**:
+   - Creates Git tag `snapshot/<name>` with current state
+   - If `--include-deps`, compresses `node_modules` to `.snapshots/<name>-deps.tar.gz`
+   - Saves metadata to `.snapshots/<name>.metadata.json`
 
-2. **Restauração**:
-   - Cria backup automático (`auto-backup-<timestamp>`) por segurança
-   - Checkout do tag `snapshot/<nome>`
-   - Se archive existe, extrai `node_modules`
+2. **Restore**:
+   - Creates auto backup (`auto-backup-<timestamp>`) for safety
+   - Checkout of tag `snapshot/<name>`
+   - If archive exists, extracts `node_modules`
 
-3. **Armazenamento**:
-   - Snapshots ficam em `.snapshots/` (ignorado pelo Git)
-   - Cada snapshot ocupa ~15-20 MB (com node_modules)
-   - Auto-cleanup remove snapshots >7 dias
+3. **Storage**:
+   - Snapshots stored in `.snapshots/` (gitignored)
+   - Each snapshot takes ~15-20 MB (with node_modules)
+   - Auto-cleanup removes snapshots >7 days
 
 ### Performance
 
-| Operação | Tempo Estimado |
+| Operation | Estimated Time |
 |----------|----------------|
-| Criar (sem deps) | ~1-2s |
-| Criar (com deps) | ~5-10s |
-| Restaurar (sem deps) | ~2-3s |
-| Restaurar (com deps) | ~10-15s |
+| Create (no deps) | ~1-2s |
+| Create (with deps) | ~5-10s |
+| Restore (no deps) | ~2-3s |
+| Restore (with deps) | ~10-15s |
 
-### Boas Práticas
+### Best Practices
 
-- ✅ Sempre use `--include-deps` para refatorações que podem quebrar dependências
-- ✅ Use nomes descritivos: `pre-auth-refactor`, `before-threejs-upgrade`
-- ✅ Adicione descrições para contexto futuro
-- ✅ Limpe snapshots antigos regularmente (`npm run snapshot:cleanup`)
-- ❌ Não crie snapshots para pequenas mudanças (use git stash)
-- ❌ Não mantenha snapshots por mais de 7 dias (use cleanup)
+- Always use `--include-deps` for refactors that may break dependencies
+- Use descriptive names: `pre-auth-refactor`, `before-threejs-upgrade`
+- Add descriptions for future context
+- Clean old snapshots regularly (`npm run snapshot:cleanup`)
+- Do not create snapshots for small changes (use git stash)
+- Do not keep snapshots longer than 7 days (use cleanup)
 
 ## Docs
 
