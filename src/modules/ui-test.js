@@ -264,6 +264,46 @@ export function initUITest(rendererData, testModules) {
     console.log('✅ Image generated!');
   }
 
+  async function imageGuidanceHandler() {
+    console.log('⚖️ Testing guidance scale...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testGuidanceScale();
+    if (!result?.success) throw new Error(result?.error || 'Guidance scale test failed');
+    console.log('✅ Guidance scale test completed!');
+  }
+
+  async function imageNegativeHandler() {
+    console.log('🚫 Testing negative prompt...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testNegativePrompt();
+    if (!result?.success) throw new Error(result?.error || 'Negative prompt test failed');
+    console.log('✅ Negative prompt test completed!');
+  }
+
+  async function imageTriggerHandler() {
+    console.log('🎭 Testing trigger words...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testTriggerWords();
+    if (!result?.success) throw new Error(result?.error || 'Trigger words test failed');
+    console.log('✅ Trigger words test completed!');
+  }
+
+  async function imageEmojiHandler() {
+    console.log('😀 Testing emoji prompts...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testEmojiPrompts();
+    if (!result?.success) throw new Error(result?.error || 'Emoji prompts test failed');
+    console.log('✅ Emoji prompts test completed!');
+  }
+
+  async function imageOnFinishHandler() {
+    console.log('📊 Testing onFinish callback...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testOnFinishCallback();
+    if (!result?.success) throw new Error(result?.error || 'onFinish callback test failed');
+    console.log('✅ onFinish callback test completed!');
+  }
+
   async function ttsHandler() {
     console.log('🔊 Testing Text-to-Speech...');
     if (!ttsTest || !ttsTest.available) throw new Error('Plugin not available');
@@ -739,6 +779,11 @@ export function initUITest(rendererData, testModules) {
       <strong style="color:var(--ui-color-ai)">🤖 AI & Content</strong>
       <button id="btn-ai-text" class="ui-test-btn ui-test-btn--ai">🤖 AI Text</button>
       <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button>
+      <button id="btn-image-guidance" class="ui-test-btn ui-test-btn--ai">⚖️ CFG Scale</button>
+      <button id="btn-image-negative" class="ui-test-btn ui-test-btn--ai">🚫 Negative</button>
+      <button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button>
+      <button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button>
+      <button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
       <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
     </div>
@@ -838,6 +883,11 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-pattern').onclick = () => runTest('btn-pattern', 'Pattern', patternHandler);
   document.getElementById('btn-ai-text').onclick = () => runTest('btn-ai-text', 'AI Text', aiTextHandler);
   document.getElementById('btn-image').onclick = () => runTest('btn-image', 'Image', imageHandler);
+  document.getElementById('btn-image-guidance').onclick = () => runTest('btn-image-guidance', 'CFG Scale', imageGuidanceHandler);
+  document.getElementById('btn-image-negative').onclick = () => runTest('btn-image-negative', 'Negative Prompt', imageNegativeHandler);
+  document.getElementById('btn-image-trigger').onclick = () => runTest('btn-image-trigger', 'Trigger Words', imageTriggerHandler);
+  document.getElementById('btn-image-emoji').onclick = () => runTest('btn-image-emoji', 'Emoji Prompts', imageEmojiHandler);
+  document.getElementById('btn-image-onfinish').onclick = () => runTest('btn-image-onfinish', 'onFinish Callback', imageOnFinishHandler);
   document.getElementById('btn-tts').onclick = () => runTest('btn-tts', 'TTS', ttsHandler);
   document.getElementById('btn-tts-stop').onclick = () => runTest('btn-tts-stop', 'TTS Stop', () => {
     console.log('⏹️ Stopping speech...');
