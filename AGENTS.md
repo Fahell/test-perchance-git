@@ -30,27 +30,10 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 
 | Situation | File to Read |
 |-----------|--------------|
-| Before starting any task or after session resume | `.agent-notes.md` |
 | Before major refactoring or risky change | `docs/snapshot-guide.md` |
 | How to make a new release (patch/minor/major) | `docs/release-guide.md` |
 | When session drops unexpectedly and you need to restore context | `docs/agent-resume-guide.md` |
 | Before accessing Perchance via openbrowser | `docs/iframe-access-perchance-guide.md` |
-
-## 📝 Agent Task Log (`.agent-notes.md`)
-
-This file is the **structured working memory** for AI agents. It tracks planned tasks, progress, and blockers per release version.
-
-### How to use it
-1. **Before starting work:** Create a new version block with `🟡 IN PROGRESS` and list all planned steps
-2. **During execution:** Mark each task with `[x]` immediately after completion and validation
-3. **On release:** Update status to `✅ COMPLETED`, add technical notes, and close the block
-4. **After session drop:** Read the `🟡 IN PROGRESS` block to resume exactly where you left off. Combine with `docs/agent-resume-guide.md` for full context restoration
-
-### Rules
-- Never delete completed blocks; they serve as an agent-level changelog
-- Keep descriptions concise and action-oriented
-- Always reference commits, snapshots, or docs when relevant
-- This file complements git history; it does not replace it
 
 ## Coding Rules
 
@@ -63,12 +46,14 @@ This file is the **structured working memory** for AI agents. It tracks planned 
 ## ⚠️ Critical Guidelines
 
 ### Known Errors to Avoid
+
 1. Never create `test.html`
 2. Avoid unnecessary `try/catch` in async functions
 3. Never import Three.js from Perchance URLs
 4. Always use relative imports: `import {...} from './module.js'`
 
 ### Mandatory Workflow
+
 - Use feature branches: `feature/auth-refactor`
 - Never commit directly to `main`
 - **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
