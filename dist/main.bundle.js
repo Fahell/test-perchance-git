@@ -431,10 +431,31 @@ const imageTest = {
     if (result.dataUrl) return result.dataUrl;
     if (result.src) return result.src;
     if (result.url) return result.url;
-    const strValue = result.toString ? result.toString() : String(result);
-    if (strValue && strValue.startsWith("data:image/")) return strValue;
-    if (typeof result === "string" && result.startsWith("data:image/")) return result;
     return null;
+  },
+  // Helper robusto para geração de imagens via onFinish (Promise wrapper)
+  _generateImage(prompt, options = {}, timeout = 45e3) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(`Timeout: Geração da imagem excedeu ${timeout / 1e3}s`));
+      }, timeout);
+      try {
+        root.image(prompt, {
+          ...options,
+          onFinish: (data) => {
+            clearTimeout(timer);
+            if (data && data.dataUrl) {
+              resolve(data);
+            } else {
+              reject(new Error("Dados da imagem inválidos ou vazios"));
+            }
+          }
+        });
+      } catch (err) {
+        clearTimeout(timer);
+        reject(err);
+      }
+    });
   },
   // Cria ou reutiliza o container modal
   _getOrCreateContainer(title) {
@@ -457,7 +478,7 @@ const imageTest = {
     const { contentArea } = this._getOrCreateContainer("🖼️ Image Test - Basic Generation");
     contentArea.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">⏳ Gerando imagem...</div>';
     try {
-      const result = await root.image(
+      const result = await this._generateImage(
         "papercraft warrior with sword, fantasy art style",
         {
           seed: 12345,
@@ -496,7 +517,7 @@ const imageTest = {
     const { contentArea } = this._getOrCreateContainer("🔍 Image Test - Remove Background");
     contentArea.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">⏳ Gerando imagem sem fundo...</div>';
     try {
-      const result = await root.image(
+      const result = await this._generateImage(
         "papercraft character, simple background",
         {
           seed: 54321,
@@ -540,9 +561,9 @@ const imageTest = {
       const seed2 = 99999;
       const prompt = "papercraft dragon, fantasy style";
       console.log(` Gerando com seed ${seed1}...`);
-      const result1 = await root.image(prompt, { seed: seed1, resolution: "256x256" });
+      const result1 = await this._generateImage(prompt, { seed: seed1, resolution: "256x256" });
       console.log(` Gerando com seed ${seed2}...`);
-      const result2 = await root.image(prompt, { seed: seed2, resolution: "256x256" });
+      const result2 = await this._generateImage(prompt, { seed: seed2, resolution: "256x256" });
       const url1 = this._extractImageUrl(result1);
       const url2 = this._extractImageUrl(result2);
       if (url1 && url2) {
@@ -582,7 +603,7 @@ const imageTest = {
     const { contentArea } = this._getOrCreateContainer("📐 Image Test - Custom Resolution");
     contentArea.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">⏳ Gerando imagem 768x384...</div>';
     try {
-      const result = await root.image(
+      const result = await this._generateImage(
         "papercraft landscape, wide view",
         {
           seed: 77777,
@@ -625,7 +646,7 @@ const imageTest = {
       const results = [];
       for (const scale of scales) {
         console.log(` Gerando com CFG ${scale}...`);
-        const result = await root.image(prompt, {
+        const result = await this._generateImage(prompt, {
           seed,
           resolution: "256x256",
           guidanceScale: scale
@@ -673,12 +694,12 @@ const imageTest = {
       const seed = 55555;
       const negativePrompt = "blurry, low quality, distorted, ugly, deformed";
       console.log(" Gerando SEM negative prompt...");
-      const resultWithout = await root.image(prompt, {
+      const resultWithout = await this._generateImage(prompt, {
         seed,
         resolution: "256x256"
       });
       console.log(" Gerando COM negative prompt...");
-      const resultWith = await root.image(prompt, {
+      const resultWith = await this._generateImage(prompt, {
         seed,
         resolution: "256x256",
         negativePrompt
@@ -731,7 +752,7 @@ const imageTest = {
       const results = [];
       for (const config2 of configs) {
         console.log(` Gerando estilo: ${config2.label}...`);
-        const result = await root.image(config2.prompt, {
+        const result = await this._generateImage(config2.prompt, {
           seed,
           resolution: "256x256"
         });
@@ -784,7 +805,7 @@ const imageTest = {
       const results = [];
       for (const config2 of emojiConfigs) {
         console.log(` Gerando com emoji ${config2.emoji}...`);
-        const result = await root.image(config2.prompt, {
+        const result = await this._generateImage(config2.prompt, {
           seed,
           resolution: "256x256"
         });
@@ -832,7 +853,7 @@ const imageTest = {
       const prompt = "papercraft owl, mystical forest, detailed feathers";
       const seed = 99988;
       console.log(" Gerando com onFinish callback...");
-      const result = await root.image(prompt, {
+      const result = await this._generateImage(prompt, {
         seed,
         resolution: "512x512",
         guidanceScale: 8,
