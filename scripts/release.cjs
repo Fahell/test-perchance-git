@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /**
  * Script de release automatizado
  * Uso: node scripts/release.js <version>
@@ -7,12 +6,13 @@
  * 
  * Fluxo:
  * 1. Valida estado limpo do repositório
- * 2. Atualiza constants.js (fonte da verdade)
- * 3. Roda sync-version.cjs (sincroniza todos os arquivos)
- * 4. Roda build (gera bundle)
- * 5. Commit (pre-commit hook roda sync-version novamente)
- * 6. Tag
- * 7. Pull --rebase + Push
+ * 2. Valida branch main (evita tags desvinculadas)
+ * 3. Atualiza constants.js (fonte da verdade)
+ * 4. Roda sync-version.cjs (sincroniza todos os arquivos)
+ * 5. Roda build (gera bundle)
+ * 6. Commit (pre-commit hook roda sync-version novamente)
+ * 7. Tag
+ * 8. Pull --rebase + Push
  */
 
 const fs = require('fs');
@@ -69,6 +69,30 @@ function checkCleanState() {
   }
   
   console.log('');
+}
+
+function checkMainBranch() {
+  console.log('🔍 Verificando branch atual...\n');
+  
+  try {
+    const currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: ROOT_DIR }).toString().trim();
+    
+    if (currentBranch !== 'main') {
+      console.error(`❌ Release deve ser executado na branch 'main'.`);
+      console.error(`   Branch atual: ${currentBranch}`);
+      console.error('\n👉 Fluxo correto:');
+      console.error('   1. git checkout main');
+      console.error('   2. git merge <sua-feature-branch> --no-ff');
+      console.error('   3. npm run release X.Y.Z');
+      console.error('\n⚠️  Release abortado para evitar tags desvinculadas.');
+      process.exit(1);
+    }
+    
+    console.log('✅ Branch atual: main\n');
+  } catch (error) {
+    console.warn('⚠️  Não foi possível verificar a branch atual:', error.message);
+    console.warn('   Continuando com o release...\n');
+  }
 }
 
 function updateConstantsJs(version) {
@@ -223,6 +247,9 @@ function main() {
   try {
     // 0. Valida estado limpo do repositório
     checkCleanState();
+    
+    // 0.1 Valida branch main
+    checkMainBranch();
     
     // 1. Atualiza constants.js (fonte da verdade)
     updateConstantsJs(version);
