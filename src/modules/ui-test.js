@@ -164,7 +164,20 @@ export function initUITest(rendererData, testModules) {
     { id: 'bridge', title: '🔗 Bridge', what: 'Tests the Perchance plugin bridge communication.', how: 'Sends/receives data between JS and Perchance runtime, verifying payload integrity.', key: 'Plugin bridge, message passing, data serialization.' },
     { id: 'state', title: '💾 Save/Load', what: 'Tests localStorage state persistence.', how: 'Serializes game state to JSON, saves to localStorage, reloads, and hydrates state.', key: '<code>localStorage</code>, JSON serialization, state hydration.' },
     { id: 'kv', title: '🗄️ KV', what: 'Tests key-value storage plugin for structured data.', how: 'Sets/gets/deletes KV pairs, verifies persistence and type handling.', key: 'KV plugin, structured storage, CRUD operations.' },
-    { id: 'indexeddb', title: '🗃️ IndexedDB', what: 'Tests native browser NoSQL database for large/complex data.', how: 'Opens DB, saves primitives & AI results (FIFO cache), loads them back, and clears stores.', key: 'IndexedDB, async transactions, Blobs, FIFO eviction.' }
+    { id: 'indexeddb', title: '🗃️ IndexedDB', what: 'Tests native browser NoSQL database for large/complex data.', how: 'Opens DB, saves primitives & AI results (FIFO cache), loads them back, and clears stores.', key: 'IndexedDB, async transactions, Blobs, FIFO eviction.' },
+    { id: 'image-guidance', title: '⚖️ CFG Scale', what: 'Tests guidance scale (CFG) parameter for AI image generation.', how: 'Generates 3 images with different CFG values (3, 7, 15) to show creativity vs prompt adherence.', key: 'guidanceScale parameter, prompt adherence, AI control.' },
+    { id: 'image-negative', title: '🚫 Negative Prompt', what: 'Tests negative prompt parameter to exclude elements from generation.', how: 'Generates same image with and without negative prompt to show exclusion effect.', key: 'negativePrompt parameter, element exclusion, AI refinement.' },
+    { id: 'image-trigger', title: '🎭 Trigger Words', what: 'Tests model-specific trigger words for different art styles.', how: 'Generates images using trigger words for Normal, Anime, and Furry styles.', key: 'Model triggers, style control, anime/furry generation.' },
+    { id: 'image-emoji', title: '😀 Emoji Prompts', what: 'Tests emoji support in AI image generation prompts.', how: 'Generates images with emojis (🐉🌸🤖) as part of the prompt.', key: 'Emoji tokens, prompt syntax, visual concept mapping.' },
+    { id: 'image-onfinish', title: '📊 onFinish Callback', what: 'Tests the onFinish callback for capturing generation metadata.', how: 'Uses onFinish callback to capture and display image data, canvas, and inputs.', key: 'onFinish callback, metadata capture, async completion.' },
+    { id: 'image-emphasis', title: '🎯 Tag Emphasis', what: 'Tests tag weighting/emphasis syntax (tag:weight).', how: 'Generates images with different emphasis weights (0.5, 1.0, 1.5, 2.0) to show impact.', key: 'Tag weighting, (tag:weight) syntax, prompt emphasis.' },
+    { id: 'image-ordering', title: '🔄 Prompt Ordering', what: 'Tests how tag order affects image composition.', how: 'Generates images with same tags in different orders to show positional impact.', key: 'Tag ordering, composition bias, prompt structure.' },
+    { id: 'image-canvas', title: '🎨 Canvas Post-Processing', what: 'Tests direct canvas manipulation after image generation.', how: 'Accesses result.canvas to apply filters (grayscale, sepia) and overlay text.', key: 'Canvas API, image processing, post-generation effects.' },
+    { id: 'image-break', title: '⚡ BREAK Keyword', what: 'Tests BREAK keyword for separating prompt chunks.', how: 'Generates images with and without BREAK to show token separation effect.', key: 'BREAK keyword, token chunking, prompt separation.' },
+    { id: 'image-blending', title: '🎨 Tag Blending', what: 'Tests tag blending syntax [from:to:ratio] for style mixing.', how: 'Generates images with different blend ratios (0%, 50%, 100%) between styles.', key: 'Tag blending, [from:to:ratio] syntax, style mixing.' },
+    { id: 'image-grid', title: '🖼️ Multi-Image Grid', what: 'Tests parallel generation of multiple images.', how: 'Uses Promise.all() to generate 4 images simultaneously in a grid layout.', key: 'Parallel generation, Promise.all(), batch processing.' },
+    { id: 'image-alternating', title: '🔄 Alternating Tags', what: 'Tests alternating tag syntax [tag1|tag2] for step variation.', how: 'Generates images with alternating tags to show per-step variation effect.', key: 'Alternating tags, [tag1|tag2] syntax, step variation.' },
+    { id: 'image-addremove', title: '➕ Add/Remove During Gen', what: 'Tests adding/removing tags during generation [to:when] and [from::when].', how: 'Generates images with tags added/removed at specific generation steps.', key: 'Dynamic prompts, [to:when] syntax, [from::when] syntax.' },
   ];
 
   async function diceHandler() {
@@ -834,8 +847,13 @@ export function initUITest(rendererData, testModules) {
     </div>
     
     <div class="how-it-works-section">
-      <strong style="color:#4ade80;display:block;margin-bottom:8px;">📖 How It Works</strong>
-      <div id="how-it-works-container"></div>
+      <details class="how-it-works-accordion">
+        <summary style="color:#4ade80;font-weight:bold;cursor:pointer;padding:8px;background:#1e293b;border-radius:4px;">📖 How It Works (Click to expand)</summary>
+        <div style="margin-top:8px;padding:8px;">
+          <div id="how-it-works-container"></div>
+        </div>
+      </details>
+    </div>
     </div>
     
     <div class="ui-test-category">
@@ -848,26 +866,31 @@ export function initUITest(rendererData, testModules) {
     <div class="ui-test-category">
       <strong style="color:var(--ui-color-ai)">🤖 AI & Content</strong>
       <button id="btn-ai-text" class="ui-test-btn ui-test-btn--ai">🤖 AI Text</button>
-      <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button>
-      <button id="btn-image-guidance" class="ui-test-btn ui-test-btn--ai">⚖️ CFG Scale</button>
-      <button id="btn-image-negative" class="ui-test-btn ui-test-btn--ai">🚫 Negative</button>
-      <button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button>
-      <button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button>
-      <button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button>
-      <button id="btn-image-emphasis" class="ui-test-btn ui-test-btn--ai">🎯 Emphasis</button>
-      <button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button>
-      <button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button>
-      <button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button>
-      <button id="btn-image-blending" class="ui-test-btn ui-test-btn--ai">🎨 Blending</button>
-      <button id="btn-image-grid" class="ui-test-btn ui-test-btn--ai">🖼️ Grid</button>
-      <button id="btn-image-alternating" class="ui-test-btn ui-test-btn--ai">🔄 Alternating</button>
-      <button id="btn-image-addremove" class="ui-test-btn ui-test-btn--ai">➕ Add/Remove</button>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
       <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-render)">🎨 Rendering</strong>
+      <strong style="color:var(--ui-color-render)">
+    <div class="ui-test-category">
+      <strong style="color:#a78bfa">🖼️ Image Generation Tests</strong>
+      <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button><button id="btn-image-guidance" class="ui-test-btn ui-test-btn--ai">⚖️ CFG Scale</button><button id="btn-image-negative" class="ui-test-btn ui-test-btn--ai">🚫 Negative</button><button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button><button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button><button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button><button id="btn-image-emphasis" class="ui-test-btn ui-test-btn--ai">🎯 Emphasis</button><button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button><button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button><button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button><button id="btn-image-blending" class="ui-test-btn ui-test-btn--ai">🎨 Blending</button><button id="btn-image-grid" class="ui-test-btn ui-test-btn--ai">🖼️ Grid</button><button id="btn-image-alternating" class="ui-test-btn ui-test-btn--ai">🔄 Alternating</button><button id="btn-image-addremove" class="ui-test-btn ui-test-btn--ai">➕ Add/Remove</button>
+    </div>
+    🎨 Rendering</strong>
       <button id="btn-3d" class="ui-test-btn ui-test-btn--render">🎲 Cube Color</button>
       <button id="btn-raycaster" class="ui-test-btn ui-test-btn--render">🖱️ Raycaster</button>
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
