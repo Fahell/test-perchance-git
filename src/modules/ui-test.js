@@ -336,6 +336,44 @@ export function initUITest(rendererData, testModules) {
   }
 
 
+  // ===== HANDLERS FASE 3 =====
+  async function imageTagBlendingHandler() {
+    console.log('🎨 Testing tag blending...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🎨 Image Test - Tag Blending', { id: 'test-image-blending', width: 800, height: 600 });
+    const result = await imageTest.testTagBlending(contentArea);
+    if (!result?.success) throw new Error(result?.error || 'Tag blending test failed');
+    console.log('✅ Tag blending test completed!');
+  }
+
+  async function imageMultiImageGridHandler() {
+    console.log('🖼️ Testing multi-image grid...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ Image Test - Multi-Image Grid', { id: 'test-image-grid', width: 800, height: 600 });
+    const result = await imageTest.testMultiImageGrid(contentArea);
+    if (!result?.success) throw new Error(result?.error || 'Multi-image grid test failed');
+    console.log('✅ Multi-image grid test completed!');
+  }
+
+  async function imageAlternatingTagsHandler() {
+    console.log('🔄 Testing alternating tags...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🔄 Image Test - Alternating Tags', { id: 'test-image-alternating', width: 800, height: 600 });
+    const result = await imageTest.testAlternatingTags(contentArea);
+    if (!result?.success) throw new Error(result?.error || 'Alternating tags test failed');
+    console.log('✅ Alternating tags test completed!');
+  }
+
+  async function imageAddRemoveDuringGenHandler() {
+    console.log('➕ Testing add/remove during generation...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('➕ Image Test - Add/Remove During Gen', { id: 'test-image-addremove', width: 800, height: 600 });
+    const result = await imageTest.testAddRemoveDuringGen(contentArea);
+    if (!result?.success) throw new Error(result?.error || 'Add/remove during generation test failed');
+    console.log('✅ Add/remove during generation test completed!');
+  }
+
+
   async function ttsHandler() {
     console.log('🔊 Testing Text-to-Speech...');
     if (!ttsTest || !ttsTest.available) throw new Error('Plugin not available');
@@ -820,6 +858,10 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button>
       <button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button>
       <button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button>
+      <button id="btn-image-blending" class="ui-test-btn ui-test-btn--ai">🎨 Blending</button>
+      <button id="btn-image-grid" class="ui-test-btn ui-test-btn--ai">🖼️ Grid</button>
+      <button id="btn-image-alternating" class="ui-test-btn ui-test-btn--ai">🔄 Alternating</button>
+      <button id="btn-image-addremove" class="ui-test-btn ui-test-btn--ai">➕ Add/Remove</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
       <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
     </div>
@@ -928,6 +970,10 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-image-ordering').onclick = () => runTest('btn-image-ordering', 'Prompt Ordering', imagePromptOrderingHandler);
   document.getElementById('btn-image-canvas').onclick = () => runTest('btn-image-canvas', 'Canvas Post-Processing', imageCanvasPostProcessingHandler);
   document.getElementById('btn-image-break').onclick = () => runTest('btn-image-break', 'BREAK Keyword', imageBreakKeywordHandler);
+  document.getElementById('btn-image-blending').onclick = () => runTest('btn-image-blending', 'Tag Blending', imageTagBlendingHandler);
+  document.getElementById('btn-image-grid').onclick = () => runTest('btn-image-grid', 'Multi-Image Grid', imageMultiImageGridHandler);
+  document.getElementById('btn-image-alternating').onclick = () => runTest('btn-image-alternating', 'Alternating Tags', imageAlternatingTagsHandler);
+  document.getElementById('btn-image-addremove').onclick = () => runTest('btn-image-addremove', 'Add/Remove During Gen', imageAddRemoveDuringGenHandler);
   document.getElementById('btn-tts').onclick = () => runTest('btn-tts', 'TTS', ttsHandler);
   document.getElementById('btn-tts-stop').onclick = () => runTest('btn-tts-stop', 'TTS Stop', () => {
     console.log('⏹️ Stopping speech...');

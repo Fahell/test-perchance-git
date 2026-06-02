@@ -791,6 +791,172 @@ export const imageTest = {
   },
 
 
+  // ===== TESTE 10: Tag Blending =====
+  async testTagBlending(contentArea) {
+    console.log('🖼️ [Image] Testando tag blending...');
+    try {
+      const blends = [
+        { name: '0% (100% cyberpunk)', prompt: 'papercraft cat [cyberpunk:steampunk:0]', desc: '100% cyberpunk' },
+        { name: '50% (50/50)', prompt: 'papercraft cat [cyberpunk:steampunk:0.5]', desc: '50% cyberpunk + 50% steampunk' },
+        { name: '100% (100% steampunk)', prompt: 'papercraft cat [cyberpunk:steampunk:1]', desc: '100% steampunk' }
+      ];
+      
+      const results = [];
+      for (let i = 0; i < blends.length; i++) {
+        console.log(` Gerando blend ${i+1}: ${blends[i].desc}...`);
+        const result = await this._generateImage(blends[i].prompt, {
+          seed: 42424,
+          size: 256
+        });
+        results.push({ ...blends[i], url: this._extractImageUrl(result) });
+      }
+      
+      console.log('✅ [Image] Blends gerados!');
+      contentArea.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; text-align:center">
+          ${results.map(r => `
+            <div>
+              <img src="${r.url}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+              <p style="margin-top:8px; font-size:12px"><strong>${r.name}</strong><br><code style="font-size:10px">${r.prompt}</code></p>
+            </div>
+          `).join('')}
+        </div>
+        <p style="text-align:center; margin-top:16px; font-size:12px; color:#666">
+          Tag blending mistura dois estilos: <code>[from:to:ratio]</code> onde ratio vai de 0 (100% from) a 1 (100% to).
+        </p>
+      `;
+      return { success: true, count: results.length };
+    } catch (error) {
+      console.error('❌ [Image] Falha no tag blending:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
+  // ===== TESTE 11: Multi-Image Grid =====
+  async testMultiImageGrid(contentArea) {
+    console.log('🖼️ [Image] Testando multi-image grid...');
+    try {
+      const prompts = [
+        'papercraft dragon, fire, detailed',
+        'papercraft unicorn, rainbow, magical',
+        'papercraft robot, futuristic, metal',
+        'papercraft owl, mystical, forest'
+      ];
+      
+      console.log(` Gerando ${prompts.length} imagens simultaneamente...`);
+      const promises = prompts.map((prompt, i) => 
+        this._generateImage(prompt, { seed: 42424 + i, size: 256 })
+      );
+      const results = await Promise.all(promises);
+      
+      console.log('✅ [Image] Grid gerado!');
+      contentArea.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; text-align:center">
+          ${results.map((result, i) => `
+            <div>
+              <img src="${this._extractImageUrl(result)}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+              <p style="margin-top:8px; font-size:11px"><code>${prompts[i]}</code></p>
+            </div>
+          `).join('')}
+        </div>
+        <p style="text-align:center; margin-top:16px; font-size:12px; color:#666">
+          Geração paralela de múltiplas imagens usando <code>Promise.all()</code> para eficiência.
+        </p>
+      `;
+      return { success: true, count: results.length };
+    } catch (error) {
+      console.error('❌ [Image] Falha no multi-image grid:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
+  // ===== TESTE 12: Alternating Tags =====
+  async testAlternatingTags(contentArea) {
+    console.log('🖼️ [Image] Testando alternating tags...');
+    try {
+      const tests = [
+        { name: 'Sem alternância', prompt: 'papercraft cat, blue, simple', desc: 'Prompt normal' },
+        { name: 'Alternando blue|red', prompt: 'papercraft cat [blue|red], simple', desc: 'Alterna blue/red a cada step' },
+        { name: '3-way alternation', prompt: 'papercraft cat [blue|red|green], simple', desc: 'Ciclo blue→red→green' }
+      ];
+      
+      const results = [];
+      for (let i = 0; i < tests.length; i++) {
+        console.log(` Gerando ${i+1}: ${tests[i].name}...`);
+        const result = await this._generateImage(tests[i].prompt, {
+          seed: 42424,
+          size: 256
+        });
+        results.push({ ...tests[i], url: this._extractImageUrl(result) });
+      }
+      
+      console.log('✅ [Image] Alternating tags gerados!');
+      contentArea.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; text-align:center">
+          ${results.map(r => `
+            <div>
+              <img src="${r.url}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+              <p style="margin-top:8px; font-size:12px"><strong>${r.name}</strong><br><code style="font-size:10px">${r.prompt}</code></p>
+            </div>
+          `).join('')}
+        </div>
+        <p style="text-align:center; margin-top:16px; font-size:12px; color:#666">
+          Alternating tags <code>[tag1|tag2]</code> alternam entre tags a cada step de geração, criando misturas únicas.
+        </p>
+      `;
+      return { success: true, count: results.length };
+    } catch (error) {
+      console.error('❌ [Image] Falha nos alternating tags:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
+  // ===== TESTE 13: Add/Remove During Generation =====
+  async testAddRemoveDuringGen(contentArea) {
+    console.log('🖼️ [Image] Testando add/remove during generation...');
+    try {
+      const tests = [
+        { name: 'Sem modificação', prompt: 'papercraft cat, simple', desc: 'Prompt normal' },
+        { name: 'Adiciona wings em 50%', prompt: 'papercraft cat [with wings:0.5], simple', desc: 'Adiciona "with wings" após 50% dos steps' },
+        { name: 'Remove tail em 50%', prompt: 'papercraft cat with tail [with tail::0.5], simple', desc: 'Remove "with tail" após 50% dos steps' }
+      ];
+      
+      const results = [];
+      for (let i = 0; i < tests.length; i++) {
+        console.log(` Gerando ${i+1}: ${tests[i].name}...`);
+        const result = await this._generateImage(tests[i].prompt, {
+          seed: 42424,
+          size: 256
+        });
+        results.push({ ...tests[i], url: this._extractImageUrl(result) });
+      }
+      
+      console.log('✅ [Image] Add/remove during generation gerados!');
+      contentArea.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; text-align:center">
+          ${results.map(r => `
+            <div>
+              <img src="${r.url}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+              <p style="margin-top:8px; font-size:12px"><strong>${r.name}</strong><br><code style="font-size:10px">${r.prompt}</code></p>
+            </div>
+          `).join('')}
+        </div>
+        <p style="text-align:center; margin-top:16px; font-size:12px; color:#666">
+          <code>[to:when]</code> adiciona tags após X% dos steps. <code>[from::when]</code> remove tags após X% dos steps.
+        </p>
+      `;
+      return { success: true, count: results.length };
+    } catch (error) {
+      console.error('❌ [Image] Falha no add/remove during generation:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
+
   // Fecha o container
   close() {
     if (currentContainer) {
