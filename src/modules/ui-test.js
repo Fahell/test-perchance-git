@@ -303,6 +303,38 @@ export function initUITest(rendererData, testModules) {
     if (!result?.success) throw new Error(result?.error || 'onFinish callback test failed');
     console.log('✅ onFinish callback test completed!');
   }
+  async function imageTagEmphasisHandler() {
+    console.log('🎯 Testing tag emphasis...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testTagEmphasis();
+    if (!result?.success) throw new Error(result?.error || 'Tag emphasis test failed');
+    console.log('✅ Tag emphasis test completed!');
+  }
+
+  async function imagePromptOrderingHandler() {
+    console.log('🔀 Testing prompt ordering...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testPromptOrdering();
+    if (!result?.success) throw new Error(result?.error || 'Prompt ordering test failed');
+    console.log('✅ Prompt ordering test completed!');
+  }
+
+  async function imageCanvasPostProcessingHandler() {
+    console.log('🎨 Testing canvas post-processing...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testCanvasPostProcessing();
+    if (!result?.success) throw new Error(result?.error || 'Canvas post-processing test failed');
+    console.log('✅ Canvas post-processing test completed!');
+  }
+
+  async function imageBreakKeywordHandler() {
+    console.log('⚡ Testing BREAK keyword...');
+    if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
+    const result = await imageTest.testBreakKeyword();
+    if (!result?.success) throw new Error(result?.error || 'BREAK keyword test failed');
+    console.log('✅ BREAK keyword test completed!');
+  }
+
 
   async function ttsHandler() {
     console.log('🔊 Testing Text-to-Speech...');
@@ -784,6 +816,10 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button>
       <button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button>
       <button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button>
+      <button id="btn-image-emphasis" class="ui-test-btn ui-test-btn--ai">🎯 Emphasis</button>
+      <button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button>
+      <button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button>
+      <button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
       <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
     </div>
@@ -888,6 +924,10 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-image-trigger').onclick = () => runTest('btn-image-trigger', 'Trigger Words', imageTriggerHandler);
   document.getElementById('btn-image-emoji').onclick = () => runTest('btn-image-emoji', 'Emoji Prompts', imageEmojiHandler);
   document.getElementById('btn-image-onfinish').onclick = () => runTest('btn-image-onfinish', 'onFinish Callback', imageOnFinishHandler);
+  document.getElementById('btn-image-emphasis').onclick = () => runTest('btn-image-emphasis', 'Tag Emphasis', imageTagEmphasisHandler);
+  document.getElementById('btn-image-ordering').onclick = () => runTest('btn-image-ordering', 'Prompt Ordering', imagePromptOrderingHandler);
+  document.getElementById('btn-image-canvas').onclick = () => runTest('btn-image-canvas', 'Canvas Post-Processing', imageCanvasPostProcessingHandler);
+  document.getElementById('btn-image-break').onclick = () => runTest('btn-image-break', 'BREAK Keyword', imageBreakKeywordHandler);
   document.getElementById('btn-tts').onclick = () => runTest('btn-tts', 'TTS', ttsHandler);
   document.getElementById('btn-tts-stop').onclick = () => runTest('btn-tts-stop', 'TTS Stop', () => {
     console.log('⏹️ Stopping speech...');

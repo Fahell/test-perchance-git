@@ -579,6 +579,217 @@ export const imageTest = {
       return { success: false, error: error.message };
     }
   },
+  // ============================================
+  // PHASE 2 TESTS
+  // ============================================
+
+  async testTagEmphasis() {
+    console.log('🖼️ [Image] Testando tag emphasis...');
+    const { contentArea } = this._getOrCreateContainer('🎯 Image Test - Tag Emphasis');
+    contentArea.innerHTML = '<p>⏳ Gerando 4 imagens com diferentes pesos de tag...</p>';
+    try {
+      const basePrompt = 'papercraft dragon';
+      const variations = [
+        { weight: 0.5, label: '(dragon:0.5) - De-enfatizado' },
+        { weight: 1.0, label: '(dragon:1.0) - Normal' },
+        { weight: 1.5, label: '(dragon:1.5) - Ênfase' },
+        { weight: 2.0, label: '(dragon:2.0) - Ênfase máxima' }
+      ];
+      const results = [];
+      for (let i = 0; i < variations.length; i++) {
+        const v = variations[i];
+        console.log(` Gerando com peso ${v.weight}...`);
+        const prompt = `${basePrompt}, (${basePrompt.split(' ')[1]}:${v.weight}), fantasy`;
+        const result = await this._generateImage(prompt, {
+          seed: 42424,
+          size: 256,
+          guidanceScale: 7
+        });
+        results.push({ ...result, label: v.label, weight: v.weight });
+      }
+      console.log(`✅ [Image] ${results.length}/4 imagens com emphasis geradas!`);
+      let html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; text-align:center">';
+      for (const r of results) {
+        const imageUrl = this._extractImageUrl(r);
+        html += `
+          <div>
+            <img src="${imageUrl}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:13px"><strong>${r.label}</strong></p>
+          </div>
+        `;
+      }
+      html += '</div>';
+      contentArea.innerHTML = html;
+      return { success: true, count: results.length };
+    } catch (error) {
+      console.error('❌ [Image] Falha no tag emphasis:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
+  async testPromptOrdering() {
+    console.log('🖼️ [Image] Testando prompt ordering...');
+    const { contentArea } = this._getOrCreateContainer('🔀 Image Test - Prompt Ordering');
+    contentArea.innerHTML = '<p>⏳ Gerando 3 imagens com mesmas tags em ordens diferentes...</p>';
+    try {
+      const orders = [
+        { prompt: 'papercraft dragon, fantasy landscape, detailed', label: 'Ordem 1: Dragon → Landscape' },
+        { prompt: 'fantasy landscape, papercraft dragon, detailed', label: 'Ordem 2: Landscape → Dragon' },
+        { prompt: 'detailed, papercraft dragon, fantasy landscape', label: 'Ordem 3: Detailed → Dragon' }
+      ];
+      const results = [];
+      for (let i = 0; i < orders.length; i++) {
+        console.log(` Gerando ordem ${i + 1}...`);
+        const result = await this._generateImage(orders[i].prompt, {
+          seed: 42424,
+          size: 256,
+          guidanceScale: 7
+        });
+        results.push({ ...result, label: orders[i].label });
+      }
+      console.log(`✅ [Image] ${results.length}/3 imagens com ordering geradas!`);
+      let html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; text-align:center">';
+      for (const r of results) {
+        const imageUrl = this._extractImageUrl(r);
+        html += `
+          <div>
+            <img src="${imageUrl}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:12px"><strong>${r.label}</strong></p>
+          </div>
+        `;
+      }
+      html += '</div>';
+      contentArea.innerHTML = html;
+      return { success: true, count: results.length };
+    } catch (error) {
+      console.error('❌ [Image] Falha no prompt ordering:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
+  async testCanvasPostProcessing() {
+    console.log('🖼️ [Image] Testando canvas post-processing...');
+    const { contentArea } = this._getOrCreateContainer('🎨 Image Test - Canvas Post-Processing');
+    contentArea.innerHTML = '<p>⏳ Gerando imagem e aplicando filtros no canvas...</p>';
+    try {
+      const prompt = 'papercraft castle, fantasy, detailed';
+      console.log(' Gerando imagem base...');
+      const result = await this._generateImage(prompt, {
+        seed: 42424,
+        size: 256,
+        guidanceScale: 7
+      });
+      const imageUrl = this._extractImageUrl(result);
+      console.log('✅ [Image] Imagem base gerada, aplicando filtros...');
+      // Create a canvas to apply filters
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageUrl;
+      });
+      canvas.width = img.width;
+      canvas.height = img.height;
+      // Draw original
+      ctx.drawImage(img, 0, 0);
+      const originalDataUrl = canvas.toDataURL();
+      // Apply grayscale filter
+      ctx.filter = 'grayscale(100%)';
+      ctx.drawImage(img, 0, 0);
+      const grayscaleDataUrl = canvas.toDataURL();
+      // Apply sepia filter
+      ctx.filter = 'sepia(100%)';
+      ctx.drawImage(img, 0, 0);
+      const sepiaDataUrl = canvas.toDataURL();
+      // Apply text overlay
+      ctx.filter = 'none';
+      ctx.drawImage(img, 0, 0);
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+      ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('TEST OVERLAY', canvas.width / 2, canvas.height - 15);
+      const overlayDataUrl = canvas.toDataURL();
+      console.log('✅ [Image] Filtros aplicados com sucesso!');
+      contentArea.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; text-align:center">
+          <div>
+            <img src="${originalDataUrl}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:13px"><strong>Original</strong></p>
+          </div>
+          <div>
+            <img src="${grayscaleDataUrl}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:13px"><strong>Grayscale</strong></p>
+          </div>
+          <div>
+            <img src="${sepiaDataUrl}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:13px"><strong>Sepia</strong></p>
+          </div>
+          <div>
+            <img src="${overlayDataUrl}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:13px"><strong>Text Overlay</strong></p>
+          </div>
+        </div>
+      `;
+      return { success: true, filters: ['original', 'grayscale', 'sepia', 'overlay'] };
+    } catch (error) {
+      console.error('❌ [Image] Falha no canvas post-processing:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
+  async testBreakKeyword() {
+    console.log('🖼️ [Image] Testando BREAK keyword...');
+    const { contentArea } = this._getOrCreateContainer('⚡ Image Test - BREAK Keyword');
+    contentArea.innerHTML = '<p>⏳ Gerando 2 imagens: com e sem BREAK...</p>';
+    try {
+      const promptWithoutBreak = 'papercraft dragon, fantasy landscape, detailed, high quality';
+      const promptWithBreak = 'papercraft dragon BREAK fantasy landscape, detailed, high quality';
+      console.log(' Gerando SEM BREAK...');
+      const result1 = await this._generateImage(promptWithoutBreak, {
+        seed: 42424,
+        size: 256,
+        guidanceScale: 7
+      });
+      console.log(' Gerando COM BREAK...');
+      const result2 = await this._generateImage(promptWithBreak, {
+        seed: 42424,
+        size: 256,
+        guidanceScale: 7
+      });
+      console.log('✅ [Image] Imagens com BREAK geradas!');
+      const url1 = this._extractImageUrl(result1);
+      const url2 = this._extractImageUrl(result2);
+      contentArea.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; text-align:center">
+          <div>
+            <img src="${url1}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:13px"><strong>Sem BREAK</strong><br><code style="font-size:11px">${promptWithoutBreak}</code></p>
+          </div>
+          <div>
+            <img src="${url2}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3)" />
+            <p style="margin-top:8px; font-size:13px"><strong>Com BREAK</strong><br><code style="font-size:11px">${promptWithBreak}</code></p>
+          </div>
+        </div>
+        <p style="text-align:center; margin-top:16px; font-size:12px; color:#666">
+          BREAK força separação de chunks de 75 tokens, permitindo prompts mais complexos sem diluição.
+        </p>
+      `;
+      return { success: true, count: 2 };
+    } catch (error) {
+      console.error('❌ [Image] Falha no BREAK keyword:', error.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
+      return { success: false, error: error.message };
+    }
+  },
+
 
   // Fecha o container
   close() {
