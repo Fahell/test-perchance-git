@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.23.2";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.23.2`;
+const VERSION = "v1.24.0";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.24.0`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -1425,6 +1425,147 @@ const aiTextTest = {
       return { success: true, text: result.generatedText };
     } catch (error) {
       console.error("❌ [AI-Text] Erro no endButtons test:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // ===== FASE 2 TESTS =====
+  // Teste 5: onChunk streaming
+  async testOnChunkStreaming() {
+    console.log("🤖 [AI-Text] Testando onChunk streaming...");
+    if (!this.available) {
+      return { success: false, error: "Plugin não disponível" };
+    }
+    try {
+      const chunks = [];
+      const result = await _generateAIText(
+        "Escreva uma frase curta sobre um cavaleiro.",
+        {
+          onChunk: (data) => {
+            chunks.push({
+              textChunk: data.textChunk,
+              isFromStartWith: data.isFromStartWith,
+              fullTextSoFar: data.fullTextSoFar
+            });
+            console.log("📦 [AI-Text] Chunk recebido:", data.textChunk);
+          }
+        }
+      );
+      console.log("✅ [AI-Text] onChunk streaming completado. Total chunks:", chunks.length);
+      return {
+        success: true,
+        chunks,
+        chunkCount: chunks.length,
+        finalText: result.generatedText
+      };
+    } catch (error) {
+      console.error("❌ [AI-Text] Erro no onChunk streaming test:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 6: onFinish capture
+  async testOnFinishCapture() {
+    console.log("🤖 [AI-Text] Testando onFinish capture...");
+    if (!this.available) {
+      return { success: false, error: "Plugin não disponível" };
+    }
+    try {
+      let capturedData = null;
+      const result = await _generateAIText(
+        "Escreva uma frase sobre um dragão dourado.",
+        {
+          startWith: "O dragão dourado ",
+          onFinish: (data) => {
+            var _a, _b, _c;
+            capturedData = {
+              text: data.text,
+              generatedText: data.generatedText,
+              liveResponseText: data.liveResponseText,
+              inputs: data.inputs
+            };
+            console.log("📊 [AI-Text] onFinish capturado:", {
+              textLength: (_a = data.text) == null ? void 0 : _a.length,
+              generatedTextLength: (_b = data.generatedText) == null ? void 0 : _b.length,
+              hasStartWith: (_c = data.inputs) == null ? void 0 : _c.startWith
+            });
+          }
+        }
+      );
+      console.log("✅ [AI-Text] onFinish capture completado");
+      return {
+        success: true,
+        capturedData,
+        result
+      };
+    } catch (error) {
+      console.error("❌ [AI-Text] Erro no onFinish capture test:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 7: Dynamic prompts (instruction as function)
+  async testDynamicPrompts() {
+    console.log("🤖 [AI-Text] Testando dynamic prompts...");
+    if (!this.available) {
+      return { success: false, error: "Plugin não disponível" };
+    }
+    try {
+      const instructionFn = () => {
+        const subjects = ["um guerreiro", "um mago", "um ladino"];
+        const places = ["floresta sombria", "montanha gelada", "deserto ardente"];
+        const subject = subjects[Math.floor(Math.random() * subjects.length)];
+        const place = places[Math.floor(Math.random() * places.length)];
+        return `Escreva uma frase sobre ${subject} em ${place}.`;
+      };
+      const result = await _generateAIText(instructionFn, {});
+      console.log("✅ [AI-Text] Dynamic prompt completado");
+      return {
+        success: true,
+        text: result.generatedText,
+        instructionType: "function"
+      };
+    } catch (error) {
+      console.error("❌ [AI-Text] Erro no dynamic prompts test:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 8: render function
+  async testRenderFunction(containerId) {
+    console.log("🤖 [AI-Text] Testando render function...");
+    if (!this.available) {
+      return { success: false, error: "Plugin não disponível" };
+    }
+    try {
+      const targetId = `ai-render-output-${Date.now()}`;
+      const targetDiv = document.createElement("div");
+      targetDiv.id = targetId;
+      targetDiv.style.cssText = "padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 4px; min-height: 50px;";
+      const container2 = document.getElementById(containerId);
+      if (!container2) {
+        throw new Error(`Container ${containerId} não encontrado`);
+      }
+      container2.appendChild(targetDiv);
+      const renderFn = (data) => {
+        if (!data.text) return "";
+        let transformed = data.text.replace(/\*([^*]+)\*/g, '<em style="color: #a78bfa; font-style: italic;">$1</em>');
+        if (data.isPartial) {
+          transformed += '<span style="color: #64748b;">▊</span>';
+        }
+        return transformed;
+      };
+      const result = await _generateAIText(
+        "Escreva uma frase com uma ação entre asteriscos, como *sorri misteriosamente*.",
+        {
+          outputTo: targetDiv,
+          render: renderFn
+        }
+      );
+      console.log("✅ [AI-Text] render function completado");
+      return {
+        success: true,
+        text: result.generatedText,
+        targetId
+      };
+    } catch (error) {
+      console.error("❌ [AI-Text] Erro no render function test:", error);
       return { success: false, error: error.message };
     }
   }
@@ -7576,6 +7717,10 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-ai-stop", name: "AI Text - stopSequences", fn: () => aiTextStopSequencesHandler() },
     { btnId: "btn-ai-style", name: "AI Text - style & outputTo", fn: () => aiTextStyleOutputHandler() },
     { btnId: "btn-ai-endbuttons", name: "AI Text - endButtons", fn: () => aiTextEndButtonsHandler() },
+    { btnId: "btn-ai-onchunk", name: "AI Text - onChunk", fn: () => aiTextOnChunkHandler() },
+    { btnId: "btn-ai-onfinish", name: "AI Text - onFinish", fn: () => aiTextOnFinishHandler() },
+    { btnId: "btn-ai-dynamic", name: "AI Text - Dynamic", fn: () => aiTextDynamicHandler() },
+    { btnId: "btn-ai-render", name: "AI Text - Render", fn: () => aiTextRenderHandler() },
     { btnId: "btn-image", name: "Image", fn: () => imageHandler() },
     { btnId: "btn-tts", name: "TTS", fn: () => ttsHandler() },
     { btnId: "btn-3d", name: "Cube Color", fn: () => cubeColorHandler() },
@@ -7816,6 +7961,107 @@ function initUITest(rendererData, testModules) {
         <div style="color:#64748b;font-size:11px;margin-top:10px;">Caracteres: ${result.text.length} | endButtons: 'none' (botões ocultados)</div>
       </div>`;
     console.log("✅ endButtons test completed!");
+  }
+  async function aiTextOnChunkHandler() {
+    console.log("🤖 Testing onChunk streaming...");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🤖 AI Text - onChunk Streaming", { id: "test-ai-onchunk", width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando texto com streaming...</div>';
+    const result = await aiTextTest2.testOnChunkStreaming();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    const chunksHtml = result.chunks.slice(0, 10).map(
+      (c, i) => `<div style="padding:4px 8px;background:#0f172a;border-radius:4px;margin-bottom:4px;font-size:11px;">
+        <span style="color:#64748b;">#${i + 1}</span> 
+        <span style="color:#4ade80;">"${c.textChunk}"</span>
+        ${c.isFromStartWith ? '<span style="color:#f59e0b;margin-left:8px;">[startWith]</span>' : ""}
+      </div>`
+    ).join("");
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">onChunk Streaming - ${result.chunkCount} chunks recebidos</div>
+        <div style="max-height:200px;overflow-y:auto;margin-bottom:15px;">
+          ${chunksHtml}
+          ${result.chunkCount > 10 ? `<div style="color:#64748b;font-size:11px;padding:4px;">... e mais ${result.chunkCount - 10} chunks</div>` : ""}
+        </div>
+        <div style="padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #4ade80;">
+          <div style="color:#94a3b8;font-size:11px;margin-bottom:5px;">Texto final:</div>
+          <div style="color:#e2e8f0;font-size:13px;">${result.finalText}</div>
+        </div>
+      </div>`;
+    console.log("✅ onChunk streaming test completed!");
+  }
+  async function aiTextOnFinishHandler() {
+    console.log("🤖 Testing onFinish capture...");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🤖 AI Text - onFinish Capture", { id: "test-ai-onfinish", width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando texto com onFinish...</div>';
+    const result = await aiTextTest2.testOnFinishCapture();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    const data = result.capturedData;
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">onFinish Data Capture</div>
+        <div style="margin-bottom:15px;">
+          <div style="color:#a78bfa;font-size:11px;margin-bottom:5px;">📊 data.text (inclui startWith):</div>
+          <div style="color:#e2e8f0;font-size:13px;padding:10px;background:#0f172a;border-radius:4px;">${data.text}</div>
+          <div style="color:#64748b;font-size:10px;margin-top:4px;">${data.text.length} caracteres</div>
+        </div>
+        <div style="margin-bottom:15px;">
+          <div style="color:#4ade80;font-size:11px;margin-bottom:5px;">📝 data.generatedText (exclui startWith):</div>
+          <div style="color:#e2e8f0;font-size:13px;padding:10px;background:#0f172a;border-radius:4px;">${data.generatedText}</div>
+          <div style="color:#64748b;font-size:10px;margin-top:4px;">${data.generatedText.length} caracteres</div>
+        </div>
+        <div>
+          <div style="color:#f59e0b;font-size:11px;margin-bottom:5px;">⚙️ data.inputs:</div>
+          <pre style="color:#94a3b8;font-size:10px;padding:8px;background:#0f172a;border-radius:4px;overflow-x:auto;">${JSON.stringify(data.inputs, null, 2)}</pre>
+        </div>
+      </div>`;
+    console.log("✅ onFinish capture test completed!");
+  }
+  async function aiTextDynamicHandler() {
+    console.log("🤖 Testing dynamic prompts...");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🤖 AI Text - Dynamic Prompts", { id: "test-ai-dynamic", width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando com instruction dinâmica...</div>';
+    const result = await aiTextTest2.testDynamicPrompts();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">Dynamic Prompt (instruction as function)</div>
+        <div style="color:#e2e8f0;font-size:13px;line-height:1.6;padding:15px;background:#0f172a;border-radius:4px;border-left:3px solid #4ade80;">
+          ${result.text}
+        </div>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">
+          instruction type: ${result.instructionType} | Caracteres: ${result.text.length}
+        </div>
+      </div>`;
+    console.log("✅ Dynamic prompts test completed!");
+  }
+  async function aiTextRenderHandler() {
+    console.log("🤖 Testing render function...");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🤖 AI Text - Render Function", { id: "test-ai-render", width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando com render function...</div>';
+    const result = await aiTextTest2.testRenderFunction("test-ai-render");
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    contentArea.innerHTML += `
+      <div style="padding:10px;margin-top:10px;">
+        <div style="color:#4ade80;font-size:12px;">✅ Texto renderizado com transformação *ação* → <em>ação</em></div>
+        <div style="color:#64748b;font-size:11px;margin-top:5px;">Caracteres: ${result.text.length}</div>
+      </div>`;
+    console.log("✅ Render function test completed!");
   }
   async function imageHandler() {
     console.log("🖼️ Generating AI image...");
@@ -8357,6 +8603,10 @@ function initUITest(rendererData, testModules) {
       <button id="btn-ai-stop" class="ui-test-btn ui-test-btn--ai">🛑 stopSequences</button>
       <button id="btn-ai-style" class="ui-test-btn ui-test-btn--ai">🎨 style & outputTo</button>
       <button id="btn-ai-endbuttons" class="ui-test-btn ui-test-btn--ai">🚫 endButtons</button>
+      <button id="btn-ai-onchunk" class="ui-test-btn ui-test-btn--ai">📦 onChunk</button>
+      <button id="btn-ai-onfinish" class="ui-test-btn ui-test-btn--ai">📊 onFinish</button>
+      <button id="btn-ai-dynamic" class="ui-test-btn ui-test-btn--ai">🎲 Dynamic</button>
+      <button id="btn-ai-render" class="ui-test-btn ui-test-btn--ai">🎨 Render</button>
       
       
       
@@ -8468,6 +8718,10 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-ai-stop").onclick = () => runTest("btn-ai-stop", "AI Text - stopSequences", aiTextStopSequencesHandler);
   document.getElementById("btn-ai-style").onclick = () => runTest("btn-ai-style", "AI Text - style & outputTo", aiTextStyleOutputHandler);
   document.getElementById("btn-ai-endbuttons").onclick = () => runTest("btn-ai-endbuttons", "AI Text - endButtons", aiTextEndButtonsHandler);
+  document.getElementById("btn-ai-onchunk").onclick = () => runTest("btn-ai-onchunk", "AI Text - onChunk", aiTextOnChunkHandler);
+  document.getElementById("btn-ai-onfinish").onclick = () => runTest("btn-ai-onfinish", "AI Text - onFinish", aiTextOnFinishHandler);
+  document.getElementById("btn-ai-dynamic").onclick = () => runTest("btn-ai-dynamic", "AI Text - Dynamic", aiTextDynamicHandler);
+  document.getElementById("btn-ai-render").onclick = () => runTest("btn-ai-render", "AI Text - Render", aiTextRenderHandler);
   document.getElementById("btn-image").onclick = () => runTest("btn-image", "Image", imageHandler);
   document.getElementById("btn-image-guidance").onclick = () => runTest("btn-image-guidance", "CFG Scale", imageGuidanceHandler);
   document.getElementById("btn-image-negative").onclick = () => runTest("btn-image-negative", "Negative Prompt", imageNegativeHandler);
