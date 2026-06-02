@@ -293,13 +293,13 @@ export function initUITest(rendererData, testModules) {
         <div style="margin-bottom:15px;">
           <div style="color:#a78bfa;font-size:11px;margin-bottom:5px;">✅ startWith VISÍVEL (hideStartWith: false):</div>
           <div style="color:#e2e8f0;font-size:13px;line-height:1.5;padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #a78bfa;">
-            ${result.visible}
+            ${result.visibleText}
           </div>
         </div>
         <div>
           <div style="color:#4ade80;font-size:11px;margin-bottom:5px;">✅ startWith OCULTO (hideStartWith: true):</div>
           <div style="color:#e2e8f0;font-size:13px;line-height:1.5;padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #4ade80;">
-            ${result.hidden}
+            ${result.hiddenText}
           </div>
         </div>
       </div>`;

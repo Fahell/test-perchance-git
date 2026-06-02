@@ -1287,6 +1287,41 @@ const imageTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineP
   __proto__: null,
   imageTest
 }, Symbol.toStringTag, { value: "Module" }));
+async function _generateAIText(instruction, options = {}, timeout = 6e4) {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(`Timeout: Geração de texto excedeu ${timeout / 1e3}s`));
+    }, timeout);
+    const userOnFinish = options.onFinish;
+    const wrappedOptions = {
+      ...options,
+      onFinish: (data) => {
+        clearTimeout(timeoutId);
+        if (typeof userOnFinish === "function") {
+          try {
+            userOnFinish(data);
+          } catch (e) {
+            console.warn("onFinish user callback error:", e);
+          }
+        }
+        resolve(data);
+      }
+    };
+    try {
+      console.log("🔧 [AI-Text] _generateAIText called:", { instruction, options: wrappedOptions });
+      const result = root.ai({ instruction, ...wrappedOptions });
+      if (result && typeof result.catch === "function") {
+        result.catch((err) => {
+          clearTimeout(timeoutId);
+          reject(err);
+        });
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      reject(error);
+    }
+  });
+}
 const aiTextTest = {
   available: !!root.ai,
   // Teste 1: startWith & hideStartWith
@@ -1296,22 +1331,30 @@ const aiTextTest = {
       return { success: false, error: "Plugin não disponível" };
     }
     try {
-      const result1 = await root.ai({
-        instruction: "Complete a frase sobre um dragão ancestral.",
-        startWith: "O dragão ancestral ",
-        hideStartWith: false
-      });
-      const result2 = await root.ai({
-        instruction: "Complete a frase sobre um dragão ancestral.",
-        startWith: "O dragão ancestral ",
-        hideStartWith: true
-      });
-      console.log("✅ [AI-Text] startWith visível:", result1.generatedText);
-      console.log("✅ [AI-Text] startWith oculto:", result2.generatedText);
+      const result1 = await _generateAIText(
+        "Complete a frase sobre um dragão ancestral.",
+        {
+          startWith: "O dragão ancestral ",
+          hideStartWith: false
+        }
+      );
+      const result2 = await _generateAIText(
+        "Complete a frase sobre um dragão ancestral.",
+        {
+          startWith: "O dragão ancestral ",
+          hideStartWith: true
+        }
+      );
+      console.log("✅ [AI-Text] startWith visível (text):", result1.text);
+      console.log("✅ [AI-Text] startWith visível (generatedText):", result1.generatedText);
+      console.log("✅ [AI-Text] startWith oculto (text):", result2.text);
+      console.log("✅ [AI-Text] startWith oculto (generatedText):", result2.generatedText);
       return {
         success: true,
-        visible: result1.generatedText,
-        hidden: result2.generatedText
+        visibleText: result1.text,
+        visibleGenerated: result1.generatedText,
+        hiddenText: result2.text,
+        hiddenGenerated: result2.generatedText
       };
     } catch (error) {
       console.error("❌ [AI-Text] Erro no startWith test:", error);
@@ -1325,10 +1368,10 @@ const aiTextTest = {
       return { success: false, error: "Plugin não disponível" };
     }
     try {
-      const result = await root.ai({
-        instruction: 'Conte uma história curta sobre um herói. Pare quando disser "FIM".',
-        stopSequences: ["FIM", "The End", "###"]
-      });
+      const result = await _generateAIText(
+        'Conte uma história curta sobre um herói. Pare quando disser "FIM".',
+        { stopSequences: ["FIM", "The End", "###"] }
+      );
       console.log("✅ [AI-Text] Texto com stopSequences:", result.generatedText);
       return { success: true, text: result.generatedText };
     } catch (error) {
@@ -1343,23 +1386,25 @@ const aiTextTest = {
       return { success: false, error: "Plugin não disponível" };
     }
     try {
-      let outputEl = document.getElementById("ai-text-output");
-      if (!outputEl) {
-        outputEl = document.createElement("div");
-        outputEl.id = "ai-text-output";
-        outputEl.style.cssText = "padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 4px;";
-        const container2 = document.getElementById(containerId);
-        if (container2) {
-          container2.appendChild(outputEl);
-        }
+      const targetId = `ai-output-${Date.now()}`;
+      const targetDiv = document.createElement("div");
+      targetDiv.id = targetId;
+      targetDiv.style.cssText = "padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 4px; min-height: 50px;";
+      const container2 = document.getElementById(containerId);
+      if (!container2) {
+        throw new Error(`Container ${containerId} não encontrado`);
       }
-      const result = await root.ai({
-        instruction: "Escreva uma citação inspiradora sobre aventura.",
-        outputTo: "ai-text-output",
-        style: "color: #a78bfa; font-weight: bold; font-style: italic; padding: 15px; background: rgba(167, 139, 250, 0.1); border-radius: 8px;"
-      });
+      container2.appendChild(targetDiv);
+      console.log("🔧 [AI-Text] Output element created:", targetId);
+      const result = await _generateAIText(
+        "Escreva uma citação inspiradora sobre aventura.",
+        {
+          outputTo: targetId,
+          style: "color: #a78bfa; font-weight: bold; font-style: italic; padding: 15px; background: rgba(167, 139, 250, 0.1); border-radius: 8px;"
+        }
+      );
       console.log("✅ [AI-Text] Texto com style & outputTo:", result.generatedText);
-      return { success: true, text: result.generatedText };
+      return { success: true, text: result.generatedText, targetId };
     } catch (error) {
       console.error("❌ [AI-Text] Erro no style & outputTo test:", error);
       return { success: false, error: error.message };
@@ -1372,10 +1417,10 @@ const aiTextTest = {
       return { success: false, error: "Plugin não disponível" };
     }
     try {
-      const result = await root.ai({
-        instruction: "Escreva um parágrafo sobre um mago misterioso.",
-        endButtons: "none"
-      });
+      const result = await _generateAIText(
+        "Escreva um parágrafo sobre um mago misterioso.",
+        { endButtons: "none" }
+      );
       console.log("✅ [AI-Text] Texto sem endButtons:", result.generatedText);
       return { success: true, text: result.generatedText };
     } catch (error) {
@@ -1388,7 +1433,7 @@ console.log("🤖 [AI-Text] Inicializando teste do plugin de texto IA...");
 if (aiTextTest.available) {
   console.log("✅ [AI-Text] Plugin ai-text-plugin disponível");
 } else {
-  console.warn("⚠️ [AI-Text] Plugin ai-text-plugin NÃO disponível");
+  console.warn("⚠️⚠️ [AI-Text] Plugin ai-text-plugin NÃO disponível");
   console.warn("   Adicione no List Panel: ai = {import:ai-text-plugin}");
 }
 const aiTextTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -7703,13 +7748,13 @@ function initUITest(rendererData, testModules) {
         <div style="margin-bottom:15px;">
           <div style="color:#a78bfa;font-size:11px;margin-bottom:5px;">✅ startWith VISÍVEL (hideStartWith: false):</div>
           <div style="color:#e2e8f0;font-size:13px;line-height:1.5;padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #a78bfa;">
-            ${result.visible}
+            ${result.visibleText}
           </div>
         </div>
         <div>
           <div style="color:#4ade80;font-size:11px;margin-bottom:5px;">✅ startWith OCULTO (hideStartWith: true):</div>
           <div style="color:#e2e8f0;font-size:13px;line-height:1.5;padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #4ade80;">
-            ${result.hidden}
+            ${result.hiddenText}
           </div>
         </div>
       </div>`;
