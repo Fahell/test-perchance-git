@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.19.3";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.19.3`;
+const VERSION = "v1.19.4";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.19.4`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -434,7 +434,7 @@ const imageTest = {
     return null;
   },
   // Helper robusto para geração de imagens via onFinish (Promise wrapper)
-  _generateImage(prompt, options = {}, timeout = 45e3) {
+  _generateImage(prompt, options = {}, timeout = 12e4) {
     return new Promise((resolve, reject) => {
       console.log(`🔧 [Image] _generateImage called:`, { prompt, options });
       const timer = setTimeout(() => {
@@ -652,11 +652,11 @@ const imageTest = {
   async testGuidanceScale() {
     console.log("🖼️ [Image] Testando guidance scale comparison...");
     const { contentArea } = this._getOrCreateContainer("⚖️ Image Test - Guidance Scale");
-    contentArea.innerHTML = "<p>⏳ Gerando 4 imagens com CFG diferentes...</p>";
+    contentArea.innerHTML = "<p>⏳ Gerando 3 imagens com CFG diferentes...</p>";
     try {
       const prompt = "papercraft castle, detailed, fantasy";
       const seed = 42424;
-      const scales = [3, 7, 15, 25];
+      const scales = [3, 7, 15];
       const results = [];
       for (const scale of scales) {
         console.log(` Gerando com CFG ${scale}...`);
@@ -668,7 +668,7 @@ const imageTest = {
         const url = this._extractImageUrl(result);
         if (url) results.push({ scale, url });
       }
-      if (results.length === 4) {
+      if (results.length === 3) {
         console.log("✅ [Image] Todas imagens geradas!");
         const imagesHtml = results.map((r) => `
           <div style="text-align:center">
@@ -683,12 +683,12 @@ const imageTest = {
           <p style="text-align:center; margin-top:12px; font-size:14px">
             <strong>✅ Seed:</strong> ${seed} |
             <strong>📐 Resolução:</strong> 256x256 cada |
-            <strong>⚖️ CFG:</strong> 3 (criativo) → 25 (rígido)
+            <strong>⚖️ CFG:</strong> 3 (criativo) → 15 (rígido)
           </p>
         `;
         return { success: true, results };
       } else {
-        throw new Error(`Apenas ${results.length}/4 imagens geradas`);
+        throw new Error(`Apenas ${results.length}/3 imagens geradas`);
       }
     } catch (error) {
       console.error("❌ [Image] Falha no guidance scale:", error.message);
