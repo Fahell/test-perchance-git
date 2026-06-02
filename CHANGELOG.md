@@ -1,13 +1,117 @@
+# Changelog
 
-### 🐛 Correções
+Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
-#### constants.js
-- Adicionada exportação `CDN_BASE` (estava faltando)
-- `CDN_BASE` é derivado dinamicamente de `VERSION`
+## [1.22.0] - 2026-06-03
 
-#### ui-test.js
-- Import do `perchance-bridge.js` atualizado de v1.2.9 para v1.2.13
-- Correção de erro: "The requested module '../constants.js' does not provide an export named 'CDN_BASE'"
+### ✨ UI Reorganization & Documentation
+
+#### Image Tests Separation
+- Criada nova seção dedicada **"🖼️ Image Generation Tests"** no painel de testes
+- Movidos todos os 14 botões de imagem da seção "AI & Content" para a nova seção
+- Seção "AI & Content" agora contém apenas: AI Text, TTS e Stop
+- Nova seção organizada com cor roxa (#a78bfa) para destaque visual
+
+#### How It Works Accordion
+- Seção "How It Works" agora é um `<details>` colapsável (acordeão)
+- Clique no título "📖 How It Works (Click to expand)" para expandir/recolher
+- Reduz significativamente o scroll vertical do painel
+- Comportamento de acordeão mantido: apenas um item aberto por vez
+
+#### Documentation Updates
+- Adicionadas 13 novas entradas no `HOW_IT_WORKS_DATA` para todos os testes de imagem
+- Cada entrada contém: What (o que faz), How (como funciona), Key Concepts (conceitos-chave)
+- Documentação completa para: CFG Scale, Negative Prompt, Trigger Words, Emoji Prompts, onFinish Callback, Tag Emphasis, Prompt Ordering, Canvas Post-Processing, BREAK Keyword, Tag Blending, Multi-Image Grid, Alternating Tags, Add/Remove During Gen
+
+## [1.21.0] - 2026-06-03
+
+### ✨ Phase 3: Advanced Prompt Techniques
+
+#### New Image Tests
+- **Tag Blending**: Mistura de estilos com `[from:to:ratio]` (3 imagens: 0%, 50%, 100%)
+- **Multi-Image Grid**: Geração paralela de 4 imagens com `Promise.all()`
+- **Alternating Tags**: Alternância entre tags a cada step `[tag1|tag2]`
+- **Add/Remove During Gen**: Adicionar/remover tags durante geração `[to:when]`
+
+#### UI Updates
+- 4 novos botões na seção "🤖 AI & Content": 🎨 Blending, 🖼️ Grid, 🔄 Alternating, ➕ Add/Remove
+
+## [1.20.0] - 2026-06-03
+
+### ✨ Phase 2: Intermediate Prompt Techniques
+
+#### New Image Tests
+- **Tag Emphasis**: Demonstração de pesos de tags `(tag:0.5)` até `(tag:2.0)`
+- **Prompt Ordering**: Impacto da ordem das tags na composição
+- **Canvas Post-Processing**: Manipulação direta do canvas (filtros grayscale/sepia, overlay de texto)
+- **BREAK Keyword**: Compara geração com e sem o keyword `BREAK` para separação de chunks de tokens
+
+#### UI Updates
+- 4 novos botões na seção "🤖 AI & Content": 🎯 Emphasis, 🔄 Ordering, 🎨 Canvas, ⚡ BREAK
+
+## [1.19.4] - 2026-06-03
+
+### 🐛 Bug Fixes
+
+#### Image Generation Timeout
+- Aumentado timeout de 45s para 120s no helper `_generateImage`
+- Reduzido teste de Guidance Scale de 4 para 3 imagens (CFG 3, 7, 15) para evitar timeout
+- Validação ajustada para `results.length === 3`
+
+## [1.19.3] - 2026-06-03
+
+### 🐛 Critical Bug Fixes
+
+#### Image Plugin Parameters
+- Corrigido uso de resoluções inválidas que causavam falha silenciosa do plugin
+- Substituído `resolution: '256x256'` por `size: 256` em todos os testes de comparação
+- Substituído `resolution: '768x384'` por `resolution: '768x512'` no teste de resolução
+- O plugin agora aceita apenas: `512x512`, `512x768`, `768x512` ou `size: N` para quadrados
+
+## [1.19.2] - 2026-06-03
+
+### 🐛 Bug Fixes
+
+#### Async Image Generation
+- Reescrito helper `_generateImage` para ser mais robusto e informativo
+- Adicionado logging detalhado para diagnóstico de timeouts
+- Tratamento correto de Promises retornadas por `root.image`
+- Callbacks mesclados para capturar metadados sem quebrar a lógica de espera
+- Blocos `try/catch` adicionais para evitar "silence failures"
+
+## [1.19.1] - 2026-06-03
+
+### 🐛 Bug Fixes
+
+#### Image Generation Wrapper
+- Criado helper `_generateImage(prompt, options, timeout)` que encapsula a chamada do plugin em uma `Promise` resolvida via `onFinish`
+- Timeout de 45s para evitar travamentos
+- Todos os 9 testes migraram para usar o helper
+- Simplificação de `_extractImageUrl` (estrutura de dados agora é garantida)
+
+## [1.19.0] - 2026-06-03
+
+### ✨ Phase 1: Image Generation Fundamentals
+
+#### New Image Tests
+- **Guidance Scale (CFG)**: Comparação de aderência ao prompt (CFG 3, 7, 15, 25)
+- **Negative Prompt**: Efeito de exclusão de elementos indesejados
+- **Trigger Words**: Teste de modelos específicos (Normal, Anime, Furry)
+- **Emoji Prompts**: Geração com emojis como tokens visuais
+- **onFinish Callback**: Captura de metadados da geração
+
+#### UI Updates
+- 5 novos botões na seção "🤖 AI & Content": ⚖️ CFG Scale, 🚫 Negative, 🎭 Triggers, 😀 Emoji, 📊 Callback
+
+### 🛡️ Release Script Improvements
+
+#### Branch Protection
+- Adicionada verificação obrigatória de branch no script `scripts/release.cjs`
+- Função `checkMainBranch()` impede execução fora da `main`
+- Evita completamente o problema de tags desvinculadas do histórico principal
+- Mensagem de erro clara com instruções de fluxo correto
+
+## [1.18.0] - 2026-06-02
 
 ## [1.2.13] - 2026-05-24
 
