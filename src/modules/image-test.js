@@ -187,10 +187,10 @@ export const imageTest = {
       const prompt = 'papercraft dragon, fantasy style';
 
       console.log(` Gerando com seed ${seed1}...`);
-      const result1 = await this._generateImage(prompt, { seed: seed1, resolution: '256x256' });
+      const result1 = await this._generateImage(prompt, { seed: seed1, size: 256 });
 
       console.log(` Gerando com seed ${seed2}...`);
-      const result2 = await this._generateImage(prompt, { seed: seed2, resolution: '256x256' });
+      const result2 = await this._generateImage(prompt, { seed: seed2, size: 256 });
 
       const url1 = this._extractImageUrl(result1);
       const url2 = this._extractImageUrl(result2);
@@ -238,7 +238,7 @@ export const imageTest = {
         'papercraft landscape, wide view',
         {
           seed: 77777,
-          resolution: '768x384',
+          resolution: '768x512',
           negativePrompt: 'portrait, vertical'
         }
       );
@@ -259,7 +259,7 @@ export const imageTest = {
           </div>
         `;
 
-        return { success: true, url: imageUrl, resolution: '768x384' };
+        return { success: true, url: imageUrl, resolution: '768x512' };
       } else {
         throw new Error('Não foi possível extrair URL da imagem');
       }
@@ -287,7 +287,7 @@ export const imageTest = {
         console.log(` Gerando com CFG ${scale}...`);
         const result = await this._generateImage(prompt, {
           seed,
-          resolution: '256x256',
+          size: 256,
           guidanceScale: scale
         });
         const url = this._extractImageUrl(result);
@@ -341,13 +341,13 @@ export const imageTest = {
       console.log(' Gerando SEM negative prompt...');
       const resultWithout = await this._generateImage(prompt, {
         seed,
-        resolution: '256x256'
+        size: 256
       });
 
       console.log(' Gerando COM negative prompt...');
       const resultWith = await this._generateImage(prompt, {
         seed,
-        resolution: '256x256',
+        size: 256,
         negativePrompt
       });
 
@@ -405,7 +405,7 @@ export const imageTest = {
         console.log(` Gerando estilo: ${config.label}...`);
         const result = await this._generateImage(config.prompt, {
           seed,
-          resolution: '256x256'
+          size: 256
         });
         const url = this._extractImageUrl(result);
         if (url) results.push({ ...config, url });
@@ -464,7 +464,7 @@ export const imageTest = {
         console.log(` Gerando com emoji ${config.emoji}...`);
         const result = await this._generateImage(config.prompt, {
           seed,
-          resolution: '256x256'
+          size: 256
         });
         const url = this._extractImageUrl(result);
         if (url) results.push({ ...config, url });
