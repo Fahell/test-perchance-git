@@ -5,78 +5,46 @@ import { root } from '../perchance-bridge.js';
 export const aiTextTest = {
   available: !!root.ai,
   
-  // Teste 1: Geração básica
-  async generateBasic(prompt = 'Escreva uma frase curta sobre um aventureiro.') {
-    console.log('🤖 [AI-Text] Gerando texto básico...');
-    
-    if (!this.available) {
-      console.warn('⚠️ [AI-Text] Plugin não disponível');
-      return { success: false, error: 'Plugin não disponível' };
-    }
-    
-    try {
-      const result = await root.ai(prompt);
-      console.log('✅ [AI-Text] Texto gerado:', result.generatedText);
-      return { success: true, text: result.generatedText };
-    } catch (error) {
-      console.error('❌ [AI-Text] Erro na geração básica:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Teste 2: Geração com streaming (onChunk)
-  async generateWithStreaming(prompt = 'Descreva uma masmorra perigosa em 2 frases.') {
-    console.log('🤖 [AI-Text] Gerando com streaming...');
-    
-    if (!this.available) {
-      return { success: false, error: 'Plugin não disponível' };
-    }
-    
-    let fullText = '';
-
-    try {
-      const result = await root.ai({
-        instruction: prompt,
-        onChunk: (data) => {
-          fullText += data.textChunk;
-          console.log('📝 [AI-Text] Chunk:', data.textChunk);
-        },
-        onFinish: (data) => {
-          console.log('✅ [AI-Text] Finalizado. Texto completo:', data.generatedText);
-        }
-      });
-      return { success: true, text: fullText };
-    } catch (error) {
-      console.error('❌ [AI-Text] Erro no streaming:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Teste 3: Geração com startWith
-  async generateWithStartWith(prompt = 'Complete a frase sobre um dragão.') {
-    console.log('🤖 [AI-Text] Gerando com startWith...');
+  // Teste 1: startWith & hideStartWith
+  async testStartWithAndHide() {
+    console.log('🤖 [AI-Text] Testando startWith & hideStartWith...');
     
     if (!this.available) {
       return { success: false, error: 'Plugin não disponível' };
     }
     
     try {
-      const result = await root.ai({
-        instruction: prompt,
-        startWith: 'O dragão ancestral',
+      // Teste 1a: startWith visível
+      const result1 = await root.ai({
+        instruction: 'Complete a frase sobre um dragão ancestral.',
+        startWith: 'O dragão ancestral ',
         hideStartWith: false
       });
-      console.log('✅ [AI-Text] Texto com startWith:', result.generatedText);
-      return { success: true, text: result.generatedText };
+      
+      // Teste 1b: startWith oculto
+      const result2 = await root.ai({
+        instruction: 'Complete a frase sobre um dragão ancestral.',
+        startWith: 'O dragão ancestral ',
+        hideStartWith: true
+      });
+      
+      console.log('✅ [AI-Text] startWith visível:', result1.generatedText);
+      console.log('✅ [AI-Text] startWith oculto:', result2.generatedText);
+      
+      return { 
+        success: true, 
+        visible: result1.generatedText, 
+        hidden: result2.generatedText 
+      };
     } catch (error) {
-      console.error('❌ [AI-Text] Erro com startWith:', error);
+      console.error('❌ [AI-Text] Erro no startWith test:', error);
       return { success: false, error: error.message };
     }
   },
 
-  // Teste 4: Geração com stopSequences
-  async generateWithStop(prompt = 'Conte uma história curta. Pare quando disser "fim".') {
-    console.log('🤖 [AI-Text] Gerando com stopSequences...');
+  // Teste 2: stopSequences
+  async testStopSequences() {
+    console.log('🤖 [AI-Text] Testando stopSequences...');
     
     if (!this.available) {
       return { success: false, error: 'Plugin não disponível' };
@@ -84,13 +52,71 @@ export const aiTextTest = {
     
     try {
       const result = await root.ai({
-        instruction: prompt,
-        stopSequences: ['fim', 'FIM', 'The End']
+        instruction: 'Conte uma história curta sobre um herói. Pare quando disser "FIM".',
+        stopSequences: ['FIM', 'The End', '###']
       });
-      console.log('✅ [AI-Text] Texto com stop:', result.generatedText);
+      
+      console.log('✅ [AI-Text] Texto com stopSequences:', result.generatedText);
       return { success: true, text: result.generatedText };
     } catch (error) {
-      console.error('❌ [AI-Text] Erro com stopSequences:', error);
+      console.error('❌ [AI-Text] Erro no stopSequences test:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Teste 3: style & outputTo
+  async testStyleAndOutputTo(containerId) {
+    console.log('🤖 [AI-Text] Testando style & outputTo...');
+    
+    if (!this.available) {
+      return { success: false, error: 'Plugin não disponível' };
+    }
+    
+    try {
+      // Cria um elemento de saída se não existir
+      let outputEl = document.getElementById('ai-text-output');
+      if (!outputEl) {
+        outputEl = document.createElement('div');
+        outputEl.id = 'ai-text-output';
+        outputEl.style.cssText = 'padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 4px;';
+        const container = document.getElementById(containerId);
+        if (container) {
+          container.appendChild(outputEl);
+        }
+      }
+      
+      const result = await root.ai({
+        instruction: 'Escreva uma citação inspiradora sobre aventura.',
+        outputTo: 'ai-text-output',
+        style: 'color: #a78bfa; font-weight: bold; font-style: italic; padding: 15px; background: rgba(167, 139, 250, 0.1); border-radius: 8px;'
+      });
+      
+      console.log('✅ [AI-Text] Texto com style & outputTo:', result.generatedText);
+      return { success: true, text: result.generatedText };
+    } catch (error) {
+      console.error('❌ [AI-Text] Erro no style & outputTo test:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Teste 4: endButtons
+  async testEndButtons() {
+    console.log('🤖 [AI-Text] Testando endButtons...');
+    
+    if (!this.available) {
+      return { success: false, error: 'Plugin não disponível' };
+    }
+    
+    try {
+      const result = await root.ai({
+        instruction: 'Escreva um parágrafo sobre um mago misterioso.',
+        endButtons: 'none'
+      });
+      
+      console.log('✅ [AI-Text] Texto sem endButtons:', result.generatedText);
+      return { success: true, text: result.generatedText };
+    } catch (error) {
+      console.error('❌ [AI-Text] Erro no endButtons test:', error);
       return { success: false, error: error.message };
     }
   }

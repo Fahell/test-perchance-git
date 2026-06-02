@@ -111,6 +111,10 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-seeder', name: 'Seeder', fn: () => seederHandler() },
     { btnId: 'btn-pattern', name: 'Pattern', fn: () => patternHandler() },
     { btnId: 'btn-ai-text', name: 'AI Text', fn: () => aiTextHandler() },
+    { btnId: 'btn-ai-startwith', name: 'AI Text - startWith', fn: () => aiTextStartWithHandler() },
+    { btnId: 'btn-ai-stop', name: 'AI Text - stopSequences', fn: () => aiTextStopSequencesHandler() },
+    { btnId: 'btn-ai-style', name: 'AI Text - style & outputTo', fn: () => aiTextStyleOutputHandler() },
+    { btnId: 'btn-ai-endbuttons', name: 'AI Text - endButtons', fn: () => aiTextEndButtonsHandler() },
     { btnId: 'btn-image', name: 'Image', fn: () => imageHandler() },
     { btnId: 'btn-tts', name: 'TTS', fn: () => ttsHandler() },
     { btnId: 'btn-3d', name: 'Cube Color', fn: () => cubeColorHandler() },
@@ -269,6 +273,106 @@ export function initUITest(rendererData, testModules) {
     console.log(`✅ AI Text: "${result.text.substring(0, 80)}..."`);
   }
 
+
+  // Phase 1: AI Text Tests
+  async function aiTextStartWithHandler() {
+    console.log('🤖 Testing startWith & hideStartWith...');
+    if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text - startWith & hideStartWith', { id: 'test-ai-startwith', width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando textos com startWith...</div>';
+    
+    const result = await aiTextTest.testStartWithAndHide();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Falha no teste'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">Testando startWith & hideStartWith</div>
+        <div style="margin-bottom:15px;">
+          <div style="color:#a78bfa;font-size:11px;margin-bottom:5px;">✅ startWith VISÍVEL (hideStartWith: false):</div>
+          <div style="color:#e2e8f0;font-size:13px;line-height:1.5;padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #a78bfa;">
+            ${result.visible}
+          </div>
+        </div>
+        <div>
+          <div style="color:#4ade80;font-size:11px;margin-bottom:5px;">✅ startWith OCULTO (hideStartWith: true):</div>
+          <div style="color:#e2e8f0;font-size:13px;line-height:1.5;padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #4ade80;">
+            ${result.hidden}
+          </div>
+        </div>
+      </div>`;
+    console.log('✅ startWith test completed!');
+  }
+
+  async function aiTextStopSequencesHandler() {
+    console.log('🤖 Testing stopSequences...');
+    if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text - stopSequences', { id: 'test-ai-stop', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando texto com stopSequences...</div>';
+    
+    const result = await aiTextTest.testStopSequences();
+    if (!result?.success || !result.text) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Resposta vazia'}</div>`;
+      throw new Error(result?.error || 'Empty response');
+    }
+    
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">Prompt: "Conte uma história curta sobre um herói. Pare quando disser 'FIM'."</div>
+        <div style="color:#e2e8f0;font-size:13px;line-height:1.6;padding:15px;background:#0f172a;border-radius:4px;border-left:3px solid #f59e0b;">
+          ${result.text}
+        </div>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">Caracteres: ${result.text.length} | Stop sequences: ['FIM', 'The End', '###']</div>
+      </div>`;
+    console.log('✅ stopSequences test completed!');
+  }
+
+  async function aiTextStyleOutputHandler() {
+    console.log('🤖 Testing style & outputTo...');
+    if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text - style & outputTo', { id: 'test-ai-style', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando texto com style & outputTo...</div>';
+    
+    const result = await aiTextTest.testStyleAndOutputTo('test-ai-style');
+    if (!result?.success || !result.text) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Resposta vazia'}</div>`;
+      throw new Error(result?.error || 'Empty response');
+    }
+    
+    // The output is already rendered in the #ai-text-output element by the plugin
+    // We just add a confirmation message
+    contentArea.innerHTML += `
+      <div style="padding:10px;margin-top:10px;">
+        <div style="color:#4ade80;font-size:12px;">✅ Texto renderizado diretamente no elemento #ai-text-output com CSS customizado!</div>
+        <div style="color:#64748b;font-size:11px;margin-top:5px;">Caracteres: ${result.text.length}</div>
+      </div>`;
+    console.log('✅ style & outputTo test completed!');
+  }
+
+  async function aiTextEndButtonsHandler() {
+    console.log('🤖 Testing endButtons...');
+    if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text - endButtons', { id: 'test-ai-endbuttons', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando texto sem botões de editar/continuar...</div>';
+    
+    const result = await aiTextTest.testEndButtons();
+    if (!result?.success || !result.text) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Resposta vazia'}</div>`;
+      throw new Error(result?.error || 'Empty response');
+    }
+    
+    contentArea.innerHTML = `
+      <div style="padding:10px;">
+        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">Prompt: "Escreva um parágrafo sobre um mago misterioso."</div>
+        <div style="color:#e2e8f0;font-size:13px;line-height:1.6;padding:15px;background:#0f172a;border-radius:4px;border-left:3px solid #ec4899;">
+          ${result.text}
+        </div>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">Caracteres: ${result.text.length} | endButtons: 'none' (botões ocultados)</div>
+      </div>`;
+    console.log('✅ endButtons test completed!');
+  }
   async function imageHandler() {
     console.log('🖼️ Generating AI image...');
     if (!imageTest || !imageTest.available) throw new Error('Plugin not available');
@@ -866,6 +970,10 @@ export function initUITest(rendererData, testModules) {
     <div class="ui-test-category">
       <strong style="color:var(--ui-color-ai)">🤖 AI & Content</strong>
       <button id="btn-ai-text" class="ui-test-btn ui-test-btn--ai">🤖 AI Text</button>
+      <button id="btn-ai-startwith" class="ui-test-btn ui-test-btn--ai">🔤 startWith</button>
+      <button id="btn-ai-stop" class="ui-test-btn ui-test-btn--ai">🛑 stopSequences</button>
+      <button id="btn-ai-style" class="ui-test-btn ui-test-btn--ai">🎨 style & outputTo</button>
+      <button id="btn-ai-endbuttons" class="ui-test-btn ui-test-btn--ai">🚫 endButtons</button>
       
       
       
@@ -983,6 +1091,10 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-seeder').onclick = () => runTest('btn-seeder', 'Seeder', seederHandler);
   document.getElementById('btn-pattern').onclick = () => runTest('btn-pattern', 'Pattern', patternHandler);
   document.getElementById('btn-ai-text').onclick = () => runTest('btn-ai-text', 'AI Text', aiTextHandler);
+  document.getElementById('btn-ai-startwith').onclick = () => runTest('btn-ai-startwith', 'AI Text - startWith', aiTextStartWithHandler);
+  document.getElementById('btn-ai-stop').onclick = () => runTest('btn-ai-stop', 'AI Text - stopSequences', aiTextStopSequencesHandler);
+  document.getElementById('btn-ai-style').onclick = () => runTest('btn-ai-style', 'AI Text - style & outputTo', aiTextStyleOutputHandler);
+  document.getElementById('btn-ai-endbuttons').onclick = () => runTest('btn-ai-endbuttons', 'AI Text - endButtons', aiTextEndButtonsHandler);
   document.getElementById('btn-image').onclick = () => runTest('btn-image', 'Image', imageHandler);
   document.getElementById('btn-image-guidance').onclick = () => runTest('btn-image-guidance', 'CFG Scale', imageGuidanceHandler);
   document.getElementById('btn-image-negative').onclick = () => runTest('btn-image-negative', 'Negative Prompt', imageNegativeHandler);
