@@ -137,7 +137,7 @@ export const aiTextTest = {
       const result = await _generateAIText(
         'Escreva uma citação inspiradora sobre aventura.',
         { 
-          outputTo: targetId,
+          outputTo: targetDiv,
           style: 'color: #a78bfa; font-weight: bold; font-style: italic; padding: 15px; background: rgba(167, 139, 250, 0.1); border-radius: 8px;'
         }
       );
