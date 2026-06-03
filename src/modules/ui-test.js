@@ -382,34 +382,44 @@ export function initUITest(rendererData, testModules) {
     console.log('🤖 Testing onChunk streaming...');
     if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
     const { contentArea } = createTestContainer('🤖 AI Text - onChunk Streaming', { id: 'test-ai-onchunk', width: 600, height: 500 });
-    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando texto com streaming...</div>';
     
-    const result = await aiTextTest.testOnChunkStreaming();
+    // Cria display para streaming em tempo real
+    contentArea.innerHTML = `
+      <div style="padding: 15px;">
+        <div style="margin-bottom: 10px; color: #94a3b8; font-size: 12px;">
+          📡 Streaming em tempo real:
+        </div>
+        <div id="stream-display" style="
+          font-family: monospace; 
+          white-space: pre-wrap; 
+          background: #0f172a; 
+          color: #4ade80; 
+          padding: 15px; 
+          min-height: 120px; 
+          border-radius: 6px;
+          border: 1px solid #334155;
+          font-size: 14px;
+          line-height: 1.6;
+          max-height: 300px;
+          overflow-y: auto;
+        "></div>
+        <div id="stream-status" style="margin-top: 10px; color: #64748b; font-size: 11px; text-align: center;">
+          ⏳ Aguardando chunks...
+        </div>
+      </div>
+    `;
+    
+    const streamDisplay = document.getElementById('stream-display');
+    const streamStatus = document.getElementById('stream-status');
+    
+    const result = await aiTextTest.testOnChunkStreaming(streamDisplay);
+    
     if (!result?.success) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Falha no teste'}</div>`;
       throw new Error(result?.error || 'Test failed');
     }
     
-    const chunksHtml = result.chunks.slice(0, 10).map((c, i) => 
-      `<div style="padding:4px 8px;background:#0f172a;border-radius:4px;margin-bottom:4px;font-size:11px;">
-        <span style="color:#64748b;">#${i+1}</span> 
-        <span style="color:#4ade80;">"${c.textChunk}"</span>
-        ${c.isFromStartWith ? '<span style="color:#f59e0b;margin-left:8px;">[startWith]</span>' : ''}
-      </div>`
-    ).join('');
-    
-    contentArea.innerHTML = `
-      <div style="padding:10px;">
-        <div style="color:#94a3b8;font-size:12px;margin-bottom:10px;">onChunk Streaming - ${result.chunkCount} chunks recebidos</div>
-        <div style="max-height:200px;overflow-y:auto;margin-bottom:15px;">
-          ${chunksHtml}
-          ${result.chunkCount > 10 ? `<div style="color:#64748b;font-size:11px;padding:4px;">... e mais ${result.chunkCount - 10} chunks</div>` : ''}
-        </div>
-        <div style="padding:10px;background:#0f172a;border-radius:4px;border-left:3px solid #4ade80;">
-          <div style="color:#94a3b8;font-size:11px;margin-bottom:5px;">Texto final:</div>
-          <div style="color:#e2e8f0;font-size:13px;">${result.finalText}</div>
-        </div>
-      </div>`;
+    streamStatus.innerHTML = `✅ <span style="color:#4ade80;">${result.chunkCount} chunks recebidos</span> | <span style="color:#94a3b8;">Texto final: ${result.finalText.length} caracteres</span>`;
     console.log('✅ onChunk streaming test completed!');
   }
 

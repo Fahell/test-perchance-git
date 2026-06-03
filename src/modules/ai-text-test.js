@@ -175,7 +175,7 @@ export const aiTextTest = {
   // ===== FASE 2 TESTS =====
 
   // Teste 5: onChunk streaming
-  async testOnChunkStreaming() {
+  async testOnChunkStreaming(uiElement = null) {
     console.log('🤖 [AI-Text] Testando onChunk streaming...');
     
     if (!this.available) {
@@ -194,6 +194,12 @@ export const aiTextTest = {
               fullTextSoFar: data.fullTextSoFar
             });
             console.log('📦 [AI-Text] Chunk recebido:', data.textChunk);
+            
+            // Atualiza UI em tempo real se elemento fornecido
+            if (uiElement) {
+              uiElement.appendChild(document.createTextNode(data.textChunk));
+              uiElement.scrollTop = uiElement.scrollHeight;
+            }
           }
         }
       );
