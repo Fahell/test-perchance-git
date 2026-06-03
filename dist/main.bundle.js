@@ -1440,6 +1440,7 @@ const aiTextTest = {
       const result = await _generateAIText(
         "Escreva uma frase curta sobre um cavaleiro.",
         {
+          outputTo: uiElement,
           onChunk: (data) => {
             chunks.push({
               textChunk: data.textChunk,
@@ -1447,10 +1448,6 @@ const aiTextTest = {
               fullTextSoFar: data.fullTextSoFar
             });
             console.log("📦 [AI-Text] Chunk recebido:", data.textChunk);
-            if (uiElement) {
-              uiElement.appendChild(document.createTextNode(data.textChunk));
-              uiElement.scrollTop = uiElement.scrollHeight;
-            }
           }
         }
       );
@@ -1570,6 +1567,95 @@ const aiTextTest = {
       };
     } catch (error) {
       console.error("❌ [AI-Text] Erro no render function test:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // ===== FASE 3 TESTS =====
+  // Teste 9: Structured JSON generation
+  async testStructuredJSON() {
+    console.log("🤖 [AI-Text] Testando structured JSON generation...");
+    if (!this.available) {
+      return { success: false, error: "Plugin não disponível" };
+    }
+    try {
+      const instruction = 'Gere um objeto JSON com as seguintes propriedades: "name" (string), "age" (number), "occupation" (string). Responda APENAS com o JSON, sem texto adicional.';
+      const startWith = '{\n  "name": "';
+      const result = await _generateAIText(instruction, { startWith });
+      let jsonString = result.generatedText;
+      jsonString = jsonString.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      const firstBrace = jsonString.indexOf("{");
+      const lastBrace = jsonString.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      }
+      const parsed = JSON.parse(jsonString);
+      console.log("✅ [AI-Text] JSON estruturado gerado:", parsed);
+      return {
+        success: true,
+        parsed,
+        raw: result.generatedText
+      };
+    } catch (error) {
+      console.error("❌ [AI-Text] Erro no structured JSON test:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 10: Markdown render transformation
+  async testMarkdownRender() {
+    console.log("🤖 [AI-Text] Testando markdown render transformation...");
+    if (!this.available) {
+      return { success: false, error: "Plugin não disponível" };
+    }
+    try {
+      const instruction = "Escreva uma frase curta usando **negrito** e *itálico* para destacar palavras importantes.";
+      let renderedChunks = [];
+      const result = await _generateAIText(instruction, {
+        render: (data) => {
+          let html = data.text;
+          html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+          html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+          renderedChunks.push({ text: data.text, html, isPartial: data.isPartial });
+          return html;
+        }
+      });
+      console.log("✅ [AI-Text] Markdown render completado. Total chunks:", renderedChunks.length);
+      return {
+        success: true,
+        chunkCount: renderedChunks.length,
+        finalText: result.generatedText,
+        chunks: renderedChunks
+      };
+    } catch (error) {
+      console.error("❌ [AI-Text] Erro no markdown render test:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 11: Concurrency limits
+  async testConcurrencyLimits() {
+    console.log("🤖 [AI-Text] Testando limites de concorrência...");
+    if (!this.available) {
+      return { success: false, error: "Plugin não disponível" };
+    }
+    try {
+      const instructions = [
+        "Escreva uma palavra sobre fogo.",
+        "Escreva uma palavra sobre água.",
+        "Escreva uma palavra sobre terra."
+      ];
+      const promises = instructions.map(
+        (inst, i) => _generateAIText(inst, {}, 3e4).then((res) => ({ index: i, success: true, text: res.generatedText })).catch((err) => ({ index: i, success: false, error: err.message }))
+      );
+      const results = await Promise.all(promises);
+      const successful = results.filter((r) => r.success).length;
+      console.log(`✅ [AI-Text] Concorrência testada: ${successful}/${instructions.length} bem-sucedidos`);
+      return {
+        success: true,
+        total: instructions.length,
+        successful,
+        results
+      };
+    } catch (error) {
+      console.error("❌ [AI-Text] Erro no concurrency test:", error);
       return { success: false, error: error.message };
     }
   }
@@ -7725,6 +7811,9 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-ai-onfinish", name: "AI Text - onFinish", fn: () => aiTextOnFinishHandler() },
     { btnId: "btn-ai-dynamic", name: "AI Text - Dynamic", fn: () => aiTextDynamicHandler() },
     { btnId: "btn-ai-render", name: "AI Text - Render", fn: () => aiTextRenderHandler() },
+    { btnId: "btn-ai-json", name: "AI Text - JSON", fn: () => aiTextStructuredJSONHandler() },
+    { btnId: "btn-ai-markdown", name: "AI Text - Markdown", fn: () => aiTextMarkdownRenderHandler() },
+    { btnId: "btn-ai-concurrency", name: "AI Text - Concurrency", fn: () => aiTextConcurrencyHandler() },
     { btnId: "btn-image", name: "Image", fn: () => imageHandler() },
     { btnId: "btn-tts", name: "TTS", fn: () => ttsHandler() },
     { btnId: "btn-3d", name: "Cube Color", fn: () => cubeColorHandler() },
@@ -7791,7 +7880,10 @@ function initUITest(rendererData, testModules) {
     { id: "image-blending", title: "🎨 Tag Blending", what: "Tests tag blending syntax [from:to:ratio] for style mixing.", how: "Generates images with different blend ratios (0%, 50%, 100%) between styles.", key: "Tag blending, [from:to:ratio] syntax, style mixing." },
     { id: "image-grid", title: "🖼️ Multi-Image Grid", what: "Tests parallel generation of multiple images.", how: "Uses Promise.all() to generate 4 images simultaneously in a grid layout.", key: "Parallel generation, Promise.all(), batch processing." },
     { id: "image-alternating", title: "🔄 Alternating Tags", what: "Tests alternating tag syntax [tag1|tag2] for step variation.", how: "Generates images with alternating tags to show per-step variation effect.", key: "Alternating tags, [tag1|tag2] syntax, step variation." },
-    { id: "image-addremove", title: "➕ Add/Remove During Gen", what: "Tests adding/removing tags during generation [to:when] and [from::when].", how: "Generates images with tags added/removed at specific generation steps.", key: "Dynamic prompts, [to:when] syntax, [from::when] syntax." }
+    { id: "image-addremove", title: "➕ Add/Remove During Gen", what: "Tests adding/removing tags during generation [to:when] and [from::when].", how: "Generates images with tags added/removed at specific generation steps.", key: "Dynamic prompts, [to:when] syntax, [from::when] syntax." },
+    { id: "ai-json", title: "📋 Structured JSON", what: "Tests structured JSON output generation.", how: "Uses instruction to generate valid JSON and parses it to display structured data.", key: "JSON output, structured data, AI formatting." },
+    { id: "ai-markdown", title: "📝 Markdown Render", what: "Tests markdown rendering during streaming.", how: "Uses render function to convert markdown syntax to HTML in real-time.", key: "Markdown parsing, real-time rendering, HTML conversion." },
+    { id: "ai-concurrency", title: "⚡ Concurrency Limits", what: "Tests concurrent AI text generation limits.", how: "Generates multiple texts simultaneously to test rate limiting and concurrency.", key: "Concurrency control, rate limiting, parallel requests." }
   ];
   async function diceHandler() {
     console.log("🎲 Rolling dice...");
@@ -8618,6 +8710,9 @@ function initUITest(rendererData, testModules) {
       <button id="btn-ai-onfinish" class="ui-test-btn ui-test-btn--ai">📊 onFinish</button>
       <button id="btn-ai-dynamic" class="ui-test-btn ui-test-btn--ai">🎲 Dynamic</button>
       <button id="btn-ai-render" class="ui-test-btn ui-test-btn--ai">🎨 Render</button>
+      <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
+      <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
+      <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
       
       
       
@@ -8733,6 +8828,9 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-ai-onfinish").onclick = () => runTest("btn-ai-onfinish", "AI Text - onFinish", aiTextOnFinishHandler);
   document.getElementById("btn-ai-dynamic").onclick = () => runTest("btn-ai-dynamic", "AI Text - Dynamic", aiTextDynamicHandler);
   document.getElementById("btn-ai-render").onclick = () => runTest("btn-ai-render", "AI Text - Render", aiTextRenderHandler);
+  document.getElementById("btn-ai-json").onclick = () => runTest("btn-ai-json", "AI Text - JSON", aiTextStructuredJSONHandler);
+  document.getElementById("btn-ai-markdown").onclick = () => runTest("btn-ai-markdown", "AI Text - Markdown", aiTextMarkdownRenderHandler);
+  document.getElementById("btn-ai-concurrency").onclick = () => runTest("btn-ai-concurrency", "AI Text - Concurrency", aiTextConcurrencyHandler);
   document.getElementById("btn-image").onclick = () => runTest("btn-image", "Image", imageHandler);
   document.getElementById("btn-image-guidance").onclick = () => runTest("btn-image-guidance", "CFG Scale", imageGuidanceHandler);
   document.getElementById("btn-image-negative").onclick = () => runTest("btn-image-negative", "Negative Prompt", imageNegativeHandler);

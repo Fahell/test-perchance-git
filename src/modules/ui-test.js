@@ -119,6 +119,9 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-ai-onfinish', name: 'AI Text - onFinish', fn: () => aiTextOnFinishHandler() },
     { btnId: 'btn-ai-dynamic', name: 'AI Text - Dynamic', fn: () => aiTextDynamicHandler() },
     { btnId: 'btn-ai-render', name: 'AI Text - Render', fn: () => aiTextRenderHandler() },
+    { btnId: 'btn-ai-json', name: 'AI Text - JSON', fn: () => aiTextStructuredJSONHandler() },
+    { btnId: 'btn-ai-markdown', name: 'AI Text - Markdown', fn: () => aiTextMarkdownRenderHandler() },
+    { btnId: 'btn-ai-concurrency', name: 'AI Text - Concurrency', fn: () => aiTextConcurrencyHandler() },
     { btnId: 'btn-image', name: 'Image', fn: () => imageHandler() },
     { btnId: 'btn-tts', name: 'TTS', fn: () => ttsHandler() },
     { btnId: 'btn-3d', name: 'Cube Color', fn: () => cubeColorHandler() },
@@ -186,6 +189,9 @@ export function initUITest(rendererData, testModules) {
     { id: 'image-grid', title: '🖼️ Multi-Image Grid', what: 'Tests parallel generation of multiple images.', how: 'Uses Promise.all() to generate 4 images simultaneously in a grid layout.', key: 'Parallel generation, Promise.all(), batch processing.' },
     { id: 'image-alternating', title: '🔄 Alternating Tags', what: 'Tests alternating tag syntax [tag1|tag2] for step variation.', how: 'Generates images with alternating tags to show per-step variation effect.', key: 'Alternating tags, [tag1|tag2] syntax, step variation.' },
     { id: 'image-addremove', title: '➕ Add/Remove During Gen', what: 'Tests adding/removing tags during generation [to:when] and [from::when].', how: 'Generates images with tags added/removed at specific generation steps.', key: 'Dynamic prompts, [to:when] syntax, [from::when] syntax.' },
+    { id: 'ai-json', title: '📋 Structured JSON', what: 'Tests structured JSON output generation.', how: 'Uses instruction to generate valid JSON and parses it to display structured data.', key: 'JSON output, structured data, AI formatting.' },
+    { id: 'ai-markdown', title: '📝 Markdown Render', what: 'Tests markdown rendering during streaming.', how: 'Uses render function to convert markdown syntax to HTML in real-time.', key: 'Markdown parsing, real-time rendering, HTML conversion.' },
+    { id: 'ai-concurrency', title: '⚡ Concurrency Limits', what: 'Tests concurrent AI text generation limits.', how: 'Generates multiple texts simultaneously to test rate limiting and concurrency.', key: 'Concurrency control, rate limiting, parallel requests.' },
   ];
 
   async function diceHandler() {
@@ -500,6 +506,81 @@ export function initUITest(rendererData, testModules) {
         <div style="color:#64748b;font-size:11px;margin-top:5px;">Caracteres: ${result.text.length}</div>
       </div>`;
     console.log('✅ Render function test completed!');
+
+  // ===== HANDLERS FASE 3 AI TEXT =====
+  async function aiTextStructuredJSONHandler() {
+    console.log('🤖 Testing structured JSON generation...');
+    if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text - Structured JSON', { id: 'test-ai-json', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando JSON estruturado...</div>';
+    
+    const result = await aiTextTest.testStructuredJSON();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Falha no teste'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ JSON estruturado gerado:</div>
+        <pre style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;overflow:auto;font-size:12px;">${JSON.stringify(result.parsed, null, 2)}</pre>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">Campos: ${Object.keys(result.parsed).join(', ')}</div>
+      </div>`;
+    console.log('✅ Structured JSON test completed!');
+  }
+
+  async function aiTextMarkdownRenderHandler() {
+    console.log('🤖 Testing markdown render...');
+    if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text - Markdown Render', { id: 'test-ai-markdown', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando com render markdown...</div>';
+    
+    const result = await aiTextTest.testMarkdownRender();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Falha no teste'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    // Exibe os chunks renderizados
+    const chunksHTML = result.chunks.map((c, i) => `<div style="margin-bottom:5px;"><span style="color:#64748b;">[${i}]</span> ${c}</div>`).join('');
+    
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Texto com formatação markdown (${result.chunkCount} chunks):</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;line-height:1.6;max-height:250px;overflow-y:auto;">${chunksHTML}</div>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">Texto final: ${result.finalText.length} caracteres</div>
+      </div>`;
+    console.log('✅ Markdown render test completed!');
+  }
+
+  async function aiTextConcurrencyHandler() {
+    console.log('🤖 Testing concurrency limits...');
+    if (!aiTextTest || !aiTextTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🤖 AI Text - Concurrency Limits', { id: 'test-ai-concurrency', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testando concorrência (3 solicitações simultâneas)...</div>';
+    
+    const result = await aiTextTest.testConcurrencyLimits();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Falha no teste'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    const resultsHTML = result.results.map(r => 
+      `<div style="margin-bottom:5px;color:${r.success ? '#4ade80' : '#ff6b6b'};">
+        ${r.success ? '✅' : '❌'} Solicitação ${r.index + 1}: ${r.success ? r.text : r.error}
+      </div>`
+    ).join('');
+    
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Teste de concorrência concluído:</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;max-height:250px;overflow-y:auto;">
+          <div style="margin-bottom:10px;color:#94a3b8;">Total: ${result.total} | Sucesso: ${result.successful} | Falha: ${result.total - result.successful}</div>
+          ${resultsHTML}
+        </div>
+      </div>`;
+    console.log('✅ Concurrency test completed!');
+  }
   }
 
   async function imageHandler() {
@@ -1107,6 +1188,9 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-ai-onfinish" class="ui-test-btn ui-test-btn--ai">📊 onFinish</button>
       <button id="btn-ai-dynamic" class="ui-test-btn ui-test-btn--ai">🎲 Dynamic</button>
       <button id="btn-ai-render" class="ui-test-btn ui-test-btn--ai">🎨 Render</button>
+      <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
+      <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
+      <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
       
       
       
@@ -1232,6 +1316,9 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-ai-onfinish').onclick = () => runTest('btn-ai-onfinish', 'AI Text - onFinish', aiTextOnFinishHandler);
   document.getElementById('btn-ai-dynamic').onclick = () => runTest('btn-ai-dynamic', 'AI Text - Dynamic', aiTextDynamicHandler);
   document.getElementById('btn-ai-render').onclick = () => runTest('btn-ai-render', 'AI Text - Render', aiTextRenderHandler);
+  document.getElementById('btn-ai-json').onclick = () => runTest('btn-ai-json', 'AI Text - JSON', aiTextStructuredJSONHandler);
+  document.getElementById('btn-ai-markdown').onclick = () => runTest('btn-ai-markdown', 'AI Text - Markdown', aiTextMarkdownRenderHandler);
+  document.getElementById('btn-ai-concurrency').onclick = () => runTest('btn-ai-concurrency', 'AI Text - Concurrency', aiTextConcurrencyHandler);
   document.getElementById('btn-image').onclick = () => runTest('btn-image', 'Image', imageHandler);
   document.getElementById('btn-image-guidance').onclick = () => runTest('btn-image-guidance', 'CFG Scale', imageGuidanceHandler);
   document.getElementById('btn-image-negative').onclick = () => runTest('btn-image-negative', 'Negative Prompt', imageNegativeHandler);
