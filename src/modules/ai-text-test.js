@@ -187,6 +187,7 @@ export const aiTextTest = {
       const result = await _generateAIText(
         'Escreva uma frase curta sobre um cavaleiro.',
         {
+          outputTo: uiElement,
           onChunk: (data) => {
             chunks.push({
               textChunk: data.textChunk,
@@ -195,11 +196,6 @@ export const aiTextTest = {
             });
             console.log('📦 [AI-Text] Chunk recebido:', data.textChunk);
             
-            // Atualiza UI em tempo real se elemento fornecido
-            if (uiElement) {
-              uiElement.appendChild(document.createTextNode(data.textChunk));
-              uiElement.scrollTop = uiElement.scrollHeight;
-            }
           }
         }
       );
@@ -342,7 +338,125 @@ export const aiTextTest = {
       console.error('❌ [AI-Text] Erro no render function test:', error);
       return { success: false, error: error.message };
     }
-  }
+  },
+
+  // ===== FASE 3 TESTS =====
+
+  // Teste 9: Structured JSON generation
+  async testStructuredJSON() {
+    console.log('🤖 [AI-Text] Testando structured JSON generation...');
+    
+    if (!this.available) {
+      return { success: false, error: 'Plugin não disponível' };
+    }
+    
+    try {
+      const instruction = 'Gere um objeto JSON com as seguintes propriedades: "name" (string), "age" (number), "occupation" (string). Responda APENAS com o JSON, sem texto adicional.';
+      const startWith = '{\n  "name": "';
+      
+      const result = await _generateAIText(instruction, { startWith });
+      
+      // Tenta extrair o JSON do texto gerado
+      let jsonString = result.generatedText;
+      
+      // Remove possíveis blocos de código markdown
+      jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Tenta encontrar o primeiro { e o último }
+      const firstBrace = jsonString.indexOf('{');
+      const lastBrace = jsonString.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      }
+      
+      const parsed = JSON.parse(jsonString);
+      
+      console.log('✅ [AI-Text] JSON estruturado gerado:', parsed);
+      return {
+        success: true,
+        parsed: parsed,
+        raw: result.generatedText
+      };
+    } catch (error) {
+      console.error('❌ [AI-Text] Erro no structured JSON test:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Teste 10: Markdown render transformation
+  async testMarkdownRender() {
+    console.log('🤖 [AI-Text] Testando markdown render transformation...');
+    
+    if (!this.available) {
+      return { success: false, error: 'Plugin não disponível' };
+    }
+    
+    try {
+      const instruction = 'Escreva uma frase curta usando **negrito** e *itálico* para destacar palavras importantes.';
+      let renderedChunks = [];
+      
+      const result = await _generateAIText(instruction, {
+        render: (data) => {
+          // Transforma markdown em HTML
+          let html = data.text;
+          html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+          html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+          renderedChunks.push({ text: data.text, html: html, isPartial: data.isPartial });
+          return html;
+        }
+      });
+      
+      console.log('✅ [AI-Text] Markdown render completado. Total chunks:', renderedChunks.length);
+      return {
+        success: true,
+        chunkCount: renderedChunks.length,
+        finalText: result.generatedText,
+        chunks: renderedChunks
+      };
+    } catch (error) {
+      console.error('❌ [AI-Text] Erro no markdown render test:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Teste 11: Concurrency limits
+  async testConcurrencyLimits() {
+    console.log('🤖 [AI-Text] Testando limites de concorrência...');
+    
+    if (!this.available) {
+      return { success: false, error: 'Plugin não disponível' };
+    }
+    
+    try {
+      const instructions = [
+        'Escreva uma palavra sobre fogo.',
+        'Escreva uma palavra sobre água.',
+        'Escreva uma palavra sobre terra.'
+      ];
+      
+      // Tenta gerar 3 textos simultaneamente
+      const promises = instructions.map((inst, i) => 
+        _generateAIText(inst, {}, 30000)
+          .then(res => ({ index: i, success: true, text: res.generatedText }))
+          .catch(err => ({ index: i, success: false, error: err.message }))
+      );
+      
+      const results = await Promise.all(promises);
+      const successful = results.filter(r => r.success).length;
+      
+      console.log(`✅ [AI-Text] Concorrência testada: ${successful}/${instructions.length} bem-sucedidos`);
+      return {
+        success: true,
+        total: instructions.length,
+        successful: successful,
+        results: results
+      };
+    } catch (error) {
+      console.error('❌ [AI-Text] Erro no concurrency test:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
 };
 
 // Inicialização
