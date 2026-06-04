@@ -56,3 +56,4 @@ pattern = {import:pattern-maker-plugin}
 kv = {import:kv-plugin}
 seeder = {import:seeder-plugin}
 jsonstream = {import:json-stream-plugin}
+aiImage = {import:advanced-ai-image-plugin}

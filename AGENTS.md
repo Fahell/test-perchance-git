@@ -58,3 +58,17 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - Never commit directly to `main`
 - **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
 - Use `npm run release X.Y.Z` for automated release (update, sync, build, commit, tag, push). See docs/release-guide.md.
+
+## 🖼️ AI Image Module (`ai-image.js`)
+
+The `ai-image.js` module provides an advanced abstraction over Perchance's `advanced-ai-image-plugin`. It supports:
+- Single and batch image generation with progress tracking.
+- Automatic resolution mapping (`square`, `wide`, `tall`).
+- Hook integration (`preprocess`, `postprocess`) for prompt enhancement.
+- Context isolation and optimized DOM management (`fragment`, `orderByFinished`).
+- Comprehensive error handling and defensive programming.
+
+**Required Perchance List Panel Import:**
+```
+aiImage = {import:advanced-ai-image-plugin}
+```
