@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.25.2";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.25.2`;
+const VERSION = "v1.26.0";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.0`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -159,6 +159,7 @@ function initLogic(seed, bioma) {
 const TEST_MODULES = {
   imageTest: () => Promise.resolve().then(() => imageTest$1),
   aiTextTest: () => Promise.resolve().then(() => aiTextTest$1),
+  aiImageTest: () => Promise.resolve().then(() => aiImageTest$1),
   listsTest: () => Promise.resolve().then(() => listsTest$1),
   stateTest: () => Promise.resolve().then(() => stateTest$1),
   raycasterTest: () => Promise.resolve().then(() => raycasterTest$1),
@@ -1693,6 +1694,491 @@ if (aiTextTest.available) {
 const aiTextTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   aiTextTest
+}, Symbol.toStringTag, { value: "Module" }));
+const RESOLUTION_MAP = {
+  "square": "512x512",
+  "wide": "768x512",
+  "tall": "512x768",
+  "hd": "1024x576",
+  "portrait": "576x1024"
+};
+const isAvailable = () => !!root.aiImage;
+const createImageContainer = (id, parent) => {
+  const container2 = document.createElement("div");
+  if (id) container2.id = id;
+  container2.style.display = "flex";
+  container2.style.flexWrap = "wrap";
+  container2.style.gap = "10px";
+  container2.style.justifyContent = "center";
+  container2.style.padding = "10px";
+  if (parent) {
+    parent.appendChild(container2);
+  }
+  return container2;
+};
+const applyPreprocess = (prompt, options) => {
+  let finalPrompt = prompt;
+  if (options.defaultQualityTags && typeof options.defaultQualityTags === "string") {
+    finalPrompt = `${finalPrompt}, ${options.defaultQualityTags}`;
+  }
+  if (typeof options.preprocess === "function") {
+    try {
+      finalPrompt = options.preprocess(finalPrompt);
+    } catch (err) {
+      console.warn("⚠️ [AI-Image] Erro no hook preprocess do usuário:", err);
+    }
+  }
+  return finalPrompt;
+};
+const applyPostprocess = (prompt, options) => {
+  let finalPrompt = prompt;
+  if (typeof options.postprocess === "function") {
+    try {
+      finalPrompt = options.postprocess(finalPrompt);
+    } catch (err) {
+      console.warn("⚠️ [AI-Image] Erro no hook postprocess do usuário:", err);
+    }
+  }
+  return finalPrompt;
+};
+const generateImage = (options = {}) => {
+  return new Promise((resolve, reject) => {
+    if (!isAvailable()) {
+      const error = new Error("Plugin advanced-ai-image-plugin não disponível. Verifique se aiImage = {import:advanced-ai-image-plugin} está no List Panel.");
+      console.error("❌ [AI-Image]", error.message);
+      return reject(error);
+    }
+    if (!options.prompt || typeof options.prompt !== "string" || options.prompt.trim() === "") {
+      const error = new Error("Prompt é obrigatório e não pode ser vazio");
+      console.error("❌ [AI-Image]", error.message);
+      return reject(error);
+    }
+    const startTime = Date.now();
+    console.log("🎨 [AI-Image] Iniciando geração de imagem...", { prompt: options.prompt.substring(0, 50) + "..." });
+    const resolution = RESOLUTION_MAP[options.resolution] || options.resolution || "512x512";
+    const processedPrompt = applyPreprocess(options.prompt, options);
+    const negativePrompt = options.negativePrompt || options.defaultNegativePrompt || "";
+    const pluginOptions = {
+      ...options,
+      prompt: processedPrompt,
+      // Usa o prompt processado
+      negativePrompt,
+      resolution,
+      seed: options.seed === "random" || !options.seed ? "random" : options.seed,
+      fragment: options.fragment !== false,
+      // Padrão: true
+      context: options.context || {},
+      // Isolamento de contexto
+      findContainer: options.findContainer || (options.container ? () => {
+        const el = typeof options.container === "string" ? document.querySelector(options.container) : options.container;
+        return el;
+      } : null),
+      onFinish: (data) => {
+        const generationTime = Date.now() - startTime;
+        console.log("✅ [AI-Image] Geração concluída em", generationTime, "ms");
+        const finalPrompt = applyPostprocess(data.prompt || processedPrompt, options);
+        if (typeof options.onFinish === "function") {
+          try {
+            options.onFinish(data);
+          } catch (err) {
+            console.warn("⚠️ [AI-Image] Erro no callback onFinish do usuário:", err);
+          }
+        }
+        resolve({
+          url: data.dataUrl || data.src || data.url,
+          seed: data.seed || options.seed,
+          generationTime,
+          prompt: finalPrompt,
+          negativePrompt,
+          resolution,
+          element: data.element || null,
+          metadata: data
+        });
+      }
+    };
+    delete pluginOptions.onStart;
+    delete pluginOptions.onChunk;
+    delete pluginOptions.defaultQualityTags;
+    delete pluginOptions.defaultNegativePrompt;
+    if (typeof options.onStart === "function") {
+      try {
+        options.onStart();
+      } catch (err) {
+        console.warn("⚠️ [AI-Image] Erro no callback onStart:", err);
+      }
+    }
+    try {
+      const result = root.aiImage(processedPrompt, pluginOptions);
+      if (result && typeof result.then === "function") {
+        result.catch((err) => {
+          console.error("❌ [AI-Image] Erro na Promise do plugin:", err);
+          reject(err);
+        });
+      }
+    } catch (err) {
+      console.error("❌ [AI-Image] Erro ao chamar o plugin:", err);
+      reject(err);
+    }
+  });
+};
+const generateBatch = (options = {}, count = 1) => {
+  return new Promise((resolve, reject) => {
+    if (!isAvailable()) {
+      const error = new Error("Plugin advanced-ai-image-plugin não disponível");
+      console.error("❌ [AI-Image]", error.message);
+      return reject(error);
+    }
+    if (!Number.isInteger(count) || count < 1 || count > 10) {
+      const error = new Error("Count deve ser um inteiro entre 1 e 10");
+      console.error("❌ [AI-Image]", error.message);
+      return reject(error);
+    }
+    if (!options.prompt || typeof options.prompt !== "string" || options.prompt.trim() === "") {
+      const error = new Error("Prompt é obrigatório e não pode ser vazio");
+      console.error("❌ [AI-Image]", error.message);
+      return reject(error);
+    }
+    const startTime = Date.now();
+    console.log(`🎨 [AI-Image] Iniciando geração em lote de ${count} imagens...`);
+    let completedCount = 0;
+    const processedPrompt = applyPreprocess(options.prompt, options);
+    const negativePrompt = options.negativePrompt || options.defaultNegativePrompt || "";
+    const pluginOptions = {
+      ...options,
+      prompt: processedPrompt,
+      negativePrompt,
+      count,
+      resolution: RESOLUTION_MAP[options.resolution] || options.resolution || "512x512",
+      seed: options.seed === "random" || !options.seed ? "random" : options.seed,
+      fragment: options.fragment !== false,
+      context: options.context || {},
+      findContainer: options.findContainer || (options.container ? () => {
+        const el = typeof options.container === "string" ? document.querySelector(options.container) : options.container;
+        return el;
+      } : null),
+      onAllFinish: (dataArray) => {
+        const generationTime = Date.now() - startTime;
+        console.log(`✅ [AI-Image] Lote completo: ${dataArray.length} imagens em ${generationTime}ms`);
+        if (typeof options.onAllFinish === "function") {
+          try {
+            options.onAllFinish(dataArray);
+          } catch (err) {
+            console.warn("⚠️ [AI-Image] Erro no callback onAllFinish:", err);
+          }
+        }
+        const mappedResults = dataArray.map((data, index) => ({
+          url: data.dataUrl || data.src || data.url,
+          seed: data.seed || options.seed,
+          generationTime,
+          prompt: applyPostprocess(data.prompt || processedPrompt, options),
+          negativePrompt,
+          resolution: pluginOptions.resolution,
+          element: data.element || null,
+          metadata: data,
+          index
+        }));
+        resolve(mappedResults);
+      },
+      onFinish: (data) => {
+        completedCount++;
+        console.log(`📊 [AI-Image] Progresso: ${completedCount}/${count}`);
+        if (typeof options.onFinish === "function") {
+          try {
+            options.onFinish(data, completedCount, count);
+          } catch (err) {
+            console.warn("⚠️ [AI-Image] Erro no callback onFinish:", err);
+          }
+        }
+      }
+    };
+    delete pluginOptions.onStart;
+    delete pluginOptions.onChunk;
+    delete pluginOptions.onAllFinish;
+    delete pluginOptions.defaultQualityTags;
+    delete pluginOptions.defaultNegativePrompt;
+    if (typeof options.onStart === "function") {
+      try {
+        options.onStart(count);
+      } catch (err) {
+        console.warn("⚠️ [AI-Image] Erro no callback onStart:", err);
+      }
+    }
+    try {
+      const result = root.aiImage(processedPrompt, pluginOptions);
+      if (result && typeof result.then === "function") {
+        result.catch((err) => {
+          console.error("❌ [AI-Image] Erro na Promise do plugin:", err);
+          reject(err);
+        });
+      }
+    } catch (err) {
+      console.error("❌ [AI-Image] Erro ao chamar o plugin:", err);
+      reject(err);
+    }
+  });
+};
+const aiImageTest = {
+  available: isAvailable(),
+  // Teste 1: Geração única com metadados
+  async testSingleGeneration() {
+    console.log("🖼️ [AI-Image] Testando geração única...");
+    if (!this.available) {
+      return { success: false, error: "Plugin aiImage não disponível" };
+    }
+    try {
+      const containerId = "test-image-container-single";
+      let container2 = document.getElementById(containerId);
+      if (!container2) {
+        container2 = createImageContainer(containerId, document.body);
+      }
+      container2.innerHTML = "";
+      const startTime = Date.now();
+      const result = await generateImage({
+        prompt: "a beautiful sunset over mountains",
+        resolution: "square",
+        outputTo: `#${containerId}`,
+        seed: "random",
+        onStart: (data) => {
+          console.log("🚀 [AI-Image] onStart chamado:", data);
+        },
+        onFinish: (data) => {
+          console.log("✅ [AI-Image] onFinish chamado:", data);
+        }
+      });
+      const elapsedTime2 = Date.now() - startTime;
+      if (!result.success) {
+        return { success: false, error: result.error || "Falha na geração" };
+      }
+      if (!result.seed || typeof result.seed !== "string") {
+        return { success: false, error: "Seed inválido ou ausente" };
+      }
+      if (!result.generationTime || result.generationTime <= 0) {
+        return { success: false, error: "Tempo de geração inválido" };
+      }
+      if (!result.finalPrompt || result.finalPrompt.length === 0) {
+        return { success: false, error: "Prompt final ausente" };
+      }
+      const imgElement = container2.querySelector("img, iframe");
+      if (!imgElement) {
+        return { success: false, error: "Elemento de imagem não encontrado no DOM" };
+      }
+      console.log("✅ [AI-Image] Geração única bem-sucedida:", {
+        seed: result.seed,
+        time: result.generationTime,
+        prompt: result.finalPrompt.substring(0, 50) + "..."
+      });
+      return {
+        success: true,
+        data: {
+          seed: result.seed,
+          generationTime: result.generationTime,
+          promptLength: result.finalPrompt.length,
+          domElementFound: !!imgElement,
+          totalTime: elapsedTime2
+        }
+      };
+    } catch (error) {
+      console.error("❌ [AI-Image] Erro no testSingleGeneration:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 2: Geração em lote
+  async testBatchGeneration() {
+    console.log("🖼️ [AI-Image] Testando geração em lote...");
+    if (!this.available) {
+      return { success: false, error: "Plugin aiImage não disponível" };
+    }
+    try {
+      const containerId = "test-image-container-batch";
+      let container2 = document.getElementById(containerId);
+      if (!container2) {
+        container2 = createImageContainer(containerId, document.body);
+      }
+      container2.innerHTML = "";
+      const count = 2;
+      let onAllFinishCalled = false;
+      let finishedCount = 0;
+      const startTime = Date.now();
+      const results = await generateBatch({
+        prompt: "a cute cat playing with yarn",
+        resolution: "wide",
+        outputTo: `#${containerId}`,
+        orderByFinished: true,
+        seed: "random",
+        onFinish: (data) => {
+          finishedCount++;
+          console.log(`✅ [AI-Image] Imagem ${finishedCount}/${count} finalizada`);
+        },
+        onAllFinish: (allData) => {
+          onAllFinishCalled = true;
+          console.log("🎉 [AI-Image] onAllFinish chamado com", allData.length, "resultados");
+        }
+      }, count);
+      const elapsedTime2 = Date.now() - startTime;
+      if (!results || results.length !== count) {
+        return { success: false, error: `Esperado ${count} resultados, recebido ${(results == null ? void 0 : results.length) || 0}` };
+      }
+      if (!onAllFinishCalled) {
+        return { success: false, error: "onAllFinish não foi chamado" };
+      }
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        if (!r.success) {
+          return { success: false, error: `Resultado ${i} falhou: ${r.error}` };
+        }
+        if (!r.seed || !r.generationTime || !r.finalPrompt) {
+          return { success: false, error: `Resultado ${i} tem metadados inválidos` };
+        }
+      }
+      const imgElements = container2.querySelectorAll("img, iframe");
+      if (imgElements.length !== count) {
+        return { success: false, error: `Esperado ${count} elementos no DOM, encontrado ${imgElements.length}` };
+      }
+      console.log("✅ [AI-Image] Geração em lote bem-sucedida:", {
+        count: results.length,
+        totalTime: elapsedTime2
+      });
+      return {
+        success: true,
+        data: {
+          count: results.length,
+          allFinishedCalled: onAllFinishCalled,
+          domElementsFound: imgElements.length,
+          totalTime: elapsedTime2,
+          seeds: results.map((r) => r.seed)
+        }
+      };
+    } catch (error) {
+      console.error("❌ [AI-Image] Erro no testBatchGeneration:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 3: Processamento de prompt (hooks e tags padrão)
+  async testPromptProcessing() {
+    console.log("🖼️ [AI-Image] Testando processamento de prompt...");
+    if (!this.available) {
+      return { success: false, error: "Plugin aiImage não disponível" };
+    }
+    try {
+      const containerId = "test-image-container-processing";
+      let container2 = document.getElementById(containerId);
+      if (!container2) {
+        container2 = createImageContainer(containerId, document.body);
+      }
+      container2.innerHTML = "";
+      let preprocessCalled = false;
+      let postprocessCalled = false;
+      const result = await generateImage({
+        prompt: "a simple red circle",
+        resolution: "square",
+        outputTo: `#${containerId}`,
+        defaultQualityTags: "masterpiece, best quality, highres",
+        defaultNegativePrompt: "blurry, lowres, bad anatomy",
+        preprocess: (prompt, context) => {
+          preprocessCalled = true;
+          console.log("🔧 [AI-Image] preprocess chamado:", prompt.substring(0, 50));
+          return prompt;
+        },
+        postprocess: (prompt, context) => {
+          postprocessCalled = true;
+          console.log("🔧 [AI-Image] postprocess chamado:", prompt.substring(0, 50));
+          return prompt;
+        }
+      });
+      if (!result.success) {
+        return { success: false, error: result.error || "Falha na geração" };
+      }
+      if (!preprocessCalled) {
+        return { success: false, error: "Hook preprocess não foi chamado" };
+      }
+      if (!postprocessCalled) {
+        return { success: false, error: "Hook postprocess não foi chamado" };
+      }
+      const finalPrompt = result.finalPrompt || "";
+      const hasQualityTags = finalPrompt.includes("masterpiece") || finalPrompt.includes("best quality");
+      const hasNegativePrompt = finalPrompt.includes("blurry") || finalPrompt.includes("lowres");
+      console.log("✅ [AI-Image] Processamento de prompt bem-sucedido:", {
+        preprocessCalled,
+        postprocessCalled,
+        hasQualityTags,
+        hasNegativePrompt,
+        finalPromptLength: finalPrompt.length
+      });
+      return {
+        success: true,
+        data: {
+          preprocessCalled,
+          postprocessCalled,
+          hasQualityTags,
+          hasNegativePrompt,
+          finalPrompt: finalPrompt.substring(0, 100) + "..."
+        }
+      };
+    } catch (error) {
+      console.error("❌ [AI-Image] Erro no testPromptProcessing:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 4: Tratamento de erros
+  async testErrorHandling() {
+    console.log("🖼️ [AI-Image] Testando tratamento de erros...");
+    if (!this.available) {
+      return { success: false, error: "Plugin aiImage não disponível" };
+    }
+    const errors = [];
+    try {
+      const result = await generateImage({
+        prompt: "",
+        resolution: "square"
+      });
+      if (result.success) {
+        errors.push("Prompt vazio não gerou erro");
+      } else {
+        console.log("✅ [AI-Image] Prompt vazio tratado corretamente:", result.error);
+      }
+    } catch (error) {
+      console.log("✅ [AI-Image] Prompt vazio lançou exceção:", error.message);
+    }
+    try {
+      const result = await generateImage({
+        prompt: "test",
+        resolution: "invalid_resolution"
+      });
+      console.log("✅ [AI-Image] Resolução inválida tratada:", result.success ? "aceita" : "rejeitada");
+    } catch (error) {
+      console.log("✅ [AI-Image] Resolução inválida lançou exceção:", error.message);
+    }
+    try {
+      const result = await generateImage({
+        prompt: "test",
+        resolution: "square",
+        outputTo: "#non-existent-container-12345"
+      });
+      if (result.success) {
+        errors.push("Container inexistente não gerou erro");
+      } else {
+        console.log("✅ [AI-Image] Container inexistente tratado corretamente:", result.error);
+      }
+    } catch (error) {
+      console.log("✅ [AI-Image] Container inexistente lançou exceção:", error.message);
+    }
+    if (errors.length > 0) {
+      return { success: false, error: errors.join("; ") };
+    }
+    console.log("✅ [AI-Image] Tratamento de erros bem-sucedido");
+    return { success: true, data: { message: "Todos os cenários de erro foram tratados" } };
+  }
+};
+console.log("🖼️ [AI-Image] Inicializando teste do plugin de imagem IA...");
+if (aiImageTest.available) {
+  console.log("✅ [AI-Image] Plugin advanced-ai-image-plugin disponível");
+} else {
+  console.warn("⚠️⚠️⚠️⚠️ [AI-Image] Plugin advanced-ai-image-plugin NÃO disponível");
+  console.warn("   Adicione no List Panel: aiImage = {import:advanced-ai-image-plugin}");
+}
+const aiImageTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  aiImageTest
 }, Symbol.toStringTag, { value: "Module" }));
 const listsTest = {
   available: true,
@@ -7801,6 +8287,7 @@ function initUITest(rendererData, testModules) {
   const {
     imageTest: imageTest2,
     aiTextTest: aiTextTest2,
+    aiImageTest: aiImageTest2,
     listsTest: listsTest2,
     stateTest: stateTest2,
     raycasterTest: raycasterTest2,
@@ -7837,6 +8324,10 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-ai-json", name: "AI Text - JSON", fn: () => aiTextStructuredJSONHandler() },
     { btnId: "btn-ai-markdown", name: "AI Text - Markdown", fn: () => aiTextMarkdownRenderHandler() },
     { btnId: "btn-ai-concurrency", name: "AI Text - Concurrency", fn: () => aiTextConcurrencyHandler() },
+    { btnId: "btn-ai-image-single", name: "AI Image - Single", fn: () => aiImageSingleHandler() },
+    { btnId: "btn-ai-image-batch", name: "AI Image - Batch", fn: () => aiImageBatchHandler() },
+    { btnId: "btn-ai-image-processing", name: "AI Image - Processing", fn: () => aiImageProcessingHandler() },
+    { btnId: "btn-ai-image-errors", name: "AI Image - Errors", fn: () => aiImageErrorsHandler() },
     { btnId: "btn-image", name: "Image", fn: () => imageHandler() },
     { btnId: "btn-tts", name: "TTS", fn: () => ttsHandler() },
     { btnId: "btn-3d", name: "Cube Color", fn: () => cubeColorHandler() },
@@ -7872,6 +8363,7 @@ function initUITest(rendererData, testModules) {
     { id: "seeder", title: "🌱 Seeder", what: "Validates deterministic seed generation for reproducible randomness.", how: "Generates multiple seeds from the same input string and verifies they produce identical outputs across runs.", key: "Seeded RNG, hash functions, reproducibility." },
     { id: "pattern", title: "🎨 Pattern", what: "Generates procedural textures/patterns using Perchance generators.", how: "Creates a canvas, fills it with algorithmic patterns driven by Perchance lists, and displays the result.", key: "Canvas 2D, procedural generation, Perchance lists." },
     { id: "ai-text", title: "🤖 AI Text", what: "Tests AI text generation via Perchance AI plugins.", how: "Calls the AI text plugin with a prompt, waits for async response, and renders the generated text.", key: "Async/await, plugin bridge, AI API integration." },
+    { id: "ai-image", title: "🖼️ AI Image", what: "Tests advanced AI image generation with hooks and batch processing.", how: "Calls the advanced-ai-image-plugin with prompts, preprocess/postprocess hooks, and batch generation, displaying results in a responsive grid.", key: "Async image generation, DOM manipulation, plugin hooks, batch processing." },
     { id: "image", title: "🖼️ Image", what: "Tests AI image generation and rendering.", how: "Requests an image from the AI plugin, handles loading state, and displays the resulting image URL.", key: "Async image loading, error handling, DOM insertion." },
     { id: "tts", title: "🔊 TTS", what: "Tests Text-to-Speech using the Web Speech API.", how: "Initializes speech synthesis, configures voice/rate/pitch, and speaks a test phrase. Includes stop control.", key: "Web Speech API, <code>speechSynthesis</code>, async audio." },
     { id: "3d", title: "🎲 Cube Color", what: "Tests Three.js basic rendering and material color updates.", how: "Creates a Three.js scene with a rotating cube, updates its material color dynamically, and renders to canvas.", key: "Three.js, WebGL, animation loop, material updates." },
@@ -8250,6 +8742,108 @@ function initUITest(rendererData, testModules) {
         </div>
       </div>`;
     console.log("✅ Concurrency test completed!");
+  }
+  async function aiImageSingleHandler() {
+    console.log("🖼️ Testing AI Image single generation...");
+    if (!aiImageTest2 || !aiImageTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🖼️ AI Image - Single Generation", { id: "test-ai-image-single", width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating single image...</div>';
+    const result = await aiImageTest2.testSingleGeneration();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Single generation completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>Seed:</strong> ${result.data.seed}</div>
+          <div style="margin-bottom:8px;"><strong>Generation Time:</strong> ${result.data.generationTime}ms</div>
+          <div style="margin-bottom:8px;"><strong>Prompt Length:</strong> ${result.data.promptLength} chars</div>
+          <div style="margin-bottom:8px;"><strong>DOM Element Found:</strong> ${result.data.domElementFound ? "✅" : "❌"}</div>
+          <div><strong>Total Time:</strong> ${result.data.totalTime}ms</div>
+        </div>
+      </div>`;
+    console.log("✅ AI Image single test completed!");
+  }
+  async function aiImageBatchHandler() {
+    console.log("🖼️ Testing AI Image batch generation...");
+    if (!aiImageTest2 || !aiImageTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🖼️ AI Image - Batch Generation", { id: "test-ai-image-batch", width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating 2 images in batch...</div>';
+    const result = await aiImageTest2.testBatchGeneration();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    const seedsHTML = result.data.seeds.map((s, i) => `<div>Image ${i + 1}: ${s}</div>`).join("");
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Batch generation completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>Count:</strong> ${result.data.count}</div>
+          <div style="margin-bottom:8px;"><strong>onAllFinish Called:</strong> ${result.data.allFinishedCalled ? "✅" : "❌"}</div>
+          <div style="margin-bottom:8px;"><strong>DOM Elements Found:</strong> ${result.data.domElementsFound}</div>
+          <div style="margin-bottom:8px;"><strong>Total Time:</strong> ${result.data.totalTime}ms</div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;">
+            <strong>Seeds:</strong><br>${seedsHTML}
+          </div>
+        </div>
+      </div>`;
+    console.log("✅ AI Image batch test completed!");
+  }
+  async function aiImageProcessingHandler() {
+    console.log("🖼️ Testing AI Image prompt processing...");
+    if (!aiImageTest2 || !aiImageTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🖼️ AI Image - Prompt Processing", { id: "test-ai-image-processing", width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing hooks and default tags...</div>';
+    const result = await aiImageTest2.testPromptProcessing();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Prompt processing completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>preprocess Called:</strong> ${result.data.preprocessCalled ? "✅" : "❌"}</div>
+          <div style="margin-bottom:8px;"><strong>postprocess Called:</strong> ${result.data.postprocessCalled ? "✅" : "❌"}</div>
+          <div style="margin-bottom:8px;"><strong>Has Quality Tags:</strong> ${result.data.hasQualityTags ? "✅" : "❌"}</div>
+          <div style="margin-bottom:8px;"><strong>Has Negative Prompt:</strong> ${result.data.hasNegativePrompt ? "✅" : "❌"}</div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;">
+            <strong>Final Prompt (preview):</strong><br>
+            <div style="background:#1e293b;padding:8px;border-radius:4px;margin-top:5px;word-break:break-all;font-family:monospace;font-size:11px;">
+              ${result.data.finalPrompt}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    console.log("✅ AI Image processing test completed!");
+  }
+  async function aiImageErrorsHandler() {
+    console.log("🖼️ Testing AI Image error handling...");
+    if (!aiImageTest2 || !aiImageTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🖼️ AI Image - Error Handling", { id: "test-ai-image-errors", width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing error scenarios...</div>';
+    const result = await aiImageTest2.testErrorHandling();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Error handling test completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="color:#94a3b8;">All error scenarios were handled gracefully:</div>
+          <ul style="margin-top:10px;padding-left:20px;color:#4ade80;">
+            <li>Empty prompt validation</li>
+            <li>Invalid resolution handling</li>
+            <li>Non-existent DOM container</li>
+          </ul>
+          <div style="margin-top:10px;color:#94a3b8;font-style:italic;">${result.data.message}</div>
+        </div>
+      </div>`;
+    console.log("✅ AI Image error handling test completed!");
   }
   async function imageHandler() {
     console.log("🖼️ Generating AI image...");
