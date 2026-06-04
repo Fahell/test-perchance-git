@@ -27,6 +27,7 @@ import { initLogic } from './modules/logic.js';
 const TEST_MODULES = {
   imageTest: () => import('./modules/image-test.js'),
   aiTextTest: () => import('./modules/ai-text-test.js'),
+  aiImageTest: () => import('./modules/ai-image-test.js'),
   listsTest: () => import('./modules/lists-test.js'),
   stateTest: () => import('./modules/state-test.js'),
   raycasterTest: () => import('./modules/raycaster-test.js'),

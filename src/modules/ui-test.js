@@ -84,6 +84,7 @@ export function initUITest(rendererData, testModules) {
   const {
     imageTest,
     aiTextTest,
+    aiImageTest,
     listsTest,
     stateTest,
     raycasterTest,
@@ -122,6 +123,10 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-ai-json', name: 'AI Text - JSON', fn: () => aiTextStructuredJSONHandler() },
     { btnId: 'btn-ai-markdown', name: 'AI Text - Markdown', fn: () => aiTextMarkdownRenderHandler() },
     { btnId: 'btn-ai-concurrency', name: 'AI Text - Concurrency', fn: () => aiTextConcurrencyHandler() },
+    { btnId: 'btn-ai-image-single', name: 'AI Image - Single', fn: () => aiImageSingleHandler() },
+    { btnId: 'btn-ai-image-batch', name: 'AI Image - Batch', fn: () => aiImageBatchHandler() },
+    { btnId: 'btn-ai-image-processing', name: 'AI Image - Processing', fn: () => aiImageProcessingHandler() },
+    { btnId: 'btn-ai-image-errors', name: 'AI Image - Errors', fn: () => aiImageErrorsHandler() },
     { btnId: 'btn-image', name: 'Image', fn: () => imageHandler() },
     { btnId: 'btn-tts', name: 'TTS', fn: () => ttsHandler() },
     { btnId: 'btn-3d', name: 'Cube Color', fn: () => cubeColorHandler() },
@@ -157,6 +162,7 @@ export function initUITest(rendererData, testModules) {
     { id: 'seeder', title: '🌱 Seeder', what: 'Validates deterministic seed generation for reproducible randomness.', how: 'Generates multiple seeds from the same input string and verifies they produce identical outputs across runs.', key: 'Seeded RNG, hash functions, reproducibility.' },
     { id: 'pattern', title: '🎨 Pattern', what: 'Generates procedural textures/patterns using Perchance generators.', how: 'Creates a canvas, fills it with algorithmic patterns driven by Perchance lists, and displays the result.', key: 'Canvas 2D, procedural generation, Perchance lists.' },
     { id: 'ai-text', title: '🤖 AI Text', what: 'Tests AI text generation via Perchance AI plugins.', how: 'Calls the AI text plugin with a prompt, waits for async response, and renders the generated text.', key: 'Async/await, plugin bridge, AI API integration.' },
+    { id: 'ai-image', title: '🖼️ AI Image', what: 'Tests advanced AI image generation with hooks and batch processing.', how: 'Calls the advanced-ai-image-plugin with prompts, preprocess/postprocess hooks, and batch generation, displaying results in a responsive grid.', key: 'Async image generation, DOM manipulation, plugin hooks, batch processing.' },
     { id: 'image', title: '🖼️ Image', what: 'Tests AI image generation and rendering.', how: 'Requests an image from the AI plugin, handles loading state, and displays the resulting image URL.', key: 'Async image loading, error handling, DOM insertion.' },
     { id: 'tts', title: '🔊 TTS', what: 'Tests Text-to-Speech using the Web Speech API.', how: 'Initializes speech synthesis, configures voice/rate/pitch, and speaks a test phrase. Includes stop control.', key: 'Web Speech API, <code>speechSynthesis</code>, async audio.' },
     { id: '3d', title: '🎲 Cube Color', what: 'Tests Three.js basic rendering and material color updates.', how: 'Creates a Three.js scene with a rotating cube, updates its material color dynamically, and renders to canvas.', key: 'Three.js, WebGL, animation loop, material updates.' },
@@ -582,6 +588,124 @@ export function initUITest(rendererData, testModules) {
       </div>`;
     console.log('✅ Concurrency test completed!');
   }
+
+
+  // Phase: AI Image Tests
+  async function aiImageSingleHandler() {
+    console.log('🖼️ Testing AI Image single generation...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - Single Generation', { id: 'test-ai-image-single', width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating single image...</div>';
+    
+    const result = await aiImageTest.testSingleGeneration();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Single generation completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>Seed:</strong> ${result.data.seed}</div>
+          <div style="margin-bottom:8px;"><strong>Generation Time:</strong> ${result.data.generationTime}ms</div>
+          <div style="margin-bottom:8px;"><strong>Prompt Length:</strong> ${result.data.promptLength} chars</div>
+          <div style="margin-bottom:8px;"><strong>DOM Element Found:</strong> ${result.data.domElementFound ? '✅' : '❌'}</div>
+          <div><strong>Total Time:</strong> ${result.data.totalTime}ms</div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image single test completed!');
+  }
+
+  async function aiImageBatchHandler() {
+    console.log('🖼️ Testing AI Image batch generation...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - Batch Generation', { id: 'test-ai-image-batch', width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating 2 images in batch...</div>';
+    
+    const result = await aiImageTest.testBatchGeneration();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    const seedsHTML = result.data.seeds.map((s, i) => `<div>Image ${i+1}: ${s}</div>`).join('');
+    
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Batch generation completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>Count:</strong> ${result.data.count}</div>
+          <div style="margin-bottom:8px;"><strong>onAllFinish Called:</strong> ${result.data.allFinishedCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>DOM Elements Found:</strong> ${result.data.domElementsFound}</div>
+          <div style="margin-bottom:8px;"><strong>Total Time:</strong> ${result.data.totalTime}ms</div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;">
+            <strong>Seeds:</strong><br>${seedsHTML}
+          </div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image batch test completed!');
+  }
+
+  async function aiImageProcessingHandler() {
+    console.log('🖼️ Testing AI Image prompt processing...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - Prompt Processing', { id: 'test-ai-image-processing', width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing hooks and default tags...</div>';
+    
+    const result = await aiImageTest.testPromptProcessing();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Prompt processing completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>preprocess Called:</strong> ${result.data.preprocessCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>postprocess Called:</strong> ${result.data.postprocessCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>Has Quality Tags:</strong> ${result.data.hasQualityTags ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>Has Negative Prompt:</strong> ${result.data.hasNegativePrompt ? '✅' : '❌'}</div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;">
+            <strong>Final Prompt (preview):</strong><br>
+            <div style="background:#1e293b;padding:8px;border-radius:4px;margin-top:5px;word-break:break-all;font-family:monospace;font-size:11px;">
+              ${result.data.finalPrompt}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image processing test completed!');
+  }
+
+  async function aiImageErrorsHandler() {
+    console.log('🖼️ Testing AI Image error handling...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - Error Handling', { id: 'test-ai-image-errors', width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing error scenarios...</div>';
+    
+    const result = await aiImageTest.testErrorHandling();
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Error handling test completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="color:#94a3b8;">All error scenarios were handled gracefully:</div>
+          <ul style="margin-top:10px;padding-left:20px;color:#4ade80;">
+            <li>Empty prompt validation</li>
+            <li>Invalid resolution handling</li>
+            <li>Non-existent DOM container</li>
+          </ul>
+          <div style="margin-top:10px;color:#94a3b8;font-style:italic;">${result.data.message}</div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image error handling test completed!');
+  }
+
 
   async function imageHandler() {
     console.log('🖼️ Generating AI image...');
