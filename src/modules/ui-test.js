@@ -543,7 +543,7 @@ export function initUITest(rendererData, testModules) {
     }
     
     // Exibe os chunks renderizados
-    const chunksHTML = result.chunks.map((c, i) => `<div style="margin-bottom:5px;"><span style="color:#64748b;">[${i}]</span> ${c}</div>`).join('');
+    const chunksHTML = result.chunks.map((c, i) => `<div style="margin-bottom:5px;"><span style="color:#64748b;">[${i}]</span> ${c.html}</div>`).join('');
     
     contentArea.innerHTML = `
       <div style="padding:15px;">

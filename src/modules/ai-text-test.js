@@ -349,27 +349,49 @@ export const aiTextTest = {
     if (!this.available) {
       return { success: false, error: 'Plugin não disponível' };
     }
+
+    if (!root.jsonstream) {
+      return { success: false, error: 'json-stream-plugin não importado. Adicione "jsonstream = {import:json-stream-plugin}" no List Panel do Perchance.' };
+    }
     
     try {
       const instruction = 'Gere um objeto JSON com as seguintes propriedades: "name" (string), "age" (number), "occupation" (string). Responda APENAS com o JSON, sem texto adicional.';
-      const startWith = '{\n  "name": "';
       
-      const result = await _generateAIText(instruction, { startWith });
+      const stream = root.jsonstream();
+      let isFirstChunk = true;
       
-      // Tenta extrair o JSON do texto gerado
-      let jsonString = result.generatedText;
+      const startWith = '```json\n{\n  "name": "';
       
-      // Remove possíveis blocos de código markdown
-      jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const result = await _generateAIText(instruction, {
+        startWith: startWith,
+        onChunk: (data) => {
+          if (isFirstChunk) {
+            isFirstChunk = false; // Skip the first chunk which contains startWith
+            return;
+          }
+          if (data && data.textChunk) {
+            stream.add(data.textChunk);
+          }
+        }
+      });
       
-      // Tenta encontrar o primeiro { e o último }
-      const firstBrace = jsonString.indexOf('{');
-      const lastBrace = jsonString.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      if (stream.json_invalid) {
+        return { 
+          success: false, 
+          error: 'JSON inválido gerado pela IA', 
+          raw: result.generatedText 
+        };
       }
       
-      const parsed = JSON.parse(jsonString);
+      if (!stream.json && !stream.json_complete) {
+        return { 
+          success: false, 
+          error: 'Nenhum JSON válido foi construído', 
+          raw: result.generatedText 
+        };
+      }
+      
+      const parsed = stream.json;
       
       console.log('✅ [AI-Text] JSON estruturado gerado:', parsed);
       return {
