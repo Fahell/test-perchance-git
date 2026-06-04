@@ -19,12 +19,15 @@ import { root } from '../perchance-bridge.js';
  * @property {Function} [onStart] - Callback chamado quando a geração inicia
  * @property {Function} [onFinish] - Callback chamado quando a geração termina
  * @property {Function} [onChunk] - Callback chamado a cada chunk de progresso
+ * @property {Function} [onAllFinish] - Callback chamado quando todas as imagens do lote terminam
  * @property {Function} [preprocess] - Hook para modificar o prompt antes do envio
  * @property {Function} [postprocess] - Hook para modificar o prompt após processamento inicial
- * @property {Object} [context] - Contexto para avaliação de variáveis do Perchance
- * @property {string} [container] - Seletor CSS ou elemento DOM para inserir a imagem
- * @property {boolean} [fragment=false] - Se true, usa DocumentFragment para inserção limpa
- * @property {boolean} [orderByFinished=false] - Se true, reordena imagens por ordem de conclusão
+ * @property {string} [defaultQualityTags] - Tags de qualidade padrão a serem adicionadas (ex: "masterpiece, best quality")
+ * @property {string} [defaultNegativePrompt] - Prompt negativo padrão a ser usado se nenhum for fornecido
+ * @property {Object} [context] - Contexto para avaliação de variáveis do Perchance (ex: { characterName: "Alice" })
+ * @property {string|HTMLElement} [container] - Seletor CSS ou elemento DOM para inserir a imagem
+ * @property {boolean} [fragment=true] - Se true, usa DocumentFragment para inserção limpa (padrão: true)
+ * @property {boolean} [orderByFinished=false] - Se true, reordena imagens por ordem de conclusão (requer container com display: flex)
  * @property {Function} [findContainer] - Função para encontrar container dinamicamente
  */
 
@@ -58,6 +61,72 @@ const RESOLUTION_MAP = {
 export const isAvailable = () => !!root.aiImage;
 
 /**
+ * Cria um container otimizado para exibição de imagens (com display: flex)
+ * @param {string} [id] - ID opcional para o container
+ * @param {HTMLElement} [parent] - Elemento pai onde o container será inserido
+ * @returns {HTMLElement} O container criado
+ */
+export const createImageContainer = (id, parent) => {
+  const container = document.createElement('div');
+  if (id) container.id = id;
+  
+  // Estilos otimizados para orderByFinished
+  container.style.display = 'flex';
+  container.style.flexWrap = 'wrap';
+  container.style.gap = '10px';
+  container.style.justifyContent = 'center';
+  container.style.padding = '10px';
+  
+  if (parent) {
+    parent.appendChild(container);
+  }
+  
+  return container;
+};
+
+/**
+ * Aplica hooks de preprocessamento (padrão + customizado)
+ * @private
+ */
+const applyPreprocess = (prompt, options) => {
+  let finalPrompt = prompt;
+
+  // Aplica tags de qualidade padrão se fornecidas
+  if (options.defaultQualityTags && typeof options.defaultQualityTags === 'string') {
+    finalPrompt = `${finalPrompt}, ${options.defaultQualityTags}`;
+  }
+
+  // Aplica hook customizado do usuário
+  if (typeof options.preprocess === 'function') {
+    try {
+      finalPrompt = options.preprocess(finalPrompt);
+    } catch (err) {
+      console.warn('⚠️ [AI-Image] Erro no hook preprocess do usuário:', err);
+    }
+  }
+
+  return finalPrompt;
+};
+
+/**
+ * Aplica hooks de postprocessamento
+ * @private
+ */
+const applyPostprocess = (prompt, options) => {
+  let finalPrompt = prompt;
+
+  if (typeof options.postprocess === 'function') {
+    try {
+      finalPrompt = options.postprocess(finalPrompt);
+    } catch (err) {
+      console.warn('⚠️ [AI-Image] Erro no hook postprocess do usuário:', err);
+    }
+  }
+
+  return finalPrompt;
+};
+
+/**
  * Gera uma única imagem usando o plugin advanced-ai-image-plugin
  * @param {ImageGenerationOptions} options - Opções de geração
  * @returns {Promise<ImageGenerationResult>} Resultado da geração
@@ -84,14 +153,31 @@ export const generateImage = (options = {}) => {
     // Traduz atalhos de resolução
     const resolution = RESOLUTION_MAP[options.resolution] || options.resolution || '512x512';
     
+    // Aplica hooks de preprocessamento
+    const processedPrompt = applyPreprocess(options.prompt, options);
+    
+    // Define prompt negativo (customizado ou padrão)
+    const negativePrompt = options.negativePrompt || options.defaultNegativePrompt || '';
+
     // Prepara opções para o plugin
     const pluginOptions = {
       ...options,
+      prompt: processedPrompt, // Usa o prompt processado
+      negativePrompt,
       resolution,
       seed: options.seed === 'random' || !options.seed ? 'random' : options.seed,
+      fragment: options.fragment !== false, // Padrão: true
+      context: options.context || {}, // Isolamento de contexto
+      findContainer: options.findContainer || (options.container ? () => {
+        const el = typeof options.container === 'string' ? document.querySelector(options.container) : options.container;
+        return el;
+      } : null),
       onFinish: (data) => {
         const generationTime = Date.now() - startTime;
         console.log('✅ [AI-Image] Geração concluída em', generationTime, 'ms');
+        
+        // Aplica postprocess se necessário (para fins de log/retorno)
+        const finalPrompt = applyPostprocess(data.prompt || processedPrompt, options);
         
         // Callback do usuário
         if (typeof options.onFinish === 'function') {
@@ -107,7 +193,8 @@ export const generateImage = (options = {}) => {
           url: data.dataUrl || data.src || data.url,
           seed: data.seed || options.seed,
           generationTime,
-          prompt: data.prompt || options.prompt,
+          prompt: finalPrompt,
+          negativePrompt,
           resolution,
           element: data.element || null,
           metadata: data
@@ -115,9 +202,11 @@ export const generateImage = (options = {}) => {
       }
     };
 
-    // Remove callbacks que não devem ser passados diretamente
+    // Remove callbacks que não devem ser passados diretamente para o plugin
     delete pluginOptions.onStart;
     delete pluginOptions.onChunk;
+    delete pluginOptions.defaultQualityTags;
+    delete pluginOptions.defaultNegativePrompt;
 
     // Callback de início
     if (typeof options.onStart === 'function') {
@@ -130,7 +219,7 @@ export const generateImage = (options = {}) => {
 
     try {
       // Chama o plugin do Perchance
-      const result = root.aiImage(options.prompt, pluginOptions);
+      const result = root.aiImage(processedPrompt, pluginOptions);
       
       // Se retornar uma Promise, trata rejeição
       if (result && typeof result.then === 'function') {
@@ -180,12 +269,24 @@ export const generateBatch = (options = {}, count = 1) => {
     const results = [];
     let completedCount = 0;
 
+    // Aplica hooks de preprocessamento
+    const processedPrompt = applyPreprocess(options.prompt, options);
+    const negativePrompt = options.negativePrompt || options.defaultNegativePrompt || '';
+
     // Prepara opções para o plugin com count nativo
     const pluginOptions = {
       ...options,
+      prompt: processedPrompt,
+      negativePrompt,
       count,
       resolution: RESOLUTION_MAP[options.resolution] || options.resolution || '512x512',
       seed: options.seed === 'random' || !options.seed ? 'random' : options.seed,
+      fragment: options.fragment !== false,
+      context: options.context || {},
+      findContainer: options.findContainer || (options.container ? () => {
+        const el = typeof options.container === 'string' ? document.querySelector(options.container) : options.container;
+        return el;
+      } : null),
       onAllFinish: (dataArray) => {
         const generationTime = Date.now() - startTime;
         console.log(`✅ [AI-Image] Lote completo: ${dataArray.length} imagens em ${generationTime}ms`);
@@ -204,7 +305,8 @@ export const generateBatch = (options = {}, count = 1) => {
           url: data.dataUrl || data.src || data.url,
           seed: data.seed || options.seed,
           generationTime,
-          prompt: data.prompt || options.prompt,
+          prompt: applyPostprocess(data.prompt || processedPrompt, options),
+          negativePrompt,
           resolution: pluginOptions.resolution,
           element: data.element || null,
           metadata: data,
@@ -232,6 +334,8 @@ export const generateBatch = (options = {}, count = 1) => {
     delete pluginOptions.onStart;
     delete pluginOptions.onChunk;
     delete pluginOptions.onAllFinish;
+    delete pluginOptions.defaultQualityTags;
+    delete pluginOptions.defaultNegativePrompt;
 
     // Callback de início
     if (typeof options.onStart === 'function') {
@@ -244,7 +348,7 @@ export const generateBatch = (options = {}, count = 1) => {
 
     try {
       // Chama o plugin do Perchance
-      const result = root.aiImage(options.prompt, pluginOptions);
+      const result = root.aiImage(processedPrompt, pluginOptions);
       
       // Se retornar uma Promise, trata rejeição
       if (result && typeof result.then === 'function') {
@@ -265,5 +369,6 @@ export const aiImageModule = {
   isAvailable,
   generateImage,
   generateBatch,
+  createImageContainer,
   RESOLUTION_MAP
 };
