@@ -506,6 +506,7 @@ export function initUITest(rendererData, testModules) {
         <div style="color:#64748b;font-size:11px;margin-top:5px;">Caracteres: ${result.text.length}</div>
       </div>`;
     console.log('✅ Render function test completed!');
+  }
 
   // ===== HANDLERS FASE 3 AI TEXT =====
   async function aiTextStructuredJSONHandler() {
@@ -580,7 +581,6 @@ export function initUITest(rendererData, testModules) {
         </div>
       </div>`;
     console.log('✅ Concurrency test completed!');
-  }
   }
 
   async function imageHandler() {
