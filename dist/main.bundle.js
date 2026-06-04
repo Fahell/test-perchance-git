@@ -8166,6 +8166,68 @@ function initUITest(rendererData, testModules) {
       </div>`;
     console.log("✅ Render function test completed!");
   }
+  async function aiTextStructuredJSONHandler() {
+    console.log("🤖 Testing structured JSON generation...");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🤖 AI Text - Structured JSON", { id: "test-ai-json", width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando JSON estruturado...</div>';
+    const result = await aiTextTest2.testStructuredJSON();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ JSON estruturado gerado:</div>
+        <pre style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;overflow:auto;font-size:12px;">${JSON.stringify(result.parsed, null, 2)}</pre>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">Campos: ${Object.keys(result.parsed).join(", ")}</div>
+      </div>`;
+    console.log("✅ Structured JSON test completed!");
+  }
+  async function aiTextMarkdownRenderHandler() {
+    console.log("🤖 Testing markdown render...");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🤖 AI Text - Markdown Render", { id: "test-ai-markdown", width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Gerando com render markdown...</div>';
+    const result = await aiTextTest2.testMarkdownRender();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    const chunksHTML = result.chunks.map((c, i) => `<div style="margin-bottom:5px;"><span style="color:#64748b;">[${i}]</span> ${c}</div>`).join("");
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Texto com formatação markdown (${result.chunkCount} chunks):</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;line-height:1.6;max-height:250px;overflow-y:auto;">${chunksHTML}</div>
+        <div style="color:#64748b;font-size:11px;margin-top:10px;">Texto final: ${result.finalText.length} caracteres</div>
+      </div>`;
+    console.log("✅ Markdown render test completed!");
+  }
+  async function aiTextConcurrencyHandler() {
+    console.log("🤖 Testing concurrency limits...");
+    if (!aiTextTest2 || !aiTextTest2.available) throw new Error("Plugin not available");
+    const { contentArea } = createTestContainer("🤖 AI Text - Concurrency Limits", { id: "test-ai-concurrency", width: 600, height: 400 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testando concorrência (3 solicitações simultâneas)...</div>';
+    const result = await aiTextTest2.testConcurrencyLimits();
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    const resultsHTML = result.results.map(
+      (r) => `<div style="margin-bottom:5px;color:${r.success ? "#4ade80" : "#ff6b6b"};">
+        ${r.success ? "✅" : "❌"} Solicitação ${r.index + 1}: ${r.success ? r.text : r.error}
+      </div>`
+    ).join("");
+    contentArea.innerHTML = `
+      <div style="padding:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Teste de concorrência concluído:</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;max-height:250px;overflow-y:auto;">
+          <div style="margin-bottom:10px;color:#94a3b8;">Total: ${result.total} | Sucesso: ${result.successful} | Falha: ${result.total - result.successful}</div>
+          ${resultsHTML}
+        </div>
+      </div>`;
+    console.log("✅ Concurrency test completed!");
+  }
   async function imageHandler() {
     console.log("🖼️ Generating AI image...");
     if (!imageTest2 || !imageTest2.available) throw new Error("Plugin not available");
