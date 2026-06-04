@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.25.1";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.25.1`;
+const VERSION = "v1.25.2";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.25.2`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -1577,18 +1577,41 @@ const aiTextTest = {
     if (!this.available) {
       return { success: false, error: "Plugin não disponível" };
     }
+    if (!root.jsonstream) {
+      return { success: false, error: 'json-stream-plugin não importado. Adicione "jsonstream = {import:json-stream-plugin}" no List Panel do Perchance.' };
+    }
     try {
       const instruction = 'Gere um objeto JSON com as seguintes propriedades: "name" (string), "age" (number), "occupation" (string). Responda APENAS com o JSON, sem texto adicional.';
-      const startWith = '{\n  "name": "';
-      const result = await _generateAIText(instruction, { startWith });
-      let jsonString = result.generatedText;
-      jsonString = jsonString.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const firstBrace = jsonString.indexOf("{");
-      const lastBrace = jsonString.lastIndexOf("}");
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      const stream = root.jsonstream();
+      let isFirstChunk = true;
+      const startWith = '```json\n{\n  "name": "';
+      const result = await _generateAIText(instruction, {
+        startWith,
+        onChunk: (data) => {
+          if (isFirstChunk) {
+            isFirstChunk = false;
+            return;
+          }
+          if (data && data.textChunk) {
+            stream.add(data.textChunk);
+          }
+        }
+      });
+      if (stream.json_invalid) {
+        return {
+          success: false,
+          error: "JSON inválido gerado pela IA",
+          raw: result.generatedText
+        };
       }
-      const parsed = JSON.parse(jsonString);
+      if (!stream.json && !stream.json_complete) {
+        return {
+          success: false,
+          error: "Nenhum JSON válido foi construído",
+          raw: result.generatedText
+        };
+      }
+      const parsed = stream.json;
       console.log("✅ [AI-Text] JSON estruturado gerado:", parsed);
       return {
         success: true,
@@ -8194,7 +8217,7 @@ function initUITest(rendererData, testModules) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
       throw new Error((result == null ? void 0 : result.error) || "Test failed");
     }
-    const chunksHTML = result.chunks.map((c, i) => `<div style="margin-bottom:5px;"><span style="color:#64748b;">[${i}]</span> ${c}</div>`).join("");
+    const chunksHTML = result.chunks.map((c, i) => `<div style="margin-bottom:5px;"><span style="color:#64748b;">[${i}]</span> ${c.html}</div>`).join("");
     contentArea.innerHTML = `
       <div style="padding:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Texto com formatação markdown (${result.chunkCount} chunks):</div>
