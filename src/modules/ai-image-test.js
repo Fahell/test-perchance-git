@@ -543,8 +543,6 @@ export const aiImageTest = {
       const wrapperElement = container.querySelector('.custom-wrapper');
 
       console.log('✅ [AI-Image] HTML wrappers testados com sucesso:', {
-        beforeCalled,
-        afterCalled,
         htmlCalled,
         beforeElementFound: !!beforeElement,
         afterElementFound: !!afterElement,
@@ -554,8 +552,6 @@ export const aiImageTest = {
       return {
         success: true,
         data: {
-          beforeCalled,
-          afterCalled,
           htmlCalled,
           beforeElementFound: !!beforeElement,
           afterElementFound: !!afterElement,
@@ -622,8 +618,6 @@ export const aiImageTest = {
       const wrapperElement = container.querySelector('.batch-wrapper');
 
       console.log('✅ [AI-Image] HTML wrappers de lote testados com sucesso:', {
-        beforeAllCalled,
-        afterAllCalled,
         htmlAllCalled,
         headerElementFound: !!headerElement,
         footerElementFound: !!footerElement,
@@ -633,8 +627,6 @@ export const aiImageTest = {
       return {
         success: true,
         data: {
-          beforeAllCalled,
-          afterAllCalled,
           htmlAllCalled,
           headerElementFound: !!headerElement,
           footerElementFound: !!footerElement,
