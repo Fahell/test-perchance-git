@@ -127,6 +127,10 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-ai-image-batch', name: 'AI Image - Batch', fn: () => aiImageBatchHandler() },
     { btnId: 'btn-ai-image-processing', name: 'AI Image - Processing', fn: () => aiImageProcessingHandler() },
     { btnId: 'btn-ai-image-errors', name: 'AI Image - Errors', fn: () => aiImageErrorsHandler() },
+    { btnId: 'btn-ai-image-plaintext', name: 'AI Image - Plaintext/Context', fn: () => aiImagePlaintextContextHandler() },
+    { btnId: 'btn-ai-image-preprocessall', name: 'AI Image - preprocessAll', fn: () => aiImagePreprocessAllHandler() },
+    { btnId: 'btn-ai-image-html', name: 'AI Image - HTML Wrappers', fn: () => aiImageHtmlWrappersHandler() },
+    { btnId: 'btn-ai-image-batch-html', name: 'AI Image - Batch HTML', fn: () => aiImageBatchHtmlWrappersHandler() },
     { btnId: 'btn-image', name: 'Image', fn: () => imageHandler() },
     { btnId: 'btn-tts', name: 'TTS', fn: () => ttsHandler() },
     { btnId: 'btn-3d', name: 'Cube Color', fn: () => cubeColorHandler() },
@@ -704,6 +708,110 @@ export function initUITest(rendererData, testModules) {
         </div>
       </div>`;
     console.log('✅ AI Image error handling test completed!');
+  }
+
+  // Phase 1 & 2: AI Image Advanced Tests
+  async function aiImagePlaintextContextHandler() {
+    console.log('🖼️ Testing AI Image plaintext & context...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - Plaintext & Context', { id: 'test-ai-image-plaintext', width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing plaintext & context isolation...</div>';
+    
+    const result = await aiImageTest.testPlaintextAndContext(contentArea);
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Plaintext & Context test completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>Plaintext Unresolved:</strong> ${result.data.plaintextUnresolved ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>Context Prompt:</strong></div>
+          <div style="background:#1e293b;padding:8px;border-radius:4px;font-family:monospace;font-size:11px;word-break:break-all;">${result.data.contextPrompt}</div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image plaintext & context test completed!');
+  }
+
+  async function aiImagePreprocessAllHandler() {
+    console.log('🖼️ Testing AI Image preprocessAll hook...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - preprocessAll Hook', { id: 'test-ai-image-preprocessall', width: 600, height: 500 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing preprocessAll hook...</div>';
+    
+    const result = await aiImageTest.testPreprocessAllHook(contentArea);
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ preprocessAll hook test completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>preprocessAll Calls:</strong> ${result.data.preprocessAllCallCount} (expected: 1)</div>
+          <div style="margin-bottom:8px;"><strong>preprocess Calls:</strong> ${result.data.preprocessCallCount} (expected: 2)</div>
+          <div style="margin-bottom:8px;"><strong>Modification Applied:</strong> ${result.data.modificationApplied ? '✅' : '❌'}</div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image preprocessAll hook test completed!');
+  }
+
+  async function aiImageHtmlWrappersHandler() {
+    console.log('🖼️ Testing AI Image HTML wrappers...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - HTML Wrappers', { id: 'test-ai-image-html', width: 600, height: 600 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing before/after/html hooks...</div>';
+    
+    const result = await aiImageTest.testHtmlWrappers(contentArea);
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ HTML wrappers test completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>before Called:</strong> ${result.data.beforeCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>after Called:</strong> ${result.data.afterCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>html Called:</strong> ${result.data.htmlCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>Before Element Found:</strong> ${result.data.beforeElementFound ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>After Element Found:</strong> ${result.data.afterElementFound ? '✅' : '❌'}</div>
+          <div><strong>Wrapper Element Found:</strong> ${result.data.wrapperElementFound ? '✅' : '❌'}</div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image HTML wrappers test completed!');
+  }
+
+  async function aiImageBatchHtmlWrappersHandler() {
+    console.log('🖼️ Testing AI Image batch HTML wrappers...');
+    if (!aiImageTest || !aiImageTest.available) throw new Error('Plugin not available');
+    const { contentArea } = createTestContainer('🖼️ AI Image - Batch HTML Wrappers', { id: 'test-ai-image-batch-html', width: 600, height: 600 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing beforeAll/afterAll/htmlAll hooks...</div>';
+    
+    const result = await aiImageTest.testBatchHtmlWrappers(contentArea);
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
+        <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Batch HTML wrappers test completed!</div>
+        <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
+          <div style="margin-bottom:8px;"><strong>beforeAll Called:</strong> ${result.data.beforeAllCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>afterAll Called:</strong> ${result.data.afterAllCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>htmlAll Called:</strong> ${result.data.htmlAllCalled ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>Header Element Found:</strong> ${result.data.headerElementFound ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>Footer Element Found:</strong> ${result.data.footerElementFound ? '✅' : '❌'}</div>
+          <div style="margin-bottom:8px;"><strong>Wrapper Element Found:</strong> ${result.data.wrapperElementFound ? '✅' : '❌'}</div>
+          <div><strong>Images Generated:</strong> ${result.data.imagesGenerated}</div>
+        </div>
+      </div>`;
+    console.log('✅ AI Image batch HTML wrappers test completed!');
   }
 
 
@@ -1335,6 +1443,10 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ Batch</button>
       <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ Processing</button>
       <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ Errors</button>
+      <button id="btn-ai-image-plaintext" class="ui-test-btn ui-test-btn--ai">🔒 Plaintext</button>
+      <button id="btn-ai-image-preprocessall" class="ui-test-btn ui-test-btn--ai">🔧 preprocessAll</button>
+      <button id="btn-ai-image-html" class="ui-test-btn ui-test-btn--ai">🎨 HTML</button>
+      <button id="btn-ai-image-batch-html" class="ui-test-btn ui-test-btn--ai">📦 Batch HTML</button>
     </div>
     
     <div class="ui-test-category">
@@ -1464,6 +1576,10 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-ai-image-batch').onclick = () => runTest('btn-ai-image-batch', 'AI Image - Batch', aiImageBatchHandler);
   document.getElementById('btn-ai-image-processing').onclick = () => runTest('btn-ai-image-processing', 'AI Image - Processing', aiImageProcessingHandler);
   document.getElementById('btn-ai-image-errors').onclick = () => runTest('btn-ai-image-errors', 'AI Image - Errors', aiImageErrorsHandler);
+  document.getElementById('btn-ai-image-plaintext').onclick = () => runTest('btn-ai-image-plaintext', 'AI Image - Plaintext/Context', aiImagePlaintextContextHandler);
+  document.getElementById('btn-ai-image-preprocessall').onclick = () => runTest('btn-ai-image-preprocessall', 'AI Image - preprocessAll', aiImagePreprocessAllHandler);
+  document.getElementById('btn-ai-image-html').onclick = () => runTest('btn-ai-image-html', 'AI Image - HTML Wrappers', aiImageHtmlWrappersHandler);
+  document.getElementById('btn-ai-image-batch-html').onclick = () => runTest('btn-ai-image-batch-html', 'AI Image - Batch HTML', aiImageBatchHtmlWrappersHandler);
   document.getElementById('btn-image').onclick = () => runTest('btn-image', 'Image', imageHandler);
   document.getElementById('btn-image-guidance').onclick = () => runTest('btn-image-guidance', 'CFG Scale', imageGuidanceHandler);
   document.getElementById('btn-image-negative').onclick = () => runTest('btn-image-negative', 'Negative Prompt', imageNegativeHandler);
