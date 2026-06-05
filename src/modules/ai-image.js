@@ -1,7 +1,7 @@
 /**
  * Módulo para o plugin advanced-ai-image-plugin do Perchance
  * Fornece uma API de alto nível para geração avançada de imagens com IA
- * @version 1.26.0
+ * @version 1.26.6
  * @module ai-image
  */
 
@@ -33,6 +33,7 @@ import { root } from '../perchance-bridge.js';
 
 /**
  * @typedef {Object} ImageGenerationResult
+ * @property {boolean} success - Sempre true se a Promise resolver (geração bem-sucedida)
  * @property {string} url - URL da imagem gerada (dataUrl ou URL externa)
  * @property {string|number} seed - Seed utilizada na geração
  * @property {number} generationTime - Tempo de geração em milissegundos
@@ -189,6 +190,7 @@ export const generateImage = (options = {}) => {
       }
 
       resolve({
+        success: true,
         url: data.dataUrl || data.src || data.url,
         seed: data.seed || options.seed,
         generationTime,
@@ -374,6 +376,7 @@ export const generateBatch = (options = {}, count = 1) => {
       }
 
       const mappedResults = dataArray.map((data, index) => ({
+        success: true,
         url: data.dataUrl || data.src || data.url,
         seed: data.seed || options.seed,
         generationTime,
