@@ -167,7 +167,7 @@ export function initUITest(rendererData, testModules) {
     { id: 'tts', title: '🔊 TTS', what: 'Tests Text-to-Speech using the Web Speech API.', how: 'Initializes speech synthesis, configures voice/rate/pitch, and speaks a test phrase. Includes stop control.', key: 'Web Speech API, <code>speechSynthesis</code>, async audio.' },
     { id: '3d', title: '🎲 Cube Color', what: 'Tests Three.js basic rendering and material color updates.', how: 'Creates a Three.js scene with a rotating cube, updates its material color dynamically, and renders to canvas.', key: 'Three.js, WebGL, animation loop, material updates.' },
     { id: 'raycaster', title: '🖱️ Raycaster', what: 'Tests 3D click detection using Three.js Raycaster.', how: 'Sets up a scene with multiple objects, casts a ray from camera on click, and highlights the intersected object.', key: 'Three.js Raycaster, mouse coordinates, intersection testing.' },
-    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext(\"2d\")</code>, drawing commands.' },
+    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext("2d")</code>, drawing commands.' },
     { id: 'rpg-icon', title: '⚔️ RPG Icons', what: 'Tests sprite sheet extraction and rendering for RPG-style icons.', how: 'Loads a sprite sheet, calculates tile coordinates, and draws specific icons to canvas.', key: 'Sprite sheets, <code>drawImage</code> slicing, asset management.' },
     { id: 'particles', title: '✨ Particles', what: 'Tests a custom particle system with physics and lifecycle.', how: 'Spawns particles with velocity, gravity, and fade-out. Updates and renders them each frame.', key: 'RequestAnimationFrame, particle lifecycle, vector math.' },
     { id: 'cellular-automata', title: '🧬 Cellular Automata', what: 'Tests grid-based simulation (e.g., Game of Life rules).', how: 'Initializes a grid, applies neighbor-based rules each tick, and renders the evolving state.', key: '2D arrays, neighbor counting, simulation loops.' },
@@ -597,14 +597,14 @@ export function initUITest(rendererData, testModules) {
     const { contentArea } = createTestContainer('🖼️ AI Image - Single Generation', { id: 'test-ai-image-single', width: 600, height: 500 });
     contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating single image...</div>';
     
-    const result = await aiImageTest.testSingleGeneration();
+    const result = await aiImageTest.testSingleGeneration(contentArea);
     if (!result?.success) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
       throw new Error(result?.error || 'Test failed');
     }
     
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Single generation completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="margin-bottom:8px;"><strong>Seed:</strong> ${result.data.seed}</div>
@@ -623,7 +623,7 @@ export function initUITest(rendererData, testModules) {
     const { contentArea } = createTestContainer('🖼️ AI Image - Batch Generation', { id: 'test-ai-image-batch', width: 600, height: 500 });
     contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating 2 images in batch...</div>';
     
-    const result = await aiImageTest.testBatchGeneration();
+    const result = await aiImageTest.testBatchGeneration(contentArea);
     if (!result?.success) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
       throw new Error(result?.error || 'Test failed');
@@ -631,8 +631,8 @@ export function initUITest(rendererData, testModules) {
     
     const seedsHTML = result.data.seeds.map((s, i) => `<div>Image ${i+1}: ${s}</div>`).join('');
     
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Batch generation completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="margin-bottom:8px;"><strong>Count:</strong> ${result.data.count}</div>
@@ -653,14 +653,14 @@ export function initUITest(rendererData, testModules) {
     const { contentArea } = createTestContainer('🖼️ AI Image - Prompt Processing', { id: 'test-ai-image-processing', width: 600, height: 500 });
     contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing hooks and default tags...</div>';
     
-    const result = await aiImageTest.testPromptProcessing();
+    const result = await aiImageTest.testPromptProcessing(contentArea);
     if (!result?.success) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${result?.error || 'Test failed'}</div>`;
       throw new Error(result?.error || 'Test failed');
     }
     
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Prompt processing completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="margin-bottom:8px;"><strong>preprocess Called:</strong> ${result.data.preprocessCalled ? '✅' : '❌'}</div>
@@ -690,8 +690,8 @@ export function initUITest(rendererData, testModules) {
       throw new Error(result?.error || 'Test failed');
     }
     
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Error handling test completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="color:#94a3b8;">All error scenarios were handled gracefully:</div>
@@ -787,6 +787,7 @@ export function initUITest(rendererData, testModules) {
   }
 
 
+
   // ===== HANDLERS FASE 3 =====
   async function imageTagBlendingHandler() {
     console.log('🎨 Testing tag blending...');
@@ -823,6 +824,7 @@ export function initUITest(rendererData, testModules) {
     if (!result?.success) throw new Error(result?.error || 'Add/remove during generation test failed');
     console.log('✅ Add/remove during generation test completed!');
   }
+
 
 
   async function ttsHandler() {
@@ -1077,6 +1079,7 @@ export function initUITest(rendererData, testModules) {
   }
 
 
+
   async function indexeddbPrimitivesHandler() {
     console.log('🗃️ Testing IndexedDB primitives...');
     if (!indexeddbTest || !indexeddbTest.available) throw new Error('IndexedDB not available');
@@ -1225,7 +1228,7 @@ export function initUITest(rendererData, testModules) {
     // Toggle on/off
     if (cellularAutomataTest.running) {
       cellularAutomataTest.cleanup();
-      console.log('\\ud83d\\uddd1\\ufe0f Cellular Automata: Disposed');
+      console.log('\\uddd1\\ufe0f Cellular Automata: Disposed');
       return;
     }
     
@@ -1272,6 +1275,7 @@ export function initUITest(rendererData, testModules) {
     if (!gsapTest) throw new Error('GSAP not available');
     gsapTest.cleanup();
   }
+
 
 
   const panel = document.createElement('div');
