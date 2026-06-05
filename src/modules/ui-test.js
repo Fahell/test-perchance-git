@@ -1304,7 +1304,6 @@ export function initUITest(rendererData, testModules) {
         </div>
       </details>
     </div>
-    </div>
     
     <div class="ui-test-category">
       <strong style="color:var(--ui-color-generation)">🎲 Generation & Randomness</strong>
@@ -1327,6 +1326,7 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
+      <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
     </div>
     
     <div class="ui-test-category">
@@ -1338,12 +1338,25 @@ export function initUITest(rendererData, testModules) {
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-render)">
-    <div class="ui-test-category">
       <strong style="color:#a78bfa">🖼️ Image Generation Tests</strong>
-      <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button><button id="btn-image-guidance" class="ui-test-btn ui-test-btn--ai">⚖️ CFG Scale</button><button id="btn-image-negative" class="ui-test-btn ui-test-btn--ai">🚫 Negative</button><button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button><button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button><button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button><button id="btn-image-emphasis" class="ui-test-btn ui-test-btn--ai">🎯 Emphasis</button><button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button><button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button><button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button><button id="btn-image-blending" class="ui-test-btn ui-test-btn--ai">🎨 Blending</button><button id="btn-image-grid" class="ui-test-btn ui-test-btn--ai">🖼️ Grid</button><button id="btn-image-alternating" class="ui-test-btn ui-test-btn--ai">🔄 Alternating</button><button id="btn-image-addremove" class="ui-test-btn ui-test-btn--ai">➕ Add/Remove</button>
+      <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button>
+      <button id="btn-image-guidance" class="ui-test-btn ui-test-btn--ai">⚖️ CFG Scale</button>
+      <button id="btn-image-negative" class="ui-test-btn ui-test-btn--ai">🚫 Negative</button>
+      <button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button>
+      <button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button>
+      <button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button>
+      <button id="btn-image-emphasis" class="ui-test-btn ui-test-btn--ai">🎯 Emphasis</button>
+      <button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button>
+      <button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button>
+      <button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button>
+      <button id="btn-image-blending" class="ui-test-btn ui-test-btn--ai">🎨 Blending</button>
+      <button id="btn-image-grid" class="ui-test-btn ui-test-btn--ai">🖼️ Grid</button>
+      <button id="btn-image-alternating" class="ui-test-btn ui-test-btn--ai">🔄 Alternating</button>
+      <button id="btn-image-addremove" class="ui-test-btn ui-test-btn--ai">➕ Add/Remove</button>
     </div>
-    🎨 Rendering</strong>
+    
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-render)">🎨 Rendering</strong>
       <button id="btn-3d" class="ui-test-btn ui-test-btn--render">🎲 Cube Color</button>
       <button id="btn-raycaster" class="ui-test-btn ui-test-btn--render">🖱️ Raycaster</button>
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
