@@ -1,5 +1,5 @@
 <!-- For Perchance - HTML Panel -->
-<!-- Versão: v1.26.14 (Vite Bundle) -->
+<!-- Versão: v1.26.15 (Vite Bundle) -->
 <!-- Cole este conteúdo no HTML Panel do seu gerador Perchance -->
 
 <div id="game-container" style="position:relative; width:100vw; height:100vh; overflow:hidden; background:#1a1a1a;">
@@ -14,11 +14,11 @@
     console.log('⏭️ Jogo já inicializado. Ignorando re-execução.');
   } else {
     window.__RPG_INITIALIZED = true;
-    console.log('📄 HTML Panel injetado, carregando bundle v1.26.14...');
+    console.log('📄 HTML Panel injetado, carregando bundle v1.26.15...');
 
     // Importa o bundle único do GitHub via jsDelivr CDN
     // ⚠️ SEMPRE use tags de versão (ex: @v1.8.0) para evitar cache do CDN
-    import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.14/dist/main.bundle.js")
+    import("https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.15/dist/main.bundle.js")
       .then(module => {
         console.log('✅ Bundle carregado, chamando initGame()...');
         module.initGame();
@@ -26,7 +26,7 @@
       .catch(err => {
         console.error('❌ Falha ao carregar bundle:', err);
         console.log('💡 Possíveis causas:');
-        console.log('   1. Tag v1.26.14 não existe no GitHub');
+        console.log('   1. Tag v1.26.15 não existe no GitHub');
         console.log('   2. Cache do CDN jsDelivr (aguarde 10 min ou mude a versão)');
         console.log('   3. Problema de CORS ou rede');
         console.log('   4. Three.js não carregou (verifique se o script do Three.js está acima)');
