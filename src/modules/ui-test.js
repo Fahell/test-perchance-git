@@ -167,7 +167,7 @@ export function initUITest(rendererData, testModules) {
     { id: 'tts', title: '🔊 TTS', what: 'Tests Text-to-Speech using the Web Speech API.', how: 'Initializes speech synthesis, configures voice/rate/pitch, and speaks a test phrase. Includes stop control.', key: 'Web Speech API, <code>speechSynthesis</code>, async audio.' },
     { id: '3d', title: '🎲 Cube Color', what: 'Tests Three.js basic rendering and material color updates.', how: 'Creates a Three.js scene with a rotating cube, updates its material color dynamically, and renders to canvas.', key: 'Three.js, WebGL, animation loop, material updates.' },
     { id: 'raycaster', title: '🖱️ Raycaster', what: 'Tests 3D click detection using Three.js Raycaster.', how: 'Sets up a scene with multiple objects, casts a ray from camera on click, and highlights the intersected object.', key: 'Three.js Raycaster, mouse coordinates, intersection testing.' },
-    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext("2d")</code>, drawing commands.' },
+    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext(\"2d\")</code>, drawing commands.' },
     { id: 'rpg-icon', title: '⚔️ RPG Icons', what: 'Tests sprite sheet extraction and rendering for RPG-style icons.', how: 'Loads a sprite sheet, calculates tile coordinates, and draws specific icons to canvas.', key: 'Sprite sheets, <code>drawImage</code> slicing, asset management.' },
     { id: 'particles', title: '✨ Particles', what: 'Tests a custom particle system with physics and lifecycle.', how: 'Spawns particles with velocity, gravity, and fade-out. Updates and renders them each frame.', key: 'RequestAnimationFrame, particle lifecycle, vector math.' },
     { id: 'cellular-automata', title: '🧬 Cellular Automata', what: 'Tests grid-based simulation (e.g., Game of Life rules).', how: 'Initializes a grid, applies neighbor-based rules each tick, and renders the evolving state.', key: '2D arrays, neighbor counting, simulation loops.' },
@@ -1219,13 +1219,13 @@ export function initUITest(rendererData, testModules) {
   }
 
   async function cellularAutomataHandler() {
-    console.log('\ud83e\uddec Testing Cellular Automata...');
+    console.log('\\ud83e\\uddec Testing Cellular Automata...');
     if (!cellularAutomataTest) throw new Error('Cellular Automata not available');
     
     // Toggle on/off
     if (cellularAutomataTest.running) {
       cellularAutomataTest.cleanup();
-      console.log('\ud83d\uddd1\ufe0f Cellular Automata: Disposed');
+      console.log('\\ud83d\\uddd1\\ufe0f Cellular Automata: Disposed');
       return;
     }
     
@@ -1316,18 +1316,15 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;">
+        <strong style="color:#a78bfa;font-size:11px;">🖼️ Advanced AI Image Plugin</strong>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">
+          <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ Single</button>
+          <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ Batch</button>
+          <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ Processing</button>
+          <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ Errors</button>
+        </div>
+      </div>
       
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
       <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
@@ -1345,7 +1342,7 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
       <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
-      <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">\ud83e\uddec Cellular Automata</button>
+      <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">\\ud83e\\uddec Cellular Automata</button>
       <button id="btn-gsap-basic" class="ui-test-btn ui-test-btn--render">🎬 GSAP Tween</button>
       <button id="btn-gsap-from" class="ui-test-btn ui-test-btn--render">🎬 GSAP From</button>
       <button id="btn-gsap-timeline" class="ui-test-btn ui-test-btn--render">🎬 Timeline</button>
@@ -1443,6 +1440,10 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-ai-json').onclick = () => runTest('btn-ai-json', 'AI Text - JSON', aiTextStructuredJSONHandler);
   document.getElementById('btn-ai-markdown').onclick = () => runTest('btn-ai-markdown', 'AI Text - Markdown', aiTextMarkdownRenderHandler);
   document.getElementById('btn-ai-concurrency').onclick = () => runTest('btn-ai-concurrency', 'AI Text - Concurrency', aiTextConcurrencyHandler);
+  document.getElementById('btn-ai-image-single').onclick = () => runTest('btn-ai-image-single', 'AI Image - Single', aiImageSingleHandler);
+  document.getElementById('btn-ai-image-batch').onclick = () => runTest('btn-ai-image-batch', 'AI Image - Batch', aiImageBatchHandler);
+  document.getElementById('btn-ai-image-processing').onclick = () => runTest('btn-ai-image-processing', 'AI Image - Processing', aiImageProcessingHandler);
+  document.getElementById('btn-ai-image-errors').onclick = () => runTest('btn-ai-image-errors', 'AI Image - Errors', aiImageErrorsHandler);
   document.getElementById('btn-image').onclick = () => runTest('btn-image', 'Image', imageHandler);
   document.getElementById('btn-image-guidance').onclick = () => runTest('btn-image-guidance', 'CFG Scale', imageGuidanceHandler);
   document.getElementById('btn-image-negative').onclick = () => runTest('btn-image-negative', 'Negative Prompt', imageNegativeHandler);
