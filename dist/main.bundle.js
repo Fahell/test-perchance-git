@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.9";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.9`;
+const VERSION = "v1.26.10";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.10`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -9453,7 +9453,6 @@ function initUITest(rendererData, testModules) {
         </div>
       </details>
     </div>
-    </div>
     
     <div class="ui-test-category">
       <strong style="color:var(--ui-color-generation)">🎲 Generation & Randomness</strong>
@@ -9476,6 +9475,7 @@ function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
+      <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
     </div>
     
     <div class="ui-test-category">
@@ -9487,12 +9487,25 @@ function initUITest(rendererData, testModules) {
     </div>
     
     <div class="ui-test-category">
-      <strong style="color:var(--ui-color-render)">
-    <div class="ui-test-category">
       <strong style="color:#a78bfa">🖼️ Image Generation Tests</strong>
-      <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button><button id="btn-image-guidance" class="ui-test-btn ui-test-btn--ai">⚖️ CFG Scale</button><button id="btn-image-negative" class="ui-test-btn ui-test-btn--ai">🚫 Negative</button><button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button><button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button><button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button><button id="btn-image-emphasis" class="ui-test-btn ui-test-btn--ai">🎯 Emphasis</button><button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button><button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button><button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button><button id="btn-image-blending" class="ui-test-btn ui-test-btn--ai">🎨 Blending</button><button id="btn-image-grid" class="ui-test-btn ui-test-btn--ai">🖼️ Grid</button><button id="btn-image-alternating" class="ui-test-btn ui-test-btn--ai">🔄 Alternating</button><button id="btn-image-addremove" class="ui-test-btn ui-test-btn--ai">➕ Add/Remove</button>
+      <button id="btn-image" class="ui-test-btn ui-test-btn--ai">🖼️ Image</button>
+      <button id="btn-image-guidance" class="ui-test-btn ui-test-btn--ai">⚖️ CFG Scale</button>
+      <button id="btn-image-negative" class="ui-test-btn ui-test-btn--ai">🚫 Negative</button>
+      <button id="btn-image-trigger" class="ui-test-btn ui-test-btn--ai">🎭 Triggers</button>
+      <button id="btn-image-emoji" class="ui-test-btn ui-test-btn--ai">😀 Emoji</button>
+      <button id="btn-image-onfinish" class="ui-test-btn ui-test-btn--ai">📊 Callback</button>
+      <button id="btn-image-emphasis" class="ui-test-btn ui-test-btn--ai">🎯 Emphasis</button>
+      <button id="btn-image-ordering" class="ui-test-btn ui-test-btn--ai">🔄 Ordering</button>
+      <button id="btn-image-canvas" class="ui-test-btn ui-test-btn--ai">🎨 Canvas</button>
+      <button id="btn-image-break" class="ui-test-btn ui-test-btn--ai">⚡ BREAK</button>
+      <button id="btn-image-blending" class="ui-test-btn ui-test-btn--ai">🎨 Blending</button>
+      <button id="btn-image-grid" class="ui-test-btn ui-test-btn--ai">🖼️ Grid</button>
+      <button id="btn-image-alternating" class="ui-test-btn ui-test-btn--ai">🔄 Alternating</button>
+      <button id="btn-image-addremove" class="ui-test-btn ui-test-btn--ai">➕ Add/Remove</button>
     </div>
-    🎨 Rendering</strong>
+    
+    <div class="ui-test-category">
+      <strong style="color:var(--ui-color-render)">🎨 Rendering</strong>
       <button id="btn-3d" class="ui-test-btn ui-test-btn--render">🎲 Cube Color</button>
       <button id="btn-raycaster" class="ui-test-btn ui-test-btn--render">🖱️ Raycaster</button>
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
@@ -9605,12 +9618,6 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-image-alternating").onclick = () => runTest("btn-image-alternating", "Alternating Tags", imageAlternatingTagsHandler);
   document.getElementById("btn-image-addremove").onclick = () => runTest("btn-image-addremove", "Add/Remove During Gen", imageAddRemoveDuringGenHandler);
   document.getElementById("btn-tts").onclick = () => runTest("btn-tts", "TTS", ttsHandler);
-  document.getElementById("btn-tts-stop").onclick = () => runTest("btn-tts-stop", "TTS Stop", () => {
-    console.log("⏹️ Stopping speech...");
-    if (!ttsTest2) throw new Error("TTS not available");
-    if (!ttsTest2.stopSpeech()) throw new Error("Stop not available");
-    console.log("✅ Speech stopped");
-  });
   document.getElementById("btn-3d").onclick = () => runTest("btn-3d", "Cube Color", cubeColorHandler);
   document.getElementById("btn-raycaster").onclick = () => runTest("btn-raycaster", "Raycaster", raycasterHandler);
   document.getElementById("btn-canvas").onclick = () => runTest("btn-canvas", "Canvas", canvasHandler);
