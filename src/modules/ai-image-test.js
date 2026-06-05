@@ -52,8 +52,8 @@ export const aiImageTest = {
         return { success: false, error: result.error || 'Falha na geração' };
       }
 
-      // Valida metadados
-      if (!result.seed || typeof result.seed !== 'string') {
+      // Valida metadados - seed pode ser string ou número
+      if (!result.seed || (typeof result.seed !== 'string' && typeof result.seed !== 'number')) {
         return { success: false, error: 'Seed inválido ou ausente' };
       }
 
@@ -151,7 +151,8 @@ export const aiImageTest = {
         if (!r.success) {
           return { success: false, error: `Resultado ${i} falhou: ${r.error}` };
         }
-        if (!r.seed || !r.generationTime || !r.finalPrompt) {
+        // seed pode ser string ou número
+        if (!r.seed || (typeof r.seed !== 'string' && typeof r.seed !== 'number') || !r.generationTime || !r.finalPrompt) {
           return { success: false, error: `Resultado ${i} tem metadados inválidos` };
         }
       }
