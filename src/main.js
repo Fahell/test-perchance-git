@@ -96,7 +96,6 @@ async function loadAllTestModules() {
 function initTestModules(modules, rendererData) {
   console.log('🔧 [Main] Inicializando módulos que precisam de setup...');
 
-
   if (modules.raycasterTest && modules.raycasterTest.init) {
     try {
       modules.raycasterTest.init(rendererData);
@@ -106,20 +105,10 @@ function initTestModules(modules, rendererData) {
     }
   }
 
-  if (modules.particlesTest && modules.particlesTest.init) {
-    try {
-      modules.particlesTest.init(rendererData);
-
-      // Register update callback for particles animation
-      if (rendererData.onUpdate && modules.particlesTest.update) {
-        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
-      }
-
-      console.log('✅ [Main] particlesTest inicializado');
-    } catch (e) {
-      console.error('❌ [Main] Erro ao inicializar particlesTest:', e.message);
-    }
-  }
+  // ⚠️ particlesTest NÃO é inicializado automaticamente.
+  // O sistema de partículas deve começar desativado e só ativar quando o usuário clicar no botão "Particles".
+  // Isso evita o comportamento confuso onde o botão desativa o sistema em vez de ativá-lo.
+  console.log('ℹ️ [Main] particlesTest carregado (inicialização manual via botão UI)');
 }
 
 export async function initGame() {
@@ -176,8 +165,7 @@ export async function initGame() {
       gsapModule.gsapTest.preloadGsap();
     }
 
-
-    // 4. Inicializa módulos que precisam de setup (raycasterTest, particlesTest)
+    // 4. Inicializa módulos que precisam de setup (raycasterTest)
     initTestModules(testModules, rendererData);
 
     // 5. Carrega e inicializa UI de Teste
@@ -187,7 +175,7 @@ export async function initGame() {
     if (uiTestMod && uiTestMod.initUITest) {
       console.log('🎮 [Main] Chamando initUITest...');
       console.log('📦 [Main] rendererData passado:', rendererData);
-      console.log(' renderer.cube:', rendererData.cube);
+      console.log('🎲 renderer.cube:', rendererData.cube);
 
       // Passa todos os módulos de teste para a UI
       uiTestMod.initUITest(rendererData, testModules);
