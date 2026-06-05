@@ -2378,6 +2378,167 @@ const aiImageTest = {
       console.error("❌ [AI-Image] Erro no testPreprocessAllHook:", error);
       return { success: false, error: error.message };
     }
+  },
+  // Teste 7: Wrappers por Imagem (before, after, html)
+  async testHtmlWrappers(contentArea = document.body) {
+    console.log("🖼️🖼️ [AI-Image] Testando HTML wrappers por imagem...");
+    if (!this.available) {
+      return { success: false, error: "Plugin aiImage não disponível" };
+    }
+    try {
+      const containerId = "test-image-container-html-wrappers";
+      let container2 = document.getElementById(containerId);
+      if (!container2) {
+        container2 = createImageContainer(containerId, contentArea);
+      } else {
+        if (container2.parentElement !== contentArea) {
+          contentArea.appendChild(container2);
+        }
+      }
+      container2.innerHTML = "";
+      let beforeCalled = false;
+      let afterCalled = false;
+      let htmlCalled = false;
+      const result = await generateImage({
+        prompt: "a fantasy landscape with mountains",
+        resolution: "square",
+        outputTo: `#${containerId}`,
+        before: (data) => {
+          beforeCalled = true;
+          console.log("🔧 [AI-Image] before chamado");
+          return '<div class="custom-before" style="color:#4ade80;padding:5px;">🖼️ Before Image</div>';
+        },
+        after: (data) => {
+          afterCalled = true;
+          console.log("🔧 [AI-Image] after chamado");
+          return '<div class="custom-after" style="color:#fbbf24;padding:5px;">📝 After Image</div>';
+        },
+        html: (defaultHtml, data) => {
+          htmlCalled = true;
+          console.log("🔧 [AI-Image] html chamado");
+          return `<div class="custom-wrapper" style="border:2px solid #a78bfa;padding:10px;border-radius:8px;">${defaultHtml}</div>`;
+        }
+      });
+      if (!result.success) {
+        return { success: false, error: result.error || "Falha na geração" };
+      }
+      if (!beforeCalled) {
+        return { success: false, error: "Hook before não foi chamado" };
+      }
+      if (!afterCalled) {
+        return { success: false, error: "Hook after não foi chamado" };
+      }
+      if (!htmlCalled) {
+        return { success: false, error: "Hook html não foi chamado" };
+      }
+      const beforeElement = container2.querySelector(".custom-before");
+      const afterElement = container2.querySelector(".custom-after");
+      const wrapperElement = container2.querySelector(".custom-wrapper");
+      console.log("✅ [AI-Image] HTML wrappers testados com sucesso:", {
+        beforeCalled,
+        afterCalled,
+        htmlCalled,
+        beforeElementFound: !!beforeElement,
+        afterElementFound: !!afterElement,
+        wrapperElementFound: !!wrapperElement
+      });
+      return {
+        success: true,
+        data: {
+          beforeCalled,
+          afterCalled,
+          htmlCalled,
+          beforeElementFound: !!beforeElement,
+          afterElementFound: !!afterElement,
+          wrapperElementFound: !!wrapperElement
+        }
+      };
+    } catch (error) {
+      console.error("❌ [AI-Image] Erro no testHtmlWrappers:", error);
+      return { success: false, error: error.message };
+    }
+  },
+  // Teste 8: Wrappers de Lote (beforeAll, afterAll, htmlAll)
+  async testBatchHtmlWrappers(contentArea = document.body) {
+    console.log("🖼️🖼️ [AI-Image] Testando HTML wrappers de lote...");
+    if (!this.available) {
+      return { success: false, error: "Plugin aiImage não disponível" };
+    }
+    try {
+      const containerId = "test-image-container-batch-html-wrappers";
+      let container2 = document.getElementById(containerId);
+      if (!container2) {
+        container2 = createImageContainer(containerId, contentArea);
+      } else {
+        if (container2.parentElement !== contentArea) {
+          contentArea.appendChild(container2);
+        }
+      }
+      container2.innerHTML = "";
+      let beforeAllCalled = false;
+      let afterAllCalled = false;
+      let htmlAllCalled = false;
+      const count = 2;
+      const results = await generateBatch({
+        prompt: "a cute animal",
+        resolution: "square",
+        outputTo: `#${containerId}`,
+        count,
+        beforeAll: (data) => {
+          beforeAllCalled = true;
+          console.log("🔧 [AI-Image] beforeAll chamado");
+          return '<div class="batch-header" style="color:#4ade80;padding:10px;font-weight:bold;">📦 Batch Gallery</div>';
+        },
+        afterAll: (data) => {
+          afterAllCalled = true;
+          console.log("🔧 [AI-Image] afterAll chamado");
+          return '<div class="batch-footer" style="color:#fbbf24;padding:10px;text-align:center;">✨ End of Gallery ✨</div>';
+        },
+        htmlAll: (defaultHtml, data) => {
+          htmlAllCalled = true;
+          console.log("🔧 [AI-Image] htmlAll chamado");
+          return `<div class="batch-wrapper" style="border:3px solid #ec4899;padding:15px;border-radius:12px;background:#1e293b;">${defaultHtml}</div>`;
+        }
+      }, count);
+      if (!results || results.length !== count) {
+        return { success: false, error: `Esperado ${count} resultados, recebido ${(results == null ? void 0 : results.length) || 0}` };
+      }
+      if (!beforeAllCalled) {
+        return { success: false, error: "Hook beforeAll não foi chamado" };
+      }
+      if (!afterAllCalled) {
+        return { success: false, error: "Hook afterAll não foi chamado" };
+      }
+      if (!htmlAllCalled) {
+        return { success: false, error: "Hook htmlAll não foi chamado" };
+      }
+      const headerElement = container2.querySelector(".batch-header");
+      const footerElement = container2.querySelector(".batch-footer");
+      const wrapperElement = container2.querySelector(".batch-wrapper");
+      console.log("✅ [AI-Image] HTML wrappers de lote testados com sucesso:", {
+        beforeAllCalled,
+        afterAllCalled,
+        htmlAllCalled,
+        headerElementFound: !!headerElement,
+        footerElementFound: !!footerElement,
+        wrapperElementFound: !!wrapperElement
+      });
+      return {
+        success: true,
+        data: {
+          beforeAllCalled,
+          afterAllCalled,
+          htmlAllCalled,
+          headerElementFound: !!headerElement,
+          footerElementFound: !!footerElement,
+          wrapperElementFound: !!wrapperElement,
+          imagesGenerated: results.length
+        }
+      };
+    } catch (error) {
+      console.error("❌ [AI-Image] Erro no testBatchHtmlWrappers:", error);
+      return { success: false, error: error.message };
+    }
   }
 };
 console.log("🖼️ [AI-Image] Inicializando teste do plugin de imagem IA...");
