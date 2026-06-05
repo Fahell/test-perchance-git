@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.16";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.16`;
+const VERSION = "v1.26.17";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.17`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -2419,8 +2419,6 @@ const aiImageTest = {
       const afterElement = container2.querySelector(".custom-after");
       const wrapperElement = container2.querySelector(".custom-wrapper");
       console.log("✅ [AI-Image] HTML wrappers testados com sucesso:", {
-        beforeCalled,
-        afterCalled,
         htmlCalled,
         beforeElementFound: !!beforeElement,
         afterElementFound: !!afterElement,
@@ -2429,8 +2427,6 @@ const aiImageTest = {
       return {
         success: true,
         data: {
-          beforeCalled,
-          afterCalled,
           htmlCalled,
           beforeElementFound: !!beforeElement,
           afterElementFound: !!afterElement,
@@ -2484,8 +2480,6 @@ const aiImageTest = {
       const footerElement = container2.querySelector(".batch-footer");
       const wrapperElement = container2.querySelector(".batch-wrapper");
       console.log("✅ [AI-Image] HTML wrappers de lote testados com sucesso:", {
-        beforeAllCalled,
-        afterAllCalled,
         htmlAllCalled,
         headerElementFound: !!headerElement,
         footerElementFound: !!footerElement,
@@ -2494,8 +2488,6 @@ const aiImageTest = {
       return {
         success: true,
         data: {
-          beforeAllCalled,
-          afterAllCalled,
           htmlAllCalled,
           headerElementFound: !!headerElement,
           footerElementFound: !!footerElement,
