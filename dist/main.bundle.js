@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.1";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.1`;
+const VERSION = "v1.26.2";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.2`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -9308,11 +9308,11 @@ function initUITest(rendererData, testModules) {
     console.log("✅ IndexedDB: All data cleared");
   }
   async function cellularAutomataHandler() {
-    console.log("🧬 Testing Cellular Automata...");
+    console.log("\\ud83e\\uddec Testing Cellular Automata...");
     if (!cellularAutomataTest2) throw new Error("Cellular Automata not available");
     if (cellularAutomataTest2.running) {
       cellularAutomataTest2.cleanup();
-      console.log("🗑️ Cellular Automata: Disposed");
+      console.log("\\ud83d\\uddd1\\ufe0f Cellular Automata: Disposed");
       return;
     }
     cellularAutomataTest2.init(rendererData);
@@ -9392,20 +9392,10 @@ function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+      <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Single</button>
+      <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Batch</button>
+      <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ AI Image - Processing</button>
+      <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ AI Image - Errors</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
       <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
     </div>
@@ -9422,7 +9412,7 @@ function initUITest(rendererData, testModules) {
       <button id="btn-canvas" class="ui-test-btn ui-test-btn--render">🎨 Canvas</button>
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
       <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
-      <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">🧬 Cellular Automata</button>
+      <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">\\ud83e\\uddec Cellular Automata</button>
       <button id="btn-gsap-basic" class="ui-test-btn ui-test-btn--render">🎬 GSAP Tween</button>
       <button id="btn-gsap-from" class="ui-test-btn ui-test-btn--render">🎬 GSAP From</button>
       <button id="btn-gsap-timeline" class="ui-test-btn ui-test-btn--render">🎬 Timeline</button>
@@ -9510,6 +9500,10 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-ai-json").onclick = () => runTest("btn-ai-json", "AI Text - JSON", aiTextStructuredJSONHandler);
   document.getElementById("btn-ai-markdown").onclick = () => runTest("btn-ai-markdown", "AI Text - Markdown", aiTextMarkdownRenderHandler);
   document.getElementById("btn-ai-concurrency").onclick = () => runTest("btn-ai-concurrency", "AI Text - Concurrency", aiTextConcurrencyHandler);
+  document.getElementById("btn-ai-image-single").onclick = () => runTest("btn-ai-image-single", "AI Image - Single", aiImageSingleHandler);
+  document.getElementById("btn-ai-image-batch").onclick = () => runTest("btn-ai-image-batch", "AI Image - Batch", aiImageBatchHandler);
+  document.getElementById("btn-ai-image-processing").onclick = () => runTest("btn-ai-image-processing", "AI Image - Processing", aiImageProcessingHandler);
+  document.getElementById("btn-ai-image-errors").onclick = () => runTest("btn-ai-image-errors", "AI Image - Errors", aiImageErrorsHandler);
   document.getElementById("btn-image").onclick = () => runTest("btn-image", "Image", imageHandler);
   document.getElementById("btn-image-guidance").onclick = () => runTest("btn-image-guidance", "CFG Scale", imageGuidanceHandler);
   document.getElementById("btn-image-negative").onclick = () => runTest("btn-image-negative", "Negative Prompt", imageNegativeHandler);
