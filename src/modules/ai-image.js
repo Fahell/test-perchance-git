@@ -85,48 +85,6 @@ export const createImageContainer = (id, parent) => {
 };
 
 /**
- * Aplica hooks de preprocessamento (padrão + customizado)
- * @private
- */
-const applyPreprocess = (prompt, options) => {
-  let finalPrompt = prompt;
-
-  // Aplica tags de qualidade padrão se fornecidas
-  if (options.defaultQualityTags && typeof options.defaultQualityTags === 'string') {
-    finalPrompt = `${finalPrompt}, ${options.defaultQualityTags}`;
-  }
-
-  // Aplica hook customizado do usuário
-  if (typeof options.preprocess === 'function') {
-    try {
-      finalPrompt = options.preprocess(finalPrompt);
-    } catch (err) {
-      console.warn('⚠️ [AI-Image] Erro no hook preprocess do usuário:', err);
-    }
-  }
-
-  return finalPrompt;
-};
-
-/**
- * Aplica hooks de postprocessamento
- * @private
- */
-const applyPostprocess = (prompt, options) => {
-  let finalPrompt = prompt;
-
-  if (typeof options.postprocess === 'function') {
-    try {
-      finalPrompt = options.postprocess(finalPrompt);
-    } catch (err) {
-      console.warn('⚠️ [AI-Image] Erro no hook postprocess do usuário:', err);
-    }
-  }
-
-  return finalPrompt;
-};
-
-/**
  * Gera uma única imagem usando o plugin advanced-ai-image-plugin
  * @param {ImageGenerationOptions} options - Opções de geração
  * @returns {Promise<ImageGenerationResult>} Resultado da geração
@@ -153,16 +111,13 @@ export const generateImage = (options = {}) => {
     // Traduz atalhos de resolução
     const resolution = RESOLUTION_MAP[options.resolution] || options.resolution || '512x512';
     
-    // Aplica hooks de preprocessamento
-    const processedPrompt = applyPreprocess(options.prompt, options);
-    
-    // Define prompt negativo (customizado ou padrão)
-    const negativePrompt = options.negativePrompt || options.defaultNegativePrompt || '';
+    // Define prompt negativo inicial
+    const negativePrompt = options.negativePrompt || '';
 
     // Prepara opções para o plugin
     const pluginOptions = {
       ...options,
-      prompt: processedPrompt, // Usa o prompt processado
+      prompt: options.prompt, // Passa o prompt original, o plugin vai processar
       negativePrompt,
       resolution,
       seed: options.seed === 'random' || !options.seed ? 'random' : options.seed,
@@ -171,55 +126,89 @@ export const generateImage = (options = {}) => {
       findContainer: options.findContainer || (options.container ? () => {
         const el = typeof options.container === 'string' ? document.querySelector(options.container) : options.container;
         return el;
-      } : null),
-      onFinish: (data) => {
-        const generationTime = Date.now() - startTime;
-        console.log('✅ [AI-Image] Geração concluída em', generationTime, 'ms');
-        
-        // Aplica postprocess se necessário (para fins de log/retorno)
-        const finalPrompt = applyPostprocess(data.prompt || processedPrompt, options);
-        
-        // Callback do usuário
-        if (typeof options.onFinish === 'function') {
-          try {
-            options.onFinish(data);
-          } catch (err) {
-            console.warn('⚠️ [AI-Image] Erro no callback onFinish do usuário:', err);
-          }
-        }
+      } : null)
+    };
 
-        // Resolve com resultado estruturado
-        resolve({
-          url: data.dataUrl || data.src || data.url,
-          seed: data.seed || options.seed,
-          generationTime,
-          prompt: finalPrompt,
-          negativePrompt,
-          resolution,
-          element: data.element || null,
-          metadata: data
-        });
+    // Wrapper para preprocess (aplica tags padrão e chama o hook do usuário)
+    const userPreprocess = options.preprocess;
+    pluginOptions.preprocess = function(inputs) {
+      if (options.defaultQualityTags && typeof options.defaultQualityTags === 'string') {
+        inputs.prompt = `${inputs.prompt}, ${options.defaultQualityTags}`;
+      }
+      if (options.defaultNegativePrompt && typeof options.defaultNegativePrompt === 'string') {
+        if (!inputs.negativeprompt || inputs.negativeprompt.trim() === '') {
+          inputs.negativeprompt = options.defaultNegativePrompt;
+        }
+      }
+      if (typeof userPreprocess === 'function') {
+        try {
+          userPreprocess(inputs);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no hook preprocess do usuário:', err);
+        }
       }
     };
 
-    // Remove callbacks que não devem ser passados diretamente para o plugin
-    delete pluginOptions.onStart;
+    // Wrapper para postprocess
+    const userPostprocess = options.postprocess;
+    if (typeof userPostprocess === 'function') {
+      pluginOptions.postprocess = function(inputs) {
+        try {
+          userPostprocess(inputs);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no hook postprocess do usuário:', err);
+        }
+      };
+    }
+
+    // Wrapper para onStart
+    const userOnStart = options.onStart;
+    pluginOptions.onStart = function(result) {
+      console.log('🚀 [AI-Image] onStart chamado pelo plugin');
+      if (typeof userOnStart === 'function') {
+        try {
+          userOnStart(result);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no callback onStart do usuário:', err);
+        }
+      }
+    };
+
+    // Wrapper para onFinish
+    const userOnFinish = options.onFinish;
+    pluginOptions.onFinish = function(data) {
+      const generationTime = Date.now() - startTime;
+      console.log('✅ [AI-Image] Geração concluída em', generationTime, 'ms');
+      
+      if (typeof userOnFinish === 'function') {
+        try {
+          userOnFinish(data);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no callback onFinish do usuário:', err);
+        }
+      }
+
+      resolve({
+        url: data.dataUrl || data.src || data.url,
+        seed: data.seed || options.seed,
+        generationTime,
+        prompt: data.prompt || options.prompt,
+        negativePrompt: data.negativeprompt || negativePrompt,
+        resolution,
+        element: data.element || null,
+        metadata: data
+      });
+    };
+
+    // Remove propriedades que não devem ser passadas para o plugin
     delete pluginOptions.onChunk;
     delete pluginOptions.defaultQualityTags;
     delete pluginOptions.defaultNegativePrompt;
-
-    // Callback de início
-    if (typeof options.onStart === 'function') {
-      try {
-        options.onStart();
-      } catch (err) {
-        console.warn('⚠️ [AI-Image] Erro no callback onStart:', err);
-      }
-    }
+    delete pluginOptions.onAllFinish;
 
     try {
       // Chama o plugin do Perchance
-      const result = root.aiImage(processedPrompt, pluginOptions);
+      const result = root.aiImage(pluginOptions);
       
       // Se retornar uma Promise, trata rejeição
       if (result && typeof result.then === 'function') {
@@ -269,16 +258,13 @@ export const generateBatch = (options = {}, count = 1) => {
     const results = [];
     let completedCount = 0;
 
-    // Aplica hooks de preprocessamento
-    const processedPrompt = applyPreprocess(options.prompt, options);
-    const negativePrompt = options.negativePrompt || options.defaultNegativePrompt || '';
+    const negativePrompt = options.negativePrompt || '';
 
     // Prepara opções para o plugin com count nativo
     const pluginOptions = {
       ...options,
-      prompt: processedPrompt,
+      prompt: options.prompt,
       negativePrompt,
-      count,
       resolution: RESOLUTION_MAP[options.resolution] || options.resolution || '512x512',
       seed: options.seed === 'random' || !options.seed ? 'random' : options.seed,
       fragment: options.fragment !== false,
@@ -286,69 +272,105 @@ export const generateBatch = (options = {}, count = 1) => {
       findContainer: options.findContainer || (options.container ? () => {
         const el = typeof options.container === 'string' ? document.querySelector(options.container) : options.container;
         return el;
-      } : null),
-      onAllFinish: (dataArray) => {
-        const generationTime = Date.now() - startTime;
-        console.log(`✅ [AI-Image] Lote completo: ${dataArray.length} imagens em ${generationTime}ms`);
+      } : null)
+    };
 
-        // Callback do usuário
-        if (typeof options.onAllFinish === 'function') {
-          try {
-            options.onAllFinish(dataArray);
-          } catch (err) {
-            console.warn('⚠️ [AI-Image] Erro no callback onAllFinish:', err);
-          }
+    // Wrapper para preprocess
+    const userPreprocess = options.preprocess;
+    pluginOptions.preprocess = function(inputs) {
+      if (options.defaultQualityTags && typeof options.defaultQualityTags === 'string') {
+        inputs.prompt = `${inputs.prompt}, ${options.defaultQualityTags}`;
+      }
+      if (options.defaultNegativePrompt && typeof options.defaultNegativePrompt === 'string') {
+        if (!inputs.negativeprompt || inputs.negativeprompt.trim() === '') {
+          inputs.negativeprompt = options.defaultNegativePrompt;
         }
-
-        // Mapeia resultados
-        const mappedResults = dataArray.map((data, index) => ({
-          url: data.dataUrl || data.src || data.url,
-          seed: data.seed || options.seed,
-          generationTime,
-          prompt: applyPostprocess(data.prompt || processedPrompt, options),
-          negativePrompt,
-          resolution: pluginOptions.resolution,
-          element: data.element || null,
-          metadata: data,
-          index
-        }));
-
-        resolve(mappedResults);
-      },
-      onFinish: (data) => {
-        completedCount++;
-        console.log(`📊 [AI-Image] Progresso: ${completedCount}/${count}`);
-
-        // Callback individual do usuário
-        if (typeof options.onFinish === 'function') {
-          try {
-            options.onFinish(data, completedCount, count);
-          } catch (err) {
-            console.warn('⚠️ [AI-Image] Erro no callback onFinish:', err);
-          }
+      }
+      if (typeof userPreprocess === 'function') {
+        try {
+          userPreprocess(inputs);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no hook preprocess do usuário:', err);
         }
       }
     };
 
-    // Remove callbacks que não devem ser passados diretamente
-    delete pluginOptions.onStart;
+    // Wrapper para postprocess
+    const userPostprocess = options.postprocess;
+    if (typeof userPostprocess === 'function') {
+      pluginOptions.postprocess = function(inputs) {
+        try {
+          userPostprocess(inputs);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no hook postprocess do usuário:', err);
+        }
+      };
+    }
+
+    // Wrapper para onStart
+    const userOnStart = options.onStart;
+    pluginOptions.onStart = function(result) {
+      console.log('🚀 [AI-Image] onStart chamado pelo plugin (batch)');
+      if (typeof userOnStart === 'function') {
+        try {
+          userOnStart(result);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no callback onStart do usuário:', err);
+        }
+      }
+    };
+
+    // Wrapper para onFinish (progresso individual)
+    const userOnFinish = options.onFinish;
+    pluginOptions.onFinish = function(data) {
+      completedCount++;
+      console.log(`📊 [AI-Image] Progresso: ${completedCount}/${count}`);
+      if (typeof userOnFinish === 'function') {
+        try {
+          userOnFinish(data, completedCount, count);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no callback onFinish do usuário:', err);
+        }
+      }
+    };
+
+    // Wrapper para onAllFinish
+    const userOnAllFinish = options.onAllFinish;
+    pluginOptions.onAllFinish = function(dataArray) {
+      const generationTime = Date.now() - startTime;
+      console.log(`✅ [AI-Image] Lote completo: ${dataArray.length} imagens em ${generationTime}ms`);
+
+      if (typeof userOnAllFinish === 'function') {
+        try {
+          userOnAllFinish(dataArray);
+        } catch (err) {
+          console.warn('⚠️ [AI-Image] Erro no callback onAllFinish do usuário:', err);
+        }
+      }
+
+      const mappedResults = dataArray.map((data, index) => ({
+        url: data.dataUrl || data.src || data.url,
+        seed: data.seed || options.seed,
+        generationTime,
+        prompt: data.prompt || options.prompt,
+        negativePrompt: data.negativeprompt || negativePrompt,
+        resolution: pluginOptions.resolution,
+        element: data.element || null,
+        metadata: data,
+        index
+      }));
+
+      resolve(mappedResults);
+    };
+
+    // Remove propriedades que não devem ser passadas para o plugin
     delete pluginOptions.onChunk;
-    delete pluginOptions.onAllFinish;
     delete pluginOptions.defaultQualityTags;
     delete pluginOptions.defaultNegativePrompt;
 
-    // Callback de início
-    if (typeof options.onStart === 'function') {
-      try {
-        options.onStart(count);
-      } catch (err) {
-        console.warn('⚠️ [AI-Image] Erro no callback onStart:', err);
-      }
-    }
-
     try {
       // Chama o plugin do Perchance
-      const result = root.aiImage(processedPrompt, pluginOptions);
+      const result = root.aiImage(pluginOptions, count);
       
       // Se retornar uma Promise, trata rejeição
       if (result && typeof result.then === 'function') {
