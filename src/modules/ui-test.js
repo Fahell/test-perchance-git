@@ -167,7 +167,7 @@ export function initUITest(rendererData, testModules) {
     { id: 'tts', title: '🔊 TTS', what: 'Tests Text-to-Speech using the Web Speech API.', how: 'Initializes speech synthesis, configures voice/rate/pitch, and speaks a test phrase. Includes stop control.', key: 'Web Speech API, <code>speechSynthesis</code>, async audio.' },
     { id: '3d', title: '🎲 Cube Color', what: 'Tests Three.js basic rendering and material color updates.', how: 'Creates a Three.js scene with a rotating cube, updates its material color dynamically, and renders to canvas.', key: 'Three.js, WebGL, animation loop, material updates.' },
     { id: 'raycaster', title: '🖱️ Raycaster', what: 'Tests 3D click detection using Three.js Raycaster.', how: 'Sets up a scene with multiple objects, casts a ray from camera on click, and highlights the intersected object.', key: 'Three.js Raycaster, mouse coordinates, intersection testing.' },
-    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext("2d")</code>, drawing commands.' },
+    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext(\"2d\")</code>, drawing commands.' },
     { id: 'rpg-icon', title: '⚔️ RPG Icons', what: 'Tests sprite sheet extraction and rendering for RPG-style icons.', how: 'Loads a sprite sheet, calculates tile coordinates, and draws specific icons to canvas.', key: 'Sprite sheets, <code>drawImage</code> slicing, asset management.' },
     { id: 'particles', title: '✨ Particles', what: 'Tests a custom particle system with physics and lifecycle.', how: 'Spawns particles with velocity, gravity, and fade-out. Updates and renders them each frame.', key: 'RequestAnimationFrame, particle lifecycle, vector math.' },
     { id: 'cellular-automata', title: '🧬 Cellular Automata', what: 'Tests grid-based simulation (e.g., Game of Life rules).', how: 'Initializes a grid, applies neighbor-based rules each tick, and renders the evolving state.', key: '2D arrays, neighbor counting, simulation loops.' },
@@ -788,6 +788,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   // ===== HANDLERS FASE 3 =====
   async function imageTagBlendingHandler() {
     console.log('🎨 Testing tag blending...');
@@ -824,6 +825,7 @@ export function initUITest(rendererData, testModules) {
     if (!result?.success) throw new Error(result?.error || 'Add/remove during generation test failed');
     console.log('✅ Add/remove during generation test completed!');
   }
+
 
 
 
@@ -1080,6 +1082,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   async function indexeddbPrimitivesHandler() {
     console.log('🗃️ Testing IndexedDB primitives...');
     if (!indexeddbTest || !indexeddbTest.available) throw new Error('IndexedDB not available');
@@ -1278,6 +1281,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -1319,12 +1323,14 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
-      <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Single</button>
-      <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Batch</button>
-      <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ AI Image - Processing</button>
-      <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ AI Image - Errors</button>
-      <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
-      <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
+    </div>
+    
+    <div class="ui-test-category">
+      <strong style="color:#f472b6">🖼️ Advanced AI Image Plugin</strong>
+      <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ Single</button>
+      <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ Batch</button>
+      <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ Processing</button>
+      <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ Errors</button>
     </div>
     
     <div class="ui-test-category">
