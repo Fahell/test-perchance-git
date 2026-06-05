@@ -32,7 +32,6 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 |-----------|--------------|
 | Before major refactoring or risky change | `docs/snapshot-guide.md` |
 | How to make a new release (patch/minor/major) | `docs/release-guide.md` |
-| When session drops unexpectedly and you need to restore context | `docs/agent-resume-guide.md` |
 | Before accessing Perchance via openbrowser | `docs/iframe-access-perchance-guide.md` |
 
 ## Coding Rules
