@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.6";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.6`;
+const VERSION = "v1.26.7";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.7`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -1791,6 +1791,10 @@ const generateImage = (options = {}) => {
     pluginOptions.onFinish = function(data) {
       const generationTime = Date.now() - startTime;
       console.log("✅ [AI-Image] Geração concluída em", generationTime, "ms");
+      const inputs = data.inputs || {};
+      const finalPrompt = inputs.prompt || data.prompt || options.prompt;
+      const finalSeed = inputs.seed || data.seed || options.seed;
+      const finalNegativePrompt = inputs.negativeprompt || data.negativeprompt || negativePrompt;
       if (typeof userOnFinish === "function") {
         try {
           userOnFinish(data);
@@ -1801,10 +1805,10 @@ const generateImage = (options = {}) => {
       resolve({
         success: true,
         url: data.dataUrl || data.src || data.url,
-        seed: data.seed || options.seed,
+        seed: finalSeed,
         generationTime,
-        prompt: data.prompt || options.prompt,
-        negativePrompt: data.negativeprompt || negativePrompt,
+        finalPrompt,
+        negativePrompt: finalNegativePrompt,
         resolution,
         element: data.element || null,
         metadata: data
@@ -1942,18 +1946,24 @@ const generateBatch = (options = {}, count = 1) => {
           console.warn("⚠️ [AI-Image] Erro no callback onAllFinish do usuário:", err);
         }
       }
-      const mappedResults = dataArray.map((data, index) => ({
-        success: true,
-        url: data.dataUrl || data.src || data.url,
-        seed: data.seed || options.seed,
-        generationTime,
-        prompt: data.prompt || options.prompt,
-        negativePrompt: data.negativeprompt || negativePrompt,
-        resolution: pluginOptions.resolution,
-        element: data.element || null,
-        metadata: data,
-        index
-      }));
+      const mappedResults = dataArray.map((data, index) => {
+        const inputs = data.inputs || {};
+        const finalPrompt = inputs.prompt || data.prompt || options.prompt;
+        const finalSeed = inputs.seed || data.seed || options.seed;
+        const finalNegativePrompt = inputs.negativeprompt || data.negativeprompt || negativePrompt;
+        return {
+          success: true,
+          url: data.dataUrl || data.src || data.url,
+          seed: finalSeed,
+          generationTime,
+          finalPrompt,
+          negativePrompt: finalNegativePrompt,
+          resolution: pluginOptions.resolution,
+          element: data.element || null,
+          metadata: data,
+          index
+        };
+      });
       resolve(mappedResults);
     };
     delete pluginOptions.onChunk;
@@ -2027,7 +2037,7 @@ const aiImageTest = {
       if (!result.success) {
         return { success: false, error: result.error || "Falha na geração" };
       }
-      if (!result.seed || typeof result.seed !== "string") {
+      if (!result.seed || typeof result.seed !== "string" && typeof result.seed !== "number") {
         return { success: false, error: "Seed inválido ou ausente" };
       }
       if (!result.generationTime || result.generationTime <= 0) {
@@ -2108,7 +2118,7 @@ const aiImageTest = {
         if (!r.success) {
           return { success: false, error: `Resultado ${i} falhou: ${r.error}` };
         }
-        if (!r.seed || !r.generationTime || !r.finalPrompt) {
+        if (!r.seed || typeof r.seed !== "string" && typeof r.seed !== "number" || !r.generationTime || !r.finalPrompt) {
           return { success: false, error: `Resultado ${i} tem metadados inválidos` };
         }
       }
