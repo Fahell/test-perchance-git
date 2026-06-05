@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.15";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.15`;
+const VERSION = "v1.26.16";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.16`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -2396,23 +2396,13 @@ const aiImageTest = {
         }
       }
       container2.innerHTML = "";
-      let beforeCalled = false;
-      let afterCalled = false;
       let htmlCalled = false;
       const result = await generateImage({
         prompt: "a fantasy landscape with mountains",
         resolution: "square",
         outputTo: `#${containerId}`,
-        before: (data) => {
-          beforeCalled = true;
-          console.log("🔧 [AI-Image] before chamado");
-          return '<div class="custom-before" style="color:#4ade80;padding:5px;">🖼️ Before Image</div>';
-        },
-        after: (data) => {
-          afterCalled = true;
-          console.log("🔧 [AI-Image] after chamado");
-          return '<div class="custom-after" style="color:#fbbf24;padding:5px;">📝 After Image</div>';
-        },
+        before: '<div class="custom-before" style="color:#4ade80;padding:5px;">🖼️ Before Image</div>',
+        after: '<div class="custom-after" style="color:#fbbf24;padding:5px;">📝 After Image</div>',
         html: (defaultHtml, data) => {
           htmlCalled = true;
           console.log("🔧 [AI-Image] html chamado");
@@ -2421,12 +2411,6 @@ const aiImageTest = {
       });
       if (!result.success) {
         return { success: false, error: result.error || "Falha na geração" };
-      }
-      if (!beforeCalled) {
-        return { success: false, error: "Hook before não foi chamado" };
-      }
-      if (!afterCalled) {
-        return { success: false, error: "Hook after não foi chamado" };
       }
       if (!htmlCalled) {
         return { success: false, error: "Hook html não foi chamado" };
@@ -2475,8 +2459,6 @@ const aiImageTest = {
         }
       }
       container2.innerHTML = "";
-      let beforeAllCalled = false;
-      let afterAllCalled = false;
       let htmlAllCalled = false;
       const count = 2;
       const results = await generateBatch({
@@ -2484,16 +2466,8 @@ const aiImageTest = {
         resolution: "square",
         outputTo: `#${containerId}`,
         count,
-        beforeAll: (data) => {
-          beforeAllCalled = true;
-          console.log("🔧 [AI-Image] beforeAll chamado");
-          return '<div class="batch-header" style="color:#4ade80;padding:10px;font-weight:bold;">📦 Batch Gallery</div>';
-        },
-        afterAll: (data) => {
-          afterAllCalled = true;
-          console.log("🔧 [AI-Image] afterAll chamado");
-          return '<div class="batch-footer" style="color:#fbbf24;padding:10px;text-align:center;">✨ End of Gallery ✨</div>';
-        },
+        beforeAll: '<div class="batch-header" style="color:#4ade80;padding:10px;font-weight:bold;">📦 Batch Gallery</div>',
+        afterAll: '<div class="batch-footer" style="color:#fbbf24;padding:10px;text-align:center;">✨ End of Gallery ✨</div>',
         htmlAll: (defaultHtml, data) => {
           htmlAllCalled = true;
           console.log("🔧 [AI-Image] htmlAll chamado");
@@ -2502,12 +2476,6 @@ const aiImageTest = {
       }, count);
       if (!results || results.length !== count) {
         return { success: false, error: `Esperado ${count} resultados, recebido ${(results == null ? void 0 : results.length) || 0}` };
-      }
-      if (!beforeAllCalled) {
-        return { success: false, error: "Hook beforeAll não foi chamado" };
-      }
-      if (!afterAllCalled) {
-        return { success: false, error: "Hook afterAll não foi chamado" };
       }
       if (!htmlAllCalled) {
         return { success: false, error: "Hook htmlAll não foi chamado" };
