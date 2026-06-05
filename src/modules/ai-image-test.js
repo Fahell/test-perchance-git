@@ -331,6 +331,165 @@ export const aiImageTest = {
 
     console.log('✅ [AI-Image] Tratamento de erros bem-sucedido');
     return { success: true, data: { message: 'Todos os cenários de erro foram tratados' } };
+  },
+
+  // Teste 5: plaintext e context Isolation
+  async testPlaintextAndContext(contentArea = document.body) {
+    console.log('🖼️🖼️ [AI-Image] Testando plaintext e context isolation...');
+    
+    if (!this.available) {
+      return { success: false, error: 'Plugin aiImage não disponível' };
+    }
+
+    try {
+      const containerId = 'test-image-container-plaintext';
+      let container = document.getElementById(containerId);
+      if (!container) {
+        container = createImageContainer(containerId, contentArea);
+      } else {
+        if (container.parentElement !== contentArea) {
+          contentArea.appendChild(container);
+        }
+      }
+      container.innerHTML = '';
+
+      // Teste 5.1: plaintext deve impedir avaliação de código Perchance
+      const plaintextPrompt = 'a beautiful sunset $[character.name]';
+      let plaintextProcessedPrompt = '';
+      
+      const resultPlaintext = await generateImage({
+        prompt: plaintextPrompt,
+        resolution: 'square',
+        outputTo: `#${containerId}`,
+        plaintext: true,
+        preprocess: (inputs) => {
+          plaintextProcessedPrompt = inputs.prompt;
+        }
+      });
+
+      if (!resultPlaintext.success) {
+        return { success: false, error: resultPlaintext.error || 'Falha na geração plaintext' };
+      }
+
+      // O prompt deve conter exatamente a string, sem ser avaliado
+      const hasUnresolvedVariables = plaintextProcessedPrompt.includes('$[character.name]');
+      
+      // Teste 5.2: context deve isolar variáveis
+      const contextPrompt = 'a portrait of $[character.name]';
+      let contextProcessedPrompt = '';
+      const customContext = { character: { name: 'Alice' } };
+      
+      const resultContext = await generateImage({
+        prompt: contextPrompt,
+        resolution: 'square',
+        outputTo: `#${containerId}`,
+        context: customContext,
+        preprocess: (inputs) => {
+          contextProcessedPrompt = inputs.prompt;
+        }
+      });
+
+      if (!resultContext.success) {
+        return { success: false, error: resultContext.error || 'Falha na geração com context' };
+      }
+
+      console.log('✅ [AI-Image] Teste de plaintext e context bem-sucedido:', {
+        hasUnresolvedVariables,
+        contextProcessedPrompt: contextProcessedPrompt.substring(0, 50) + '...'
+      });
+
+      return {
+        success: true,
+        data: {
+          plaintextUnresolved: hasUnresolvedVariables,
+          contextPrompt: contextProcessedPrompt.substring(0, 100) + '...'
+        }
+      };
+
+    } catch (error) {
+      console.error('❌ [AI-Image] Erro no testPlaintextAndContext:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Teste 6: Hook preprocessAll
+  async testPreprocessAllHook(contentArea = document.body) {
+    console.log('🖼️🖼️ [AI-Image] Testando hook preprocessAll...');
+    
+    if (!this.available) {
+      return { success: false, error: 'Plugin aiImage não disponível' };
+    }
+
+    try {
+      const containerId = 'test-image-container-preprocessall';
+      let container = document.getElementById(containerId);
+      if (!container) {
+        container = createImageContainer(containerId, contentArea);
+      } else {
+        if (container.parentElement !== contentArea) {
+          contentArea.appendChild(container);
+        }
+      }
+      container.innerHTML = '';
+
+      let preprocessAllCallCount = 0;
+      let preprocessCallCount = 0;
+      const count = 2;
+
+      const results = await generateBatch({
+        prompt: 'a simple landscape',
+        resolution: 'square',
+        outputTo: `#${containerId}`,
+        count: count,
+        preprocessAll: (inputs) => {
+          preprocessAllCallCount++;
+          console.log('🔧 [AI-Image] preprocessAll chamado. Count:', preprocessAllCallCount);
+          // Modifica o prompt base para todas as imagens
+          inputs.prompt = inputs.prompt + ', highly detailed';
+        },
+        preprocess: (inputs) => {
+          preprocessCallCount++;
+          console.log('🔧 [AI-Image] preprocess chamado para imagem', preprocessCallCount);
+        }
+      }, count);
+
+      if (!results || results.length !== count) {
+        return { success: false, error: `Esperado ${count} resultados, recebido ${results?.length || 0}` };
+      }
+
+      // preprocessAll deve ser chamado exatamente uma vez
+      if (preprocessAllCallCount !== 1) {
+        return { success: false, error: `preprocessAll foi chamado ${preprocessAllCallCount} vezes, esperado 1` };
+      }
+
+      // preprocess deve ser chamado uma vez por imagem
+      if (preprocessCallCount !== count) {
+        return { success: false, error: `preprocess foi chamado ${preprocessCallCount} vezes, esperado ${count}` };
+      }
+
+      // Verifica se a modificação do preprocessAll foi aplicada
+      const finalPrompt = results[0].finalPrompt || '';
+      const hasModification = finalPrompt.includes('highly detailed');
+
+      console.log('✅ [AI-Image] Hook preprocessAll testado com sucesso:', {
+        preprocessAllCallCount,
+        preprocessCallCount,
+        hasModification
+      });
+
+      return {
+        success: true,
+        data: {
+          preprocessAllCallCount,
+          preprocessCallCount,
+          modificationApplied: hasModification
+        }
+      };
+
+    } catch (error) {
+      console.error('❌ [AI-Image] Erro no testPreprocessAllHook:', error);
+      return { success: false, error: error.message };
+    }
   }
 };
 
