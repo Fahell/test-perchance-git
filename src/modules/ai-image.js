@@ -1,7 +1,7 @@
 /**
  * Módulo para o plugin advanced-ai-image-plugin do Perchance
  * Fornece uma API de alto nível para geração avançada de imagens com IA
- * @version 1.26.6
+ * @version 1.26.7
  * @module ai-image
  */
 
@@ -37,7 +37,7 @@ import { root } from '../perchance-bridge.js';
  * @property {string} url - URL da imagem gerada (dataUrl ou URL externa)
  * @property {string|number} seed - Seed utilizada na geração
  * @property {number} generationTime - Tempo de geração em milissegundos
- * @property {string} prompt - Prompt final utilizado (após hooks)
+ * @property {string} finalPrompt - Prompt final utilizado (após hooks)
  * @property {string} resolution - Resolução final utilizada
  * @property {HTMLElement} [element] - Elemento DOM da imagem (se inserido)
  * @property {Object} [metadata] - Metadados adicionais do plugin
@@ -181,6 +181,12 @@ export const generateImage = (options = {}) => {
       const generationTime = Date.now() - startTime;
       console.log('✅ [AI-Image] Geração concluída em', generationTime, 'ms');
       
+      // Extrai metadados do objeto inputs (estrutura oficial do plugin)
+      const inputs = data.inputs || {};
+      const finalPrompt = inputs.prompt || data.prompt || options.prompt;
+      const finalSeed = inputs.seed || data.seed || options.seed;
+      const finalNegativePrompt = inputs.negativeprompt || data.negativeprompt || negativePrompt;
+      
       if (typeof userOnFinish === 'function') {
         try {
           userOnFinish(data);
@@ -192,10 +198,10 @@ export const generateImage = (options = {}) => {
       resolve({
         success: true,
         url: data.dataUrl || data.src || data.url,
-        seed: data.seed || options.seed,
+        seed: finalSeed,
         generationTime,
-        prompt: data.prompt || options.prompt,
-        negativePrompt: data.negativeprompt || negativePrompt,
+        finalPrompt,
+        negativePrompt: finalNegativePrompt,
         resolution,
         element: data.element || null,
         metadata: data
@@ -212,6 +218,7 @@ export const generateImage = (options = {}) => {
       // Chama o plugin do Perchance
       const result = root.aiImage(pluginOptions);
       
+
 
       // CRÍTICO: O plugin só inicia a geração quando o fragment é acessado ou o objeto é inserido no DOM
       // Acessar .fragment e anexar ao container especificado
@@ -375,18 +382,26 @@ export const generateBatch = (options = {}, count = 1) => {
         }
       }
 
-      const mappedResults = dataArray.map((data, index) => ({
-        success: true,
-        url: data.dataUrl || data.src || data.url,
-        seed: data.seed || options.seed,
-        generationTime,
-        prompt: data.prompt || options.prompt,
-        negativePrompt: data.negativeprompt || negativePrompt,
-        resolution: pluginOptions.resolution,
-        element: data.element || null,
-        metadata: data,
-        index
-      }));
+      const mappedResults = dataArray.map((data, index) => {
+        // Extrai metadados do objeto inputs (estrutura oficial do plugin)
+        const inputs = data.inputs || {};
+        const finalPrompt = inputs.prompt || data.prompt || options.prompt;
+        const finalSeed = inputs.seed || data.seed || options.seed;
+        const finalNegativePrompt = inputs.negativeprompt || data.negativeprompt || negativePrompt;
+
+        return {
+          success: true,
+          url: data.dataUrl || data.src || data.url,
+          seed: finalSeed,
+          generationTime,
+          finalPrompt,
+          negativePrompt: finalNegativePrompt,
+          resolution: pluginOptions.resolution,
+          element: data.element || null,
+          metadata: data,
+          index
+        };
+      });
 
       resolve(mappedResults);
     };
@@ -400,6 +415,7 @@ export const generateBatch = (options = {}, count = 1) => {
       // Chama o plugin do Perchance
       const result = root.aiImage(pluginOptions, count);
       
+
 
       // CRÍTICO: O plugin só inicia a geração quando o fragment é acessado ou o objeto é inserido no DOM
       // Acessar .fragment e anexar ao container especificado
