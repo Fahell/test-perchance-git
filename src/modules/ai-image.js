@@ -210,6 +210,31 @@ export const generateImage = (options = {}) => {
       // Chama o plugin do Perchance
       const result = root.aiImage(pluginOptions);
       
+
+      // CRÍTICO: O plugin só inicia a geração quando o fragment é acessado ou o objeto é inserido no DOM
+      // Acessar .fragment e anexar ao container especificado
+      if (result && result.fragment) {
+        const containerSelector = options.outputTo || options.container;
+        let container = null;
+        
+        if (containerSelector) {
+          if (typeof containerSelector === 'string') {
+            container = document.querySelector(containerSelector);
+          } else if (containerSelector instanceof HTMLElement) {
+            container = containerSelector;
+          }
+        }
+        
+        if (container) {
+          // Limpar container antes de inserir
+          container.innerHTML = '';
+          container.appendChild(result.fragment);
+          console.log('🖼️\r [AI-Image] Fragment anexado ao container:', container.id || containerSelector);
+        } else {
+          console.warn('⚠️\r [AI-Image] Container não encontrado para anexar fragment:', containerSelector);
+        }
+      }
+      
       // Se retornar uma Promise, trata rejeição
       if (result && typeof result.then === 'function') {
         result.catch(err => {
@@ -371,6 +396,31 @@ export const generateBatch = (options = {}, count = 1) => {
     try {
       // Chama o plugin do Perchance
       const result = root.aiImage(pluginOptions, count);
+      
+
+      // CRÍTICO: O plugin só inicia a geração quando o fragment é acessado ou o objeto é inserido no DOM
+      // Acessar .fragment e anexar ao container especificado
+      if (result && result.fragment) {
+        const containerSelector = options.outputTo || options.container;
+        let container = null;
+        
+        if (containerSelector) {
+          if (typeof containerSelector === 'string') {
+            container = document.querySelector(containerSelector);
+          } else if (containerSelector instanceof HTMLElement) {
+            container = containerSelector;
+          }
+        }
+        
+        if (container) {
+          // Limpar container antes de inserir
+          container.innerHTML = '';
+          container.appendChild(result.fragment);
+          console.log('🖼️\r [AI-Image] Fragment do lote anexado ao container:', container.id || containerSelector);
+        } else {
+          console.warn('⚠️\r [AI-Image] Container não encontrado para anexar fragment do lote:', containerSelector);
+        }
+      }
       
       // Se retornar uma Promise, trata rejeição
       if (result && typeof result.then === 'function') {

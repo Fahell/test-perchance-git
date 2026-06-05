@@ -200,15 +200,15 @@ export const aiImageTest = {
         outputTo: `#${containerId}`,
         defaultQualityTags: 'masterpiece, best quality, highres',
         defaultNegativePrompt: 'blurry, lowres, bad anatomy',
-        preprocess: (prompt, context) => {
+        preprocess: (inputs, context) => {
           preprocessCalled = true;
-          console.log('🔧 [AI-Image] preprocess chamado:', prompt.substring(0, 50));
-          return prompt; // Retorna sem modificar
+          console.log('🔧 [AI-Image] preprocess chamado:', inputs.prompt ? inputs.prompt.substring(0, 50) : 'sem prompt');
+          // O plugin espera que modifiquemos inputs.prompt diretamente
         },
-        postprocess: (prompt, context) => {
+        postprocess: (inputs, context) => {
           postprocessCalled = true;
-          console.log('🔧 [AI-Image] postprocess chamado:', prompt.substring(0, 50));
-          return prompt;
+          console.log('🔧 [AI-Image] postprocess chamado:', inputs.prompt ? inputs.prompt.substring(0, 50) : 'sem prompt');
+          // O plugin espera que modifiquemos inputs.prompt diretamente
         }
       });
 
