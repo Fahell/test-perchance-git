@@ -167,7 +167,7 @@ export function initUITest(rendererData, testModules) {
     { id: 'tts', title: '🔊 TTS', what: 'Tests Text-to-Speech using the Web Speech API.', how: 'Initializes speech synthesis, configures voice/rate/pitch, and speaks a test phrase. Includes stop control.', key: 'Web Speech API, <code>speechSynthesis</code>, async audio.' },
     { id: '3d', title: '🎲 Cube Color', what: 'Tests Three.js basic rendering and material color updates.', how: 'Creates a Three.js scene with a rotating cube, updates its material color dynamically, and renders to canvas.', key: 'Three.js, WebGL, animation loop, material updates.' },
     { id: 'raycaster', title: '🖱️ Raycaster', what: 'Tests 3D click detection using Three.js Raycaster.', how: 'Sets up a scene with multiple objects, casts a ray from camera on click, and highlights the intersected object.', key: 'Three.js Raycaster, mouse coordinates, intersection testing.' },
-    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext(\"2d\")</code>, drawing commands.' },
+    { id: 'canvas', title: '🎨 Canvas', what: 'Tests HTML5 Canvas 2D drawing primitives.', how: 'Draws shapes, gradients, and text on a 2D canvas context, verifying rendering pipeline.', key: 'Canvas 2D API, <code>getContext("2d")</code>, drawing commands.' },
     { id: 'rpg-icon', title: '⚔️ RPG Icons', what: 'Tests sprite sheet extraction and rendering for RPG-style icons.', how: 'Loads a sprite sheet, calculates tile coordinates, and draws specific icons to canvas.', key: 'Sprite sheets, <code>drawImage</code> slicing, asset management.' },
     { id: 'particles', title: '✨ Particles', what: 'Tests a custom particle system with physics and lifecycle.', how: 'Spawns particles with velocity, gravity, and fade-out. Updates and renders them each frame.', key: 'RequestAnimationFrame, particle lifecycle, vector math.' },
     { id: 'cellular-automata', title: '🧬 Cellular Automata', what: 'Tests grid-based simulation (e.g., Game of Life rules).', how: 'Initializes a grid, applies neighbor-based rules each tick, and renders the evolving state.', key: '2D arrays, neighbor counting, simulation loops.' },
@@ -789,6 +789,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   // ===== HANDLERS FASE 3 =====
   async function imageTagBlendingHandler() {
     console.log('🎨 Testing tag blending...');
@@ -825,6 +826,7 @@ export function initUITest(rendererData, testModules) {
     if (!result?.success) throw new Error(result?.error || 'Add/remove during generation test failed');
     console.log('✅ Add/remove during generation test completed!');
   }
+
 
 
 
@@ -1083,6 +1085,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   async function indexeddbPrimitivesHandler() {
     console.log('🗃️ Testing IndexedDB primitives...');
     if (!indexeddbTest || !indexeddbTest.available) throw new Error('IndexedDB not available');
@@ -1282,6 +1285,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -1462,12 +1466,6 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-image-alternating').onclick = () => runTest('btn-image-alternating', 'Alternating Tags', imageAlternatingTagsHandler);
   document.getElementById('btn-image-addremove').onclick = () => runTest('btn-image-addremove', 'Add/Remove During Gen', imageAddRemoveDuringGenHandler);
   document.getElementById('btn-tts').onclick = () => runTest('btn-tts', 'TTS', ttsHandler);
-  document.getElementById('btn-tts-stop').onclick = () => runTest('btn-tts-stop', 'TTS Stop', () => {
-    console.log('⏹️ Stopping speech...');
-    if (!ttsTest) throw new Error('TTS not available');
-    if (!ttsTest.stopSpeech()) throw new Error('Stop not available');
-    console.log('✅ Speech stopped');
-  });
   document.getElementById('btn-3d').onclick = () => runTest('btn-3d', 'Cube Color', cubeColorHandler);
   document.getElementById('btn-raycaster').onclick = () => runTest('btn-raycaster', 'Raycaster', raycasterHandler);
   document.getElementById('btn-canvas').onclick = () => runTest('btn-canvas', 'Canvas', canvasHandler);
