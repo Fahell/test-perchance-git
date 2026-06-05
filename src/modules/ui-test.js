@@ -1315,17 +1315,10 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
-      
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;">
-        <strong style="color:#a78bfa;font-size:11px;">🖼️ Advanced AI Image Plugin</strong>
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">
-          <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ Single</button>
-          <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ Batch</button>
-          <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ Processing</button>
-          <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ Errors</button>
-        </div>
-      </div>
-      
+      <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Single</button>
+      <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Batch</button>
+      <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ AI Image - Processing</button>
+      <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ AI Image - Errors</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
       <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
     </div>
