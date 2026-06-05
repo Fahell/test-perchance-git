@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.7";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.7`;
+const VERSION = "v1.26.8";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.8`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -222,17 +222,7 @@ function initTestModules(modules, rendererData) {
       console.error("❌ [Main] Erro ao inicializar raycasterTest:", e.message);
     }
   }
-  if (modules.particlesTest && modules.particlesTest.init) {
-    try {
-      modules.particlesTest.init(rendererData);
-      if (rendererData.onUpdate && modules.particlesTest.update) {
-        rendererData.onUpdate((deltaTime) => modules.particlesTest.update(deltaTime));
-      }
-      console.log("✅ [Main] particlesTest inicializado");
-    } catch (e) {
-      console.error("❌ [Main] Erro ao inicializar particlesTest:", e.message);
-    }
-  }
+  console.log("ℹ️ [Main] particlesTest carregado (inicialização manual via botão UI)");
 }
 async function initGame() {
   if (window.GAME_INITIALIZED) {
@@ -276,7 +266,7 @@ async function initGame() {
     if (uiTestMod && uiTestMod.initUITest) {
       console.log("🎮 [Main] Chamando initUITest...");
       console.log("📦 [Main] rendererData passado:", rendererData);
-      console.log(" renderer.cube:", rendererData.cube);
+      console.log("🎲 renderer.cube:", rendererData.cube);
       uiTestMod.initUITest(rendererData, testModules);
     } else {
       console.error("❌ [Main] ui-test.js não carregou corretamente");
@@ -9486,12 +9476,14 @@ function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
-      <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Single</button>
-      <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ AI Image - Batch</button>
-      <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ AI Image - Processing</button>
-      <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ AI Image - Errors</button>
-      <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
-      <button id="btn-tts-stop" class="ui-test-btn ui-test-btn--ai">⏹️ Stop</button>
+    </div>
+    
+    <div class="ui-test-category">
+      <strong style="color:#f472b6">🖼️ Advanced AI Image Plugin</strong>
+      <button id="btn-ai-image-single" class="ui-test-btn ui-test-btn--ai">🖼️ Single</button>
+      <button id="btn-ai-image-batch" class="ui-test-btn ui-test-btn--ai">🖼️ Batch</button>
+      <button id="btn-ai-image-processing" class="ui-test-btn ui-test-btn--ai">⚙️ Processing</button>
+      <button id="btn-ai-image-errors" class="ui-test-btn ui-test-btn--ai">⚠️ Errors</button>
     </div>
     
     <div class="ui-test-category">
