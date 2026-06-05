@@ -1,4 +1,4 @@
-# Test Perchance Git (v1.26.3)
+# Test Perchance Git (v1.26.4)
 
 Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN.
 

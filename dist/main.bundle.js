@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.3";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.3`;
+const VERSION = "v1.26.4";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.4`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -1815,6 +1815,24 @@ const generateImage = (options = {}) => {
     delete pluginOptions.onAllFinish;
     try {
       const result = root.aiImage(pluginOptions);
+      if (result && result.fragment) {
+        const containerSelector = options.outputTo || options.container;
+        let container2 = null;
+        if (containerSelector) {
+          if (typeof containerSelector === "string") {
+            container2 = document.querySelector(containerSelector);
+          } else if (containerSelector instanceof HTMLElement) {
+            container2 = containerSelector;
+          }
+        }
+        if (container2) {
+          container2.innerHTML = "";
+          container2.appendChild(result.fragment);
+          console.log("🖼️\r [AI-Image] Fragment anexado ao container:", container2.id || containerSelector);
+        } else {
+          console.warn("⚠️\r [AI-Image] Container não encontrado para anexar fragment:", containerSelector);
+        }
+      }
       if (result && typeof result.then === "function") {
         result.catch((err) => {
           console.error("❌ [AI-Image] Erro na Promise do plugin:", err);
@@ -1941,6 +1959,24 @@ const generateBatch = (options = {}, count = 1) => {
     delete pluginOptions.defaultNegativePrompt;
     try {
       const result = root.aiImage(pluginOptions, count);
+      if (result && result.fragment) {
+        const containerSelector = options.outputTo || options.container;
+        let container2 = null;
+        if (containerSelector) {
+          if (typeof containerSelector === "string") {
+            container2 = document.querySelector(containerSelector);
+          } else if (containerSelector instanceof HTMLElement) {
+            container2 = containerSelector;
+          }
+        }
+        if (container2) {
+          container2.innerHTML = "";
+          container2.appendChild(result.fragment);
+          console.log("🖼️\r [AI-Image] Fragment do lote anexado ao container:", container2.id || containerSelector);
+        } else {
+          console.warn("⚠️\r [AI-Image] Container não encontrado para anexar fragment do lote:", containerSelector);
+        }
+      }
       if (result && typeof result.then === "function") {
         result.catch((err) => {
           console.error("❌ [AI-Image] Erro na Promise do plugin:", err);
@@ -2110,15 +2146,13 @@ const aiImageTest = {
         outputTo: `#${containerId}`,
         defaultQualityTags: "masterpiece, best quality, highres",
         defaultNegativePrompt: "blurry, lowres, bad anatomy",
-        preprocess: (prompt, context) => {
+        preprocess: (inputs, context) => {
           preprocessCalled = true;
-          console.log("🔧 [AI-Image] preprocess chamado:", prompt.substring(0, 50));
-          return prompt;
+          console.log("🔧 [AI-Image] preprocess chamado:", inputs.prompt ? inputs.prompt.substring(0, 50) : "sem prompt");
         },
-        postprocess: (prompt, context) => {
+        postprocess: (inputs, context) => {
           postprocessCalled = true;
-          console.log("🔧 [AI-Image] postprocess chamado:", prompt.substring(0, 50));
-          return prompt;
+          console.log("🔧 [AI-Image] postprocess chamado:", inputs.prompt ? inputs.prompt.substring(0, 50) : "sem prompt");
         }
       });
       if (!result.success) {
