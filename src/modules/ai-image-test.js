@@ -12,7 +12,7 @@ export const aiImageTest = {
   available: isAvailable(),
   
   // Teste 1: Geração única com metadados
-  async testSingleGeneration() {
+  async testSingleGeneration(contentArea = document.body) {
     console.log('🖼️ [AI-Image] Testando geração única...');
     
     if (!this.available) {
@@ -23,7 +23,12 @@ export const aiImageTest = {
       const containerId = 'test-image-container-single';
       let container = document.getElementById(containerId);
       if (!container) {
-        container = createImageContainer(containerId, document.body);
+        container = createImageContainer(containerId, contentArea);
+      } else {
+        // Garante que o container está dentro do contentArea se já existir
+        if (container.parentElement !== contentArea) {
+          contentArea.appendChild(container);
+        }
       }
       container.innerHTML = ''; // Limpa conteúdo anterior
 
@@ -90,7 +95,7 @@ export const aiImageTest = {
   },
 
   // Teste 2: Geração em lote
-  async testBatchGeneration() {
+  async testBatchGeneration(contentArea = document.body) {
     console.log('🖼️ [AI-Image] Testando geração em lote...');
     
     if (!this.available) {
@@ -101,7 +106,11 @@ export const aiImageTest = {
       const containerId = 'test-image-container-batch';
       let container = document.getElementById(containerId);
       if (!container) {
-        container = createImageContainer(containerId, document.body);
+        container = createImageContainer(containerId, contentArea);
+      } else {
+        if (container.parentElement !== contentArea) {
+          contentArea.appendChild(container);
+        }
       }
       container.innerHTML = '';
 
@@ -176,7 +185,7 @@ export const aiImageTest = {
   },
 
   // Teste 3: Processamento de prompt (hooks e tags padrão)
-  async testPromptProcessing() {
+  async testPromptProcessing(contentArea = document.body) {
     console.log('🖼️ [AI-Image] Testando processamento de prompt...');
     
     if (!this.available) {
@@ -187,7 +196,11 @@ export const aiImageTest = {
       const containerId = 'test-image-container-processing';
       let container = document.getElementById(containerId);
       if (!container) {
-        container = createImageContainer(containerId, document.body);
+        container = createImageContainer(containerId, contentArea);
+      } else {
+        if (container.parentElement !== contentArea) {
+          contentArea.appendChild(container);
+        }
       }
       container.innerHTML = '';
 
