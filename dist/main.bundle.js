@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.4";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.4`;
+const VERSION = "v1.26.5";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.5`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -1992,7 +1992,7 @@ const generateBatch = (options = {}, count = 1) => {
 const aiImageTest = {
   available: isAvailable(),
   // Teste 1: Geração única com metadados
-  async testSingleGeneration() {
+  async testSingleGeneration(contentArea = document.body) {
     console.log("🖼️ [AI-Image] Testando geração única...");
     if (!this.available) {
       return { success: false, error: "Plugin aiImage não disponível" };
@@ -2001,7 +2001,11 @@ const aiImageTest = {
       const containerId = "test-image-container-single";
       let container2 = document.getElementById(containerId);
       if (!container2) {
-        container2 = createImageContainer(containerId, document.body);
+        container2 = createImageContainer(containerId, contentArea);
+      } else {
+        if (container2.parentElement !== contentArea) {
+          contentArea.appendChild(container2);
+        }
       }
       container2.innerHTML = "";
       const startTime = Date.now();
@@ -2055,7 +2059,7 @@ const aiImageTest = {
     }
   },
   // Teste 2: Geração em lote
-  async testBatchGeneration() {
+  async testBatchGeneration(contentArea = document.body) {
     console.log("🖼️ [AI-Image] Testando geração em lote...");
     if (!this.available) {
       return { success: false, error: "Plugin aiImage não disponível" };
@@ -2064,7 +2068,11 @@ const aiImageTest = {
       const containerId = "test-image-container-batch";
       let container2 = document.getElementById(containerId);
       if (!container2) {
-        container2 = createImageContainer(containerId, document.body);
+        container2 = createImageContainer(containerId, contentArea);
+      } else {
+        if (container2.parentElement !== contentArea) {
+          contentArea.appendChild(container2);
+        }
       }
       container2.innerHTML = "";
       const count = 2;
@@ -2126,7 +2134,7 @@ const aiImageTest = {
     }
   },
   // Teste 3: Processamento de prompt (hooks e tags padrão)
-  async testPromptProcessing() {
+  async testPromptProcessing(contentArea = document.body) {
     console.log("🖼️ [AI-Image] Testando processamento de prompt...");
     if (!this.available) {
       return { success: false, error: "Plugin aiImage não disponível" };
@@ -2135,7 +2143,11 @@ const aiImageTest = {
       const containerId = "test-image-container-processing";
       let container2 = document.getElementById(containerId);
       if (!container2) {
-        container2 = createImageContainer(containerId, document.body);
+        container2 = createImageContainer(containerId, contentArea);
+      } else {
+        if (container2.parentElement !== contentArea) {
+          contentArea.appendChild(container2);
+        }
       }
       container2.innerHTML = "";
       let preprocessCalled = false;
@@ -8818,13 +8830,13 @@ function initUITest(rendererData, testModules) {
     if (!aiImageTest2 || !aiImageTest2.available) throw new Error("Plugin not available");
     const { contentArea } = createTestContainer("🖼️ AI Image - Single Generation", { id: "test-ai-image-single", width: 600, height: 500 });
     contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating single image...</div>';
-    const result = await aiImageTest2.testSingleGeneration();
+    const result = await aiImageTest2.testSingleGeneration(contentArea);
     if (!(result == null ? void 0 : result.success)) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
       throw new Error((result == null ? void 0 : result.error) || "Test failed");
     }
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Single generation completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="margin-bottom:8px;"><strong>Seed:</strong> ${result.data.seed}</div>
@@ -8841,14 +8853,14 @@ function initUITest(rendererData, testModules) {
     if (!aiImageTest2 || !aiImageTest2.available) throw new Error("Plugin not available");
     const { contentArea } = createTestContainer("🖼️ AI Image - Batch Generation", { id: "test-ai-image-batch", width: 600, height: 500 });
     contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Generating 2 images in batch...</div>';
-    const result = await aiImageTest2.testBatchGeneration();
+    const result = await aiImageTest2.testBatchGeneration(contentArea);
     if (!(result == null ? void 0 : result.success)) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
       throw new Error((result == null ? void 0 : result.error) || "Test failed");
     }
     const seedsHTML = result.data.seeds.map((s, i) => `<div>Image ${i + 1}: ${s}</div>`).join("");
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Batch generation completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="margin-bottom:8px;"><strong>Count:</strong> ${result.data.count}</div>
@@ -8867,13 +8879,13 @@ function initUITest(rendererData, testModules) {
     if (!aiImageTest2 || !aiImageTest2.available) throw new Error("Plugin not available");
     const { contentArea } = createTestContainer("🖼️ AI Image - Prompt Processing", { id: "test-ai-image-processing", width: 600, height: 500 });
     contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Testing hooks and default tags...</div>';
-    const result = await aiImageTest2.testPromptProcessing();
+    const result = await aiImageTest2.testPromptProcessing(contentArea);
     if (!(result == null ? void 0 : result.success)) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
       throw new Error((result == null ? void 0 : result.error) || "Test failed");
     }
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Prompt processing completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="margin-bottom:8px;"><strong>preprocess Called:</strong> ${result.data.preprocessCalled ? "✅" : "❌"}</div>
@@ -8900,8 +8912,8 @@ function initUITest(rendererData, testModules) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Error: ${(result == null ? void 0 : result.error) || "Test failed"}</div>`;
       throw new Error((result == null ? void 0 : result.error) || "Test failed");
     }
-    contentArea.innerHTML = `
-      <div style="padding:15px;">
+    contentArea.innerHTML += `
+      <div style="padding:15px;margin-top:15px;">
         <div style="color:#4ade80;font-size:12px;margin-bottom:10px;">✅ Error handling test completed!</div>
         <div style="background:#0f172a;color:#e2e8f0;padding:15px;border-radius:6px;font-size:12px;">
           <div style="color:#94a3b8;">All error scenarios were handled gracefully:</div>
@@ -9382,7 +9394,7 @@ function initUITest(rendererData, testModules) {
     if (!cellularAutomataTest2) throw new Error("Cellular Automata not available");
     if (cellularAutomataTest2.running) {
       cellularAutomataTest2.cleanup();
-      console.log("\\ud83d\\uddd1\\ufe0f Cellular Automata: Disposed");
+      console.log("\\uddd1\\ufe0f Cellular Automata: Disposed");
       return;
     }
     cellularAutomataTest2.init(rendererData);
