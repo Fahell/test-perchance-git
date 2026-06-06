@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.27.1";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.27.1`;
+const VERSION = "v1.27.2";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.27.2`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -1429,6 +1429,7 @@ const aiTextTest = {
     }
     try {
       const chunks = [];
+      const customOnChunk = options.customOnChunk;
       const result = await _generateAIText(
         "Escreva uma frase curta sobre um cavaleiro.",
         {
@@ -1440,6 +1441,13 @@ const aiTextTest = {
               fullTextSoFar: data.fullTextSoFar
             });
             console.log("📦 [AI-Text] Chunk recebido:", data.textChunk);
+            if (typeof customOnChunk === "function") {
+              try {
+                customOnChunk(data);
+              } catch (e) {
+                console.warn("⚠️ [AI-Text] Erro no customOnChunk:", e);
+              }
+            }
           }
         }
       );
