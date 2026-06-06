@@ -1,4 +1,4 @@
-// List Panel para Perchance - v1.2.8
+// List Panel para Perchance - v1.27.0
 // Cole este conteúdo no List Panel do seu gerador Perchance
 // ⚠️ IMPORTANTE: Use 2 espaços para indentação (não 4!)
 
@@ -57,3 +57,4 @@ kv = {import:kv-plugin}
 seeder = {import:seeder-plugin}
 jsonstream = {import:json-stream-plugin}
 aiImage = {import:advanced-ai-image-plugin}
+typewriter = {import:typewriter-plugin}
