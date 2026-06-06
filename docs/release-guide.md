@@ -4,7 +4,7 @@
 Automated semantic versioning with pre-commit hook synchronization.
 
 ## Quick Start
-```bash
+```zsh
 npm run release X.Y.Z
 ```
 
@@ -26,23 +26,23 @@ Only use if automated script fails:
 
 1. **Update `src/constants.js`** to the new version
 2. **Commit** - the pre-commit hook will detect the change and update other files:
-   ```bash
+   ```zsh
    git add src/constants.js
    git commit -m "chore: release vX.Y.Z"
    ```
 3. **Add the files updated by the hook** and make the final commit:
-   ```bash
+   ```zsh
    git add .
    git commit --amend --no-edit
    ```
 4. **Generate the bundle**:
-   ```bash
+   ```zsh
    npm run build
    git add dist/
    git commit --amend --no-edit
    ```
 5. **Create the tag and push**:
-   ```bash
+   ```zsh
    git tag -a vX.Y.Z -m "Release vX.Y.Z"
    git push origin main --tags
    ```
@@ -76,7 +76,7 @@ Only use if automated script fails:
 ## Common Error Example
 
 ❌ **Wrong:**
-```bash
+```zsh
 # Updates only package.json manually
 npm version 1.4.0
 git tag -a v1.4.0 -m "Release v1.4.0"
@@ -84,7 +84,7 @@ git tag -a v1.4.0 -m "Release v1.4.0"
 ```
 
 ✅ **Correct:**
-```bash
+```zsh
 # Use the automated script
 npm run release 1.4.0
 # Script updates constants.js, syncs all files, builds, commits, tags, and pushes

@@ -50,7 +50,7 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 2. Always use relative imports: `import {...} from './module.js'`
 
 ### Mandatory Workflow
-
+- When planning: Always use Websearch before implementing new features, fixes, edits and planning. Analyse the request and plan using Websearch. Websearch is your biggest and best tool.
 - Use feature branches: `feature/auth-refactor`
 - Never commit directly to `main`
 - **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
