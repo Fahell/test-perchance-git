@@ -300,6 +300,18 @@ function updateGenericFile(filePath, version, versionWithoutPrefix, stats) {
     return match;
   });
   
+  // Pattern 8: List Panel header
+  // Example: // List Panel para Perchance - v1.3.0
+  const listPanelPattern = /(\/\/ List Panel para Perchance - )(v?\d+\.\d+\.\d+)/g;
+  updatedContent = updatedContent.replace(listPanelPattern, (match, start, oldVersion) => {
+    if (oldVersion !== version && oldVersion !== versionWithoutPrefix) {
+      oldVersions.add(oldVersion);
+      changesCount++;
+      return `${start}${version}`;
+    }
+    return match;
+  });
+  
   if (changesCount > 0) {
     fs.writeFileSync(filePath, updatedContent, 'utf-8');
     stats.totalChanges += changesCount;
