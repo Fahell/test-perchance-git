@@ -80,8 +80,9 @@ export const typewriterTest = {
     };
     
     try {
-      // Chama o teste de streaming da IA, passando nosso handler de chunk
-      const result = await aiTextTest.testOnChunkStreaming(uiElement, {
+      // Passamos null como uiElement para evitar que o ai-text-plugin escreva diretamente no DOM.
+      // O typewriter-test.js gerenciará a exibição do texto através do customOnChunk.
+      const result = await aiTextTest.testOnChunkStreaming(null, {
         customOnChunk: onChunkHandler
       });
       
