@@ -175,7 +175,7 @@ export const aiTextTest = {
   // ===== FASE 2 TESTS =====
 
   // Teste 5: onChunk streaming
-  async testOnChunkStreaming(uiElement = null) {
+  async testOnChunkStreaming(uiElement = null, options = {}) {
     console.log('🤖 [AI-Text] Testando onChunk streaming...');
     
     if (!this.available) {

@@ -103,7 +103,8 @@ export function initUITest(rendererData, testModules) {
     particlesTest,
     cellularAutomataTest,
     indexeddbTest,
-    gsapTest
+    gsapTest,
+    typewriterTest
   } = testModules;
 
   // Test definitions for Run All
@@ -159,7 +160,8 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-gsap-from', name: 'GSAP From', fn: () => gsapFromHandler() },
     { btnId: 'btn-gsap-timeline', name: 'GSAP Timeline', fn: () => gsapTimelineHandler() },
     { btnId: 'btn-gsap-stagger', name: 'GSAP Stagger', fn: () => gsapStaggerHandler() },
-    { btnId: 'btn-gsap-easing', name: 'GSAP Easing', fn: () => gsapEasingHandler() }
+    { btnId: 'btn-gsap-easing', name: 'GSAP Easing', fn: () => gsapEasingHandler() },
+    { btnId: 'btn-typewriter', name: 'Typewriter', fn: () => typewriterHandler() }
   ];
   const HOW_IT_WORKS_DATA = [
     { id: 'dice', title: '🎲 Dice', what: 'Tests Perchance native dice rolling syntax (1d4, 1d6, 1d20, etc.).', how: 'Calls <code>root.dice()</code> for each standard RPG die, captures results, and renders a comparison table.', key: 'Perchance <code>root.dice()</code>, RNG, string parsing.' },
@@ -1394,6 +1396,56 @@ export function initUITest(rendererData, testModules) {
 
 
 
+  async function typewriterHandler() {
+    console.log('⌨️ Testing Typewriter + AI streaming integration...');
+    if (!typewriterTest || !typewriterTest.available) throw new Error('Typewriter test not available');
+    const { contentArea } = createTestContainer('⌨️ Typewriter + AI Streaming', { id: 'test-typewriter', width: 600, height: 500 });
+    
+    // Create display for streaming with typewriter effect
+    contentArea.innerHTML = `
+      <div style="padding: 15px;">
+        <div style="margin-bottom: 10px; color: #94a3b8; font-size: 12px;">
+          📡 Streaming IA com efeito typewriter (30 caracteres/segundo):
+        </div>
+        <div id="typewriter-display" style="
+          font-family: monospace; 
+          white-space: pre-wrap; 
+          background: #0f172a; 
+          color: #4ade80; 
+          padding: 15px; 
+          min-height: 120px; 
+          border-radius: 6px;
+          border: 1px solid #334155;
+          font-size: 14px;
+          line-height: 1.6;
+          max-height: 300px;
+          overflow-y: auto;
+        "></div>
+        <div id="typewriter-status" style="margin-top: 10px; color: #64748b; font-size: 11px; text-align: center;">
+          ⏳ Aguardando início...
+        </div>
+      </div>
+    `;
+    
+    const typewriterDisplay = document.getElementById('typewriter-display');
+    const typewriterStatus = document.getElementById('typewriter-status');
+    
+    typewriterStatus.textContent = '⏳ Gerando texto com IA e aplicando typewriter...';
+    
+    const result = await typewriterTest.testTypewriterIntegration(typewriterDisplay, {
+      charsPerSecond: 30,
+      prompt: 'Escreva uma frase curta sobre um aventureiro em uma floresta mágica.'
+    });
+    
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Falha no teste'}</div>`;
+      throw new Error(result?.error || 'Test failed');
+    }
+    
+    typewriterStatus.innerHTML = `✅ <span style="color:#4ade80;">${result.totalChunks} chunks recebidos</span> | <span style="color:#94a3b8;">${result.totalChars} caracteres digitados</span> | <span style="color:#f59e0b;">${result.charsPerSecond} chars/s</span>`;
+    console.log('✅ Typewriter integration test completed!');
+  }
+
   const panel = document.createElement('div');
   panel.id = 'ui-test-panel';
 
@@ -1434,6 +1486,7 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
+      <button id="btn-typewriter" class="ui-test-btn ui-test-btn--ai">⌨️ Typewriter</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
     </div>
     
@@ -1628,6 +1681,7 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-gsap-stagger').onclick = () => runTest('btn-gsap-stagger', 'GSAP Stagger', gsapStaggerHandler);
   document.getElementById('btn-gsap-easing').onclick = () => runTest('btn-gsap-easing', 'GSAP Easing', gsapEasingHandler);
   document.getElementById('btn-gsap-cleanup').onclick = () => runTest('btn-gsap-cleanup', 'GSAP Cleanup', gsapCleanupHandler);
+  document.getElementById('btn-typewriter').onclick = () => runTest('btn-typewriter', 'Typewriter', typewriterHandler);
 
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
