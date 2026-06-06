@@ -184,6 +184,8 @@ export const aiTextTest = {
     
     try {
       const chunks = [];
+      const customOnChunk = options.customOnChunk;
+      
       const result = await _generateAIText(
         'Escreva uma frase curta sobre um cavaleiro.',
         {
@@ -196,6 +198,14 @@ export const aiTextTest = {
             });
             console.log('📦 [AI-Text] Chunk recebido:', data.textChunk);
             
+            // Chama o handler customizado se fornecido
+            if (typeof customOnChunk === 'function') {
+              try {
+                customOnChunk(data);
+              } catch (e) {
+                console.warn('⚠️ [AI-Text] Erro no customOnChunk:', e);
+              }
+            }
           }
         }
       );
