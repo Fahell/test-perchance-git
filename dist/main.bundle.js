@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.26.17";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.26.17`;
+const VERSION = "v1.27.0";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.27.0`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -178,7 +178,8 @@ const TEST_MODULES = {
   particlesTest: () => Promise.resolve().then(() => particlesTest),
   cellularAutomataTest: () => Promise.resolve().then(() => cellularAutomataTest$1),
   indexeddbTest: () => Promise.resolve().then(() => indexeddbTest$1),
-  gsapTest: () => Promise.resolve().then(() => gsapTest$1)
+  gsapTest: () => Promise.resolve().then(() => gsapTest$1),
+  typewriterTest: () => Promise.resolve().then(() => typewriterTest$1)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -191,8 +192,8 @@ async function loadTestModule(moduleName) {
     loadedModules[moduleName] = mod;
     console.log(`✅ [Main] ${moduleName} carregado`);
     return mod;
-  } catch (error) {
-    console.error(`❌ [Main] Falha ao carregar ${moduleName}:`, error.message);
+  } catch (error2) {
+    console.error(`❌ [Main] Falha ao carregar ${moduleName}:`, error2.message);
     return null;
   }
 }
@@ -280,9 +281,9 @@ async function initGame() {
       root: root2,
       tests: testModules
     };
-  } catch (error) {
-    console.error("❌ [Main] Erro fatal na inicialização:", error);
-    console.error("Stack trace:", error.stack);
+  } catch (error2) {
+    console.error("❌ [Main] Erro fatal na inicialização:", error2);
+    console.error("Stack trace:", error2.stack);
     const errorDiv = document.createElement("div");
     errorDiv.style.cssText = `
       position: fixed; bottom: 20px; left: 20px; z-index: 9999;
@@ -294,12 +295,12 @@ async function initGame() {
     errorDiv.innerHTML = `
       **❌ Erro ao iniciar o jogo**
 
-      **Mensagem:** ${error.message}
+      **Mensagem:** ${error2.message}
 
       **Stack:**
 
       \`\`\`
-      ${error.stack || "N/A"}
+      ${error2.stack || "N/A"}
       \`\`\`
 
       Verifique o console (F12) para mais detalhes.
@@ -398,8 +399,8 @@ function createTestContainer(title, options = {}) {
     if (onClose) {
       try {
         onClose();
-      } catch (error) {
-        console.error("Error in onClose callback:", error);
+      } catch (error2) {
+        console.error("Error in onClose callback:", error2);
       }
     }
     container2.remove();
@@ -515,10 +516,10 @@ const imageTest = {
       } else {
         throw new Error("Não foi possível extrair URL da imagem");
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha na geração:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha na geração:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 2: Remove background (fundo transparente)
@@ -553,10 +554,10 @@ const imageTest = {
       } else {
         throw new Error("Não foi possível extrair URL da imagem");
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 3: Comparação de seeds diferentes
@@ -596,10 +597,10 @@ const imageTest = {
       } else {
         throw new Error("Falha ao gerar uma ou ambas imagens");
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha na comparação:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha na comparação:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 4: Diferentes resoluções
@@ -633,10 +634,10 @@ const imageTest = {
       } else {
         throw new Error("Não foi possível extrair URL da imagem");
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 5: Guidance Scale Comparison (CFG 3, 7, 15, 25)
@@ -681,10 +682,10 @@ const imageTest = {
       } else {
         throw new Error(`Apenas ${results.length}/3 imagens geradas`);
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha no guidance scale:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no guidance scale:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 6: Negative Prompt Effect (com vs sem negativePrompt)
@@ -731,10 +732,10 @@ const imageTest = {
       } else {
         throw new Error("Falha ao gerar uma ou ambas imagens");
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha no negative prompt:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no negative prompt:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 7: Model Trigger Words (anime, furry, normal)
@@ -782,10 +783,10 @@ const imageTest = {
       } else {
         throw new Error(`Apenas ${results.length}/3 estilos gerados`);
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha nos trigger words:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha nos trigger words:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 8: Emoji Prompts
@@ -833,10 +834,10 @@ const imageTest = {
       } else {
         throw new Error(`Apenas ${results.length}/3 imagens geradas`);
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha nos emoji prompts:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha nos emoji prompts:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Teste 9: onFinish Callback com metadados
@@ -898,10 +899,10 @@ const imageTest = {
       } else {
         throw new Error("Não foi possível extrair URL da imagem");
       }
-    } catch (error) {
-      console.error("❌ [Image] Falha no onFinish:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no onFinish:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // ============================================
@@ -945,10 +946,10 @@ const imageTest = {
       html += "</div>";
       contentArea.innerHTML = html;
       return { success: true, count: results.length };
-    } catch (error) {
-      console.error("❌ [Image] Falha no tag emphasis:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no tag emphasis:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   async testPromptOrdering() {
@@ -985,10 +986,10 @@ const imageTest = {
       html += "</div>";
       contentArea.innerHTML = html;
       return { success: true, count: results.length };
-    } catch (error) {
-      console.error("❌ [Image] Falha no prompt ordering:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no prompt ordering:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   async testCanvasPostProcessing() {
@@ -1055,10 +1056,10 @@ const imageTest = {
         </div>
       `;
       return { success: true, filters: ["original", "grayscale", "sepia", "overlay"] };
-    } catch (error) {
-      console.error("❌ [Image] Falha no canvas post-processing:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no canvas post-processing:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   async testBreakKeyword() {
@@ -1099,10 +1100,10 @@ const imageTest = {
         </p>
       `;
       return { success: true, count: 2 };
-    } catch (error) {
-      console.error("❌ [Image] Falha no BREAK keyword:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no BREAK keyword:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // ===== TESTE 10: Tag Blending =====
@@ -1138,10 +1139,10 @@ const imageTest = {
         </p>
       `;
       return { success: true, count: results.length };
-    } catch (error) {
-      console.error("❌ [Image] Falha no tag blending:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no tag blending:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // ===== TESTE 11: Multi-Image Grid =====
@@ -1174,10 +1175,10 @@ const imageTest = {
         </p>
       `;
       return { success: true, count: results.length };
-    } catch (error) {
-      console.error("❌ [Image] Falha no multi-image grid:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no multi-image grid:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // ===== TESTE 12: Alternating Tags =====
@@ -1213,10 +1214,10 @@ const imageTest = {
         </p>
       `;
       return { success: true, count: results.length };
-    } catch (error) {
-      console.error("❌ [Image] Falha nos alternating tags:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha nos alternating tags:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // ===== TESTE 13: Add/Remove During Generation =====
@@ -1252,10 +1253,10 @@ const imageTest = {
         </p>
       `;
       return { success: true, count: results.length };
-    } catch (error) {
-      console.error("❌ [Image] Falha no add/remove during generation:", error.message);
-      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error.message}</p>`;
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Image] Falha no add/remove during generation:", error2.message);
+      contentArea.innerHTML = `<p style="color:red">❌ Erro: ${error2.message}</p>`;
+      return { success: false, error: error2.message };
     }
   },
   // Fecha o container
@@ -1307,9 +1308,9 @@ async function _generateAIText(instruction, options = {}, timeout = 6e4) {
           reject(err);
         });
       }
-    } catch (error) {
+    } catch (error2) {
       clearTimeout(timeoutId);
-      reject(error);
+      reject(error2);
     }
   });
 }
@@ -1347,9 +1348,9 @@ const aiTextTest = {
         hiddenText: result2.text,
         hiddenGenerated: result2.generatedText
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no startWith test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no startWith test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 2: stopSequences
@@ -1365,9 +1366,9 @@ const aiTextTest = {
       );
       console.log("✅ [AI-Text] Texto com stopSequences:", result.generatedText);
       return { success: true, text: result.generatedText };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no stopSequences test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no stopSequences test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 3: style & outputTo
@@ -1396,9 +1397,9 @@ const aiTextTest = {
       );
       console.log("✅ [AI-Text] Texto com style & outputTo:", result.generatedText);
       return { success: true, text: result.generatedText, targetId };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no style & outputTo test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no style & outputTo test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 4: endButtons
@@ -1414,14 +1415,14 @@ const aiTextTest = {
       );
       console.log("✅ [AI-Text] Texto sem endButtons:", result.generatedText);
       return { success: true, text: result.generatedText };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no endButtons test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no endButtons test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // ===== FASE 2 TESTS =====
   // Teste 5: onChunk streaming
-  async testOnChunkStreaming(uiElement = null) {
+  async testOnChunkStreaming(uiElement = null, options = {}) {
     console.log("🤖 [AI-Text] Testando onChunk streaming...");
     if (!this.available) {
       return { success: false, error: "Plugin não disponível" };
@@ -1449,9 +1450,9 @@ const aiTextTest = {
         chunkCount: chunks.length,
         finalText: result.generatedText
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no onChunk streaming test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no onChunk streaming test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 6: onFinish capture
@@ -1488,9 +1489,9 @@ const aiTextTest = {
         capturedData,
         result
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no onFinish capture test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no onFinish capture test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 7: Dynamic prompts (instruction as function)
@@ -1514,9 +1515,9 @@ const aiTextTest = {
         text: result.generatedText,
         instructionType: "function"
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no dynamic prompts test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no dynamic prompts test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 8: render function
@@ -1556,9 +1557,9 @@ const aiTextTest = {
         text: result.generatedText,
         targetId
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no render function test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no render function test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // ===== FASE 3 TESTS =====
@@ -1609,9 +1610,9 @@ const aiTextTest = {
         parsed,
         raw: result.generatedText
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no structured JSON test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no structured JSON test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 10: Markdown render transformation
@@ -1639,9 +1640,9 @@ const aiTextTest = {
         finalText: result.generatedText,
         chunks: renderedChunks
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no markdown render test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no markdown render test:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 11: Concurrency limits
@@ -1668,9 +1669,9 @@ const aiTextTest = {
         successful,
         results
       };
-    } catch (error) {
-      console.error("❌ [AI-Text] Erro no concurrency test:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Text] Erro no concurrency test:", error2);
+      return { success: false, error: error2.message };
     }
   }
 };
@@ -1709,14 +1710,14 @@ const createImageContainer = (id, parent) => {
 const generateImage = (options = {}) => {
   return new Promise((resolve, reject) => {
     if (!isAvailable()) {
-      const error = new Error("Plugin advanced-ai-image-plugin não disponível. Verifique se aiImage = {import:advanced-ai-image-plugin} está no List Panel.");
-      console.error("❌ [AI-Image]", error.message);
-      return reject(error);
+      const error2 = new Error("Plugin advanced-ai-image-plugin não disponível. Verifique se aiImage = {import:advanced-ai-image-plugin} está no List Panel.");
+      console.error("❌ [AI-Image]", error2.message);
+      return reject(error2);
     }
     if (!options.prompt || typeof options.prompt !== "string" || options.prompt.trim() === "") {
-      const error = new Error("Prompt é obrigatório e não pode ser vazio");
-      console.error("❌ [AI-Image]", error.message);
-      return reject(error);
+      const error2 = new Error("Prompt é obrigatório e não pode ser vazio");
+      console.error("❌ [AI-Image]", error2.message);
+      return reject(error2);
     }
     const startTime = Date.now();
     console.log("🎨 [AI-Image] Iniciando geração de imagem...", { prompt: options.prompt.substring(0, 50) + "..." });
@@ -1843,19 +1844,19 @@ const generateImage = (options = {}) => {
 const generateBatch = (options = {}, count = 1) => {
   return new Promise((resolve, reject) => {
     if (!isAvailable()) {
-      const error = new Error("Plugin advanced-ai-image-plugin não disponível");
-      console.error("❌ [AI-Image]", error.message);
-      return reject(error);
+      const error2 = new Error("Plugin advanced-ai-image-plugin não disponível");
+      console.error("❌ [AI-Image]", error2.message);
+      return reject(error2);
     }
     if (!Number.isInteger(count) || count < 1 || count > 10) {
-      const error = new Error("Count deve ser um inteiro entre 1 e 10");
-      console.error("❌ [AI-Image]", error.message);
-      return reject(error);
+      const error2 = new Error("Count deve ser um inteiro entre 1 e 10");
+      console.error("❌ [AI-Image]", error2.message);
+      return reject(error2);
     }
     if (!options.prompt || typeof options.prompt !== "string" || options.prompt.trim() === "") {
-      const error = new Error("Prompt é obrigatório e não pode ser vazio");
-      console.error("❌ [AI-Image]", error.message);
-      return reject(error);
+      const error2 = new Error("Prompt é obrigatório e não pode ser vazio");
+      console.error("❌ [AI-Image]", error2.message);
+      return reject(error2);
     }
     const startTime = Date.now();
     console.log(`🎨 [AI-Image] Iniciando geração em lote de ${count} imagens...`);
@@ -2055,9 +2056,9 @@ const aiImageTest = {
           totalTime: elapsedTime2
         }
       };
-    } catch (error) {
-      console.error("❌ [AI-Image] Erro no testSingleGeneration:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Image] Erro no testSingleGeneration:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 2: Geração em lote
@@ -2130,9 +2131,9 @@ const aiImageTest = {
           seeds: results.map((r) => r.seed)
         }
       };
-    } catch (error) {
-      console.error("❌ [AI-Image] Erro no testBatchGeneration:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Image] Erro no testBatchGeneration:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 3: Processamento de prompt (hooks e tags padrão)
@@ -2198,9 +2199,9 @@ const aiImageTest = {
           finalPrompt: finalPrompt.substring(0, 100) + "..."
         }
       };
-    } catch (error) {
-      console.error("❌ [AI-Image] Erro no testPromptProcessing:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Image] Erro no testPromptProcessing:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 4: Tratamento de erros
@@ -2220,8 +2221,8 @@ const aiImageTest = {
       } else {
         console.log("✅ [AI-Image] Prompt vazio tratado corretamente:", result.error);
       }
-    } catch (error) {
-      console.log("✅ [AI-Image] Prompt vazio lançou exceção:", error.message);
+    } catch (error2) {
+      console.log("✅ [AI-Image] Prompt vazio lançou exceção:", error2.message);
     }
     try {
       const result = await generateImage({
@@ -2229,8 +2230,8 @@ const aiImageTest = {
         resolution: "invalid_resolution"
       });
       console.log("✅ [AI-Image] Resolução inválida tratada:", result.success ? "aceita" : "rejeitada");
-    } catch (error) {
-      console.log("✅ [AI-Image] Resolução inválida lançou exceção:", error.message);
+    } catch (error2) {
+      console.log("✅ [AI-Image] Resolução inválida lançou exceção:", error2.message);
     }
     try {
       const result = await generateImage({
@@ -2243,8 +2244,8 @@ const aiImageTest = {
       } else {
         console.log("✅ [AI-Image] Container inexistente tratado corretamente:", result.error);
       }
-    } catch (error) {
-      console.log("✅ [AI-Image] Container inexistente lançou exceção:", error.message);
+    } catch (error2) {
+      console.log("✅ [AI-Image] Container inexistente lançou exceção:", error2.message);
     }
     if (errors.length > 0) {
       return { success: false, error: errors.join("; ") };
@@ -2310,9 +2311,9 @@ const aiImageTest = {
           contextPrompt: contextProcessedPrompt.substring(0, 100) + "..."
         }
       };
-    } catch (error) {
-      console.error("❌ [AI-Image] Erro no testPlaintextAndContext:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Image] Erro no testPlaintextAndContext:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 6: Hook preprocessAll
@@ -2374,9 +2375,9 @@ const aiImageTest = {
           modificationApplied: hasModification
         }
       };
-    } catch (error) {
-      console.error("❌ [AI-Image] Erro no testPreprocessAllHook:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Image] Erro no testPreprocessAllHook:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 7: Wrappers por Imagem (before, after, html)
@@ -2433,9 +2434,9 @@ const aiImageTest = {
           wrapperElementFound: !!wrapperElement
         }
       };
-    } catch (error) {
-      console.error("❌ [AI-Image] Erro no testHtmlWrappers:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Image] Erro no testHtmlWrappers:", error2);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 8: Wrappers de Lote (beforeAll, afterAll, htmlAll)
@@ -2495,9 +2496,9 @@ const aiImageTest = {
           imagesGenerated: results.length
         }
       };
-    } catch (error) {
-      console.error("❌ [AI-Image] Erro no testBatchHtmlWrappers:", error);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [AI-Image] Erro no testBatchHtmlWrappers:", error2);
+      return { success: false, error: error2.message };
     }
   }
 };
@@ -2530,8 +2531,8 @@ const listsTest = {
       const selected = typeof list.selectOne === "function" ? list.selectOne() : list.selectOne;
       console.log(`✅ [Lists] Item selecionado: ${selected}`);
       return selected;
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em selectOne:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em selectOne:`, error2);
       return null;
     }
   },
@@ -2543,8 +2544,8 @@ const listsTest = {
       const selected = typeof list.selectMany === "function" ? list.selectMany(count) : Array(count).fill(list.selectOne || "item");
       console.log(`✅ [Lists] ${count} itens selecionados:`, selected);
       return selected;
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em selectMany:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em selectMany:`, error2);
       return [];
     }
   },
@@ -2564,8 +2565,8 @@ const listsTest = {
         console.log(`✅ [Lists] ${unique.length} itens únicos (fallback):`, unique);
         return unique;
       }
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em selectUnique:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em selectUnique:`, error2);
       return [];
     }
   },
@@ -2588,8 +2589,8 @@ const listsTest = {
         console.warn(`⚠️ [Lists] consumableList não disponível`);
         return [];
       }
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em consumableList:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em consumableList:`, error2);
       return [];
     }
   },
@@ -2603,8 +2604,8 @@ const listsTest = {
       const plural = singular.pluralForm || `${singular}s`;
       console.log(`✅ [Lists] Singular: "${singular}" → Plural: "${plural}"`);
       return { singular, plural };
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em pluralForm:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em pluralForm:`, error2);
       return { singular: "item", plural: "items" };
     }
   },
@@ -2618,8 +2619,8 @@ const listsTest = {
       const titled = normal.titleCase || normal.charAt(0).toUpperCase() + normal.slice(1);
       console.log(`✅ [Lists] Normal: "${normal}" → TitleCase: "${titled}"`);
       return { normal, titled };
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em titleCase:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em titleCase:`, error2);
       return { normal: "adjetivo", titled: "Adjetivo" };
     }
   },
@@ -2632,8 +2633,8 @@ const listsTest = {
       const joined = items.joinItems ? items.joinItems(separator) : items.join(separator);
       console.log(`✅ [Lists] Itens unidos: "${joined}"`);
       return joined;
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em joinItems:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em joinItems:`, error2);
       return "item1, item2, item3";
     }
   },
@@ -2645,8 +2646,8 @@ const listsTest = {
       const length = list.getLength ? list.getLength : list.length || 0;
       console.log(`✅ [Lists] Comprimento da lista: ${length}`);
       return length;
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em getLength:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em getLength:`, error2);
       return 0;
     }
   },
@@ -2658,8 +2659,8 @@ const listsTest = {
       const keys = list.getAllKeys || list.$allKeys || [];
       console.log(`✅ [Lists] Chaves disponíveis:`, keys);
       return keys;
-    } catch (error) {
-      console.error(`❌ [Lists] Erro em getAllKeys:`, error);
+    } catch (error2) {
+      console.error(`❌ [Lists] Erro em getAllKeys:`, error2);
       return [];
     }
   }
@@ -2716,8 +2717,8 @@ const stateTest = {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
       console.log("✅ [State] Estado salvo com sucesso");
       return true;
-    } catch (error) {
-      console.error("❌ [State] Erro ao salvar:", error);
+    } catch (error2) {
+      console.error("❌ [State] Erro ao salvar:", error2);
       return false;
     }
   },
@@ -2736,8 +2737,8 @@ const stateTest = {
       }
       console.log("✅ [State] Estado carregado:", state);
       return state;
-    } catch (error) {
-      console.error("❌ [State] Erro ao carregar:", error);
+    } catch (error2) {
+      console.error("❌ [State] Erro ao carregar:", error2);
       return null;
     }
   },
@@ -2748,8 +2749,8 @@ const stateTest = {
       localStorage.removeItem(STORAGE_KEY);
       console.log("✅ [State] Estado limpo");
       return true;
-    } catch (error) {
-      console.error("❌ [State] Erro ao limpar:", error);
+    } catch (error2) {
+      console.error("❌ [State] Erro ao limpar:", error2);
       return false;
     }
   },
@@ -3094,8 +3095,8 @@ const ttsTest = {
       root.speak(text);
       console.log("✅ [TTS] Fala iniciada!");
       return true;
-    } catch (error) {
-      console.error("❌ [TTS] Erro ao iniciar fala:", error.message);
+    } catch (error2) {
+      console.error("❌ [TTS] Erro ao iniciar fala:", error2.message);
       return null;
     }
   },
@@ -3118,8 +3119,8 @@ const ttsTest = {
       }
       console.log("✅ [TTS] Fala com opções iniciada!");
       return true;
-    } catch (error) {
-      console.error("❌ [TTS] Erro ao iniciar fala com opções:", error.message);
+    } catch (error2) {
+      console.error("❌ [TTS] Erro ao iniciar fala com opções:", error2.message);
       return null;
     }
   },
@@ -3143,8 +3144,8 @@ const ttsTest = {
       }
       console.warn("⚠️ [TTS] Nenhum método de stop disponível");
       return false;
-    } catch (error) {
-      console.error("❌ [TTS] Erro ao parar fala:", error.message);
+    } catch (error2) {
+      console.error("❌ [TTS] Erro ao parar fala:", error2.message);
       return null;
     }
   },
@@ -3164,8 +3165,8 @@ const ttsTest = {
         });
       }
       return voices;
-    } catch (error) {
-      console.error("❌ [TTS] Erro ao obter vozes:", error.message);
+    } catch (error2) {
+      console.error("❌ [TTS] Erro ao obter vozes:", error2.message);
       return [];
     }
   },
@@ -3195,8 +3196,8 @@ const ttsTest = {
       window.speechSynthesis.speak(utterance);
       console.log("✅ [TTS] Fala com voz específica iniciada!");
       return true;
-    } catch (error) {
-      console.error("❌ [TTS] Erro ao falar com voz específica:", error.message);
+    } catch (error2) {
+      console.error("❌ [TTS] Erro ao falar com voz específica:", error2.message);
       return null;
     }
   },
@@ -3249,9 +3250,9 @@ const diceTest = {
       const result = root.dice("1d20");
       console.log(`✅ [Dice] Resultado: ${result}`);
       return { success: true, result };
-    } catch (error) {
-      console.error("❌ [Dice] Erro:", error.message);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Dice] Erro:", error2.message);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 2: Rolar múltiplos dados (3d6)
@@ -3264,9 +3265,9 @@ const diceTest = {
       const result = root.dice("3d6");
       console.log(`✅ [Dice] Resultado: ${result}`);
       return { success: true, result };
-    } catch (error) {
-      console.error("❌ [Dice] Erro:", error.message);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Dice] Erro:", error2.message);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 3: Rolar com modificador (2d8+5)
@@ -3279,9 +3280,9 @@ const diceTest = {
       const result = root.dice("2d8+5");
       console.log(`✅ [Dice] Resultado: ${result}`);
       return { success: true, result };
-    } catch (error) {
-      console.error("❌ [Dice] Erro:", error.message);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Dice] Erro:", error2.message);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 4: Rolagem complexa (1d20+5 vs CA 15)
@@ -3296,9 +3297,9 @@ const diceTest = {
       const hit = roll >= ac;
       console.log(`✅ [Dice] Rolagem: ${roll} | ${hit ? "ACERTO!" : "ERROU"}`);
       return { success: true, roll, ac, hit };
-    } catch (error) {
-      console.error("❌ [Dice] Erro:", error.message);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Dice] Erro:", error2.message);
+      return { success: false, error: error2.message };
     }
   },
   // Teste 5: Múltiplas rolagens de uma vez
@@ -3318,9 +3319,9 @@ const diceTest = {
       rolls.push({ dice: "1d100", result: root.dice("1d100") });
       console.log("✅ [Dice] Múltiplas rolagens:", rolls);
       return { success: true, rolls };
-    } catch (error) {
-      console.error("❌ [Dice] Erro:", error.message);
-      return { success: false, error: error.message };
+    } catch (error2) {
+      console.error("❌ [Dice] Erro:", error2.message);
+      return { success: false, error: error2.message };
     }
   }
 };
@@ -3351,8 +3352,8 @@ const rpgIconTest = {
       console.log("✅ [RPG-Icon] Ícone obtido!");
       console.log("   HTML:", html);
       return html;
-    } catch (error) {
-      console.error("❌ [RPG-Icon] Erro ao obter ícone:", error.message);
+    } catch (error2) {
+      console.error("❌ [RPG-Icon] Erro ao obter ícone:", error2.message);
       return null;
     }
   },
@@ -3377,8 +3378,8 @@ const rpgIconTest = {
       console.log(`✅ [RPG-Icon] ${icons.length} ícones obtidos!`);
       this._showIconGrid(icons);
       return icons;
-    } catch (error) {
-      console.error("❌ [RPG-Icon] Erro ao obter múltiplos ícones:", error.message);
+    } catch (error2) {
+      console.error("❌ [RPG-Icon] Erro ao obter múltiplos ícones:", error2.message);
       return null;
     }
   },
@@ -3394,8 +3395,8 @@ const rpgIconTest = {
       const html = root.rpgIcon(randomName);
       console.log("✅ [RPG-Icon] Ícone aleatório obtido!");
       return { name: randomName, html };
-    } catch (error) {
-      console.error("❌ [RPG-Icon] Erro ao obter ícone aleatório:", error.message);
+    } catch (error2) {
+      console.error("❌ [RPG-Icon] Erro ao obter ícone aleatório:", error2.message);
       return null;
     }
   },
@@ -3430,8 +3431,8 @@ const rpgIconTest = {
       console.log("✅ [RPG-Icon] HTML de inventário criado!");
       console.log("   Você pode injetar este HTML em qualquer elemento");
       return html;
-    } catch (error) {
-      console.error("❌ [RPG-Icon] Erro na demonstração:", error.message);
+    } catch (error2) {
+      console.error("❌ [RPG-Icon] Erro na demonstração:", error2.message);
       return null;
     }
   },
@@ -3556,8 +3557,8 @@ const patternTest = {
         }
       }
       return result;
-    } catch (error) {
-      console.error("❌ [Pattern] Erro ao gerar padrão:", error.message);
+    } catch (error2) {
+      console.error("❌ [Pattern] Erro ao gerar padrão:", error2.message);
       return null;
     }
   },
@@ -3589,8 +3590,8 @@ const patternTest = {
       const result = root.pattern(patternOptions);
       console.log("✅ [Pattern] Padrão customizado gerado!");
       return result;
-    } catch (error) {
-      console.error("❌ [Pattern] Erro ao gerar padrão customizado:", error.message);
+    } catch (error2) {
+      console.error("❌ [Pattern] Erro ao gerar padrão customizado:", error2.message);
       return null;
     }
   },
@@ -3623,8 +3624,8 @@ const patternTest = {
       console.log("✅ [Pattern] Padrão tileable gerado!");
       console.log("   Este padrão pode ser repetido sem costuras visíveis");
       return result;
-    } catch (error) {
-      console.error("❌ [Pattern] Erro ao gerar padrão tileable:", error.message);
+    } catch (error2) {
+      console.error("❌ [Pattern] Erro ao gerar padrão tileable:", error2.message);
       return null;
     }
   },
@@ -3713,8 +3714,8 @@ const kvTest = {
       await this.store.set(key, value);
       console.log(`✅ [KV] Valor salvo com sucesso!`);
       return true;
-    } catch (error) {
-      console.error("❌ [KV] Erro ao salvar:", error.message);
+    } catch (error2) {
+      console.error("❌ [KV] Erro ao salvar:", error2.message);
       return null;
     }
   },
@@ -3730,8 +3731,8 @@ const kvTest = {
       const value = await this.store.get(key);
       console.log(`✅ [KV] Valor recuperado: ${value}`);
       return value;
-    } catch (error) {
-      console.error("❌ [KV] Erro ao recuperar:", error.message);
+    } catch (error2) {
+      console.error("❌ [KV] Erro ao recuperar:", error2.message);
       return null;
     }
   },
@@ -3756,8 +3757,8 @@ const kvTest = {
       const retrieved = await this.store.get("player");
       console.log("📦 [KV] Objeto recuperado:", retrieved);
       return retrieved;
-    } catch (error) {
-      console.error("❌ [KV] Erro ao salvar objeto:", error.message);
+    } catch (error2) {
+      console.error("❌ [KV] Erro ao salvar objeto:", error2.message);
       return null;
     }
   },
@@ -3773,8 +3774,8 @@ const kvTest = {
       const keys = await this.store.keys();
       console.log("✅ [KV] Chaves:", keys);
       return keys;
-    } catch (error) {
-      console.error("❌ [KV] Erro ao listar chaves:", error.message);
+    } catch (error2) {
+      console.error("❌ [KV] Erro ao listar chaves:", error2.message);
       return null;
     }
   },
@@ -3790,8 +3791,8 @@ const kvTest = {
       await this.store.delete(key);
       console.log("✅ [KV] Valor deletado!");
       return true;
-    } catch (error) {
-      console.error("❌ [KV] Erro ao deletar:", error.message);
+    } catch (error2) {
+      console.error("❌ [KV] Erro ao deletar:", error2.message);
       return null;
     }
   },
@@ -3808,8 +3809,8 @@ const kvTest = {
       const newValue = await this.store.get(key);
       console.log(`✅ [KV] Novo valor de ${key}: ${newValue}`);
       return newValue;
-    } catch (error) {
-      console.error("❌ [KV] Erro ao atualizar:", error.message);
+    } catch (error2) {
+      console.error("❌ [KV] Erro ao atualizar:", error2.message);
       return null;
     }
   },
@@ -3856,8 +3857,8 @@ const seederTest = {
       console.log("✅ [Seeder] Seed aplicada com sucesso!");
       console.log("   A partir de agora, seleções aleatórias do Perchance serão determinísticas");
       return seedText;
-    } catch (error) {
-      console.error("❌ [Seeder] Erro ao aplicar seed:", error.message);
+    } catch (error2) {
+      console.error("❌ [Seeder] Erro ao aplicar seed:", error2.message);
       return null;
     }
   },
@@ -3893,8 +3894,8 @@ const seederTest = {
       const match = JSON.stringify(results1) === JSON.stringify(results2);
       console.log(match ? "✅ [Seeder] Resultados idênticos! Seed funciona!" : "⚠️ [Seeder] Resultados diferentes (pode ser esperado se não houver listas)");
       return { seed, results1, results2, match };
-    } catch (error) {
-      console.error("❌ [Seeder] Erro na demonstração:", error.message);
+    } catch (error2) {
+      console.error("❌ [Seeder] Erro na demonstração:", error2.message);
       return null;
     }
   },
@@ -3909,8 +3910,8 @@ const seederTest = {
       root.seeder("");
       console.log("✅ [Seeder] Seed resetado! Seleções voltarão a ser completamente aleatórias");
       return true;
-    } catch (error) {
-      console.error("❌ [Seeder] Erro ao resetar:", error.message);
+    } catch (error2) {
+      console.error("❌ [Seeder] Erro ao resetar:", error2.message);
       return null;
     }
   },
@@ -5944,7 +5945,7 @@ function requireHowler() {
         }
       };
       var decodeAudioData = function(arraybuffer, self2) {
-        var error = function() {
+        var error2 = function() {
           self2._emit("loaderror", null, "Decoding audio data failed.");
         };
         var success = function(buffer) {
@@ -5952,13 +5953,13 @@ function requireHowler() {
             cache[self2._src] = buffer;
             loadSound(self2, buffer);
           } else {
-            error();
+            error2();
           }
         };
         if (typeof Promise !== "undefined" && Howler2.ctx.decodeAudioData.length === 1) {
-          Howler2.ctx.decodeAudioData(arraybuffer).then(success).catch(error);
+          Howler2.ctx.decodeAudioData(arraybuffer).then(success).catch(error2);
         } else {
-          Howler2.ctx.decodeAudioData(arraybuffer, success, error);
+          Howler2.ctx.decodeAudioData(arraybuffer, success, error2);
         }
       };
       var loadSound = function(self2, buffer) {
@@ -6449,8 +6450,8 @@ function createSound(name, options = {}) {
     html5: true,
     // Force HTML5 Audio for better compatibility
     preload: true,
-    onerror: (id, error) => {
-      console.error(`🔊 [Audio] Error loading ${name}:`, error);
+    onerror: (id, error2) => {
+      console.error(`🔊 [Audio] Error loading ${name}:`, error2);
       console.error(`   URL: ${AUDIO_URLS[name]}`);
     },
     onload: () => {
@@ -6469,8 +6470,8 @@ function playSFX(name) {
     sound.play();
     console.log(`🔊 [Audio] Playing SFX: ${name}`);
     return true;
-  } catch (error) {
-    console.error(`❌ [Audio] Failed to play ${name}:`, error.message);
+  } catch (error2) {
+    console.error(`❌ [Audio] Failed to play ${name}:`, error2.message);
     return false;
   }
 }
@@ -6484,8 +6485,8 @@ function playMusic(name = "music") {
     sound.play();
     console.log(`🎵 [Audio] Playing music: ${name} (loop: true)`);
     return true;
-  } catch (error) {
-    console.error(`❌ [Audio] Failed to play music:`, error.message);
+  } catch (error2) {
+    console.error(`❌ [Audio] Failed to play music:`, error2.message);
     return false;
   }
 }
@@ -6498,8 +6499,8 @@ function stopAll() {
     });
     console.log("🔇 [Audio] All sounds stopped");
     return true;
-  } catch (error) {
-    console.error("❌ [Audio] Failed to stop sounds:", error.message);
+  } catch (error2) {
+    console.error("❌ [Audio] Failed to stop sounds:", error2.message);
     return false;
   }
 }
@@ -6526,8 +6527,8 @@ function toggleMusic(name = "music") {
       console.log(`▶️ [Audio] Resumed: ${name}`);
     }
     return true;
-  } catch (error) {
-    console.error("❌ [Audio] Toggle failed:", error.message);
+  } catch (error2) {
+    console.error("❌ [Audio] Toggle failed:", error2.message);
     return false;
   }
 }
@@ -6547,14 +6548,14 @@ function testSprite() {
         volume: globalVolume,
         html5: true,
         onload: () => console.log("✅ [Audio] Sprite loaded"),
-        onerror: (id, error) => console.error("❌ [Audio] Sprite error:", error)
+        onerror: (id, error2) => console.error("❌ [Audio] Sprite error:", error2)
       });
     }
     sounds.sprite.play("middle");
     console.log("🎵 [Audio] Playing sprite: middle (2-4s)");
     return true;
-  } catch (error) {
-    console.error("❌ [Audio] Sprite test failed:", error.message);
+  } catch (error2) {
+    console.error("❌ [Audio] Sprite test failed:", error2.message);
     return false;
   }
 }
@@ -6630,9 +6631,9 @@ function preloadMermaid() {
       resolve(mermaidInstance);
     };
     script.onerror = () => {
-      const error = new Error("Failed to load Mermaid from CDN");
-      console.error(`❌ [Mermaid] ${error.message}`);
-      reject(error);
+      const error2 = new Error("Failed to load Mermaid from CDN");
+      console.error(`❌ [Mermaid] ${error2.message}`);
+      reject(error2);
     };
     document.head.appendChild(script);
   });
@@ -6732,13 +6733,13 @@ async function renderDiagram(type, container2) {
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     console.log(`✅ [Mermaid] Rendered ${type} diagram`);
     return true;
-  } catch (error) {
-    console.error(`❌ [Mermaid] Failed to render ${type}:`, error.message);
+  } catch (error2) {
+    console.error(`❌ [Mermaid] Failed to render ${type}:`, error2.message);
     const errorDiv = document.createElement("div");
     errorDiv.className = "mermaid-error";
     errorDiv.innerHTML = `
       <strong>❌ Error rendering ${type}:</strong><br>
-      ${error.message}
+      ${error2.message}
     `;
     container2.appendChild(errorDiv);
     return false;
@@ -6907,8 +6908,8 @@ async function initPhysics() {
     Matter2.Runner.run(runner, engine);
     console.log("✅ [Matter] Physics simulation initialized");
     addBalls(5);
-  } catch (error) {
-    console.error("❌ [Matter] Failed to initialize:", error);
+  } catch (error2) {
+    console.error("❌ [Matter] Failed to initialize:", error2);
   }
 }
 function addBall(x = 400, y = 50) {
@@ -7040,9 +7041,9 @@ function preloadCannon() {
       cannonReady = true;
       console.log(`✅ [Cannon] Loaded from CDN (${VERSION})`);
       return cannonModule;
-    } catch (error) {
-      console.error("❌ [Cannon] Failed to load from CDN:", error.message);
-      throw error;
+    } catch (error2) {
+      console.error("❌ [Cannon] Failed to load from CDN:", error2.message);
+      throw error2;
     }
   })();
 }
@@ -7137,8 +7138,8 @@ async function initPhysics3D() {
     const fixedTimeStep = 1 / 60;
     animate();
     console.log("✅ [Cannon] 3D Physics simulation initialized (isolated renderer)");
-  } catch (error) {
-    console.error("❌ [Cannon] Failed to initialize:", error.message);
+  } catch (error2) {
+    console.error("❌ [Cannon] Failed to initialize:", error2.message);
   }
 }
 function addSphere(x, y, z) {
@@ -8180,9 +8181,9 @@ function preloadGsap() {
       resolve(gsapInstance);
     };
     script.onerror = () => {
-      const error = new Error("Failed to load GSAP from CDN");
-      console.error(`❌ [GSAP] ${error.message}`);
-      reject(error);
+      const error2 = new Error("Failed to load GSAP from CDN");
+      console.error(`❌ [GSAP] ${error2.message}`);
+      reject(error2);
     };
     document.head.appendChild(script);
   });
@@ -8553,6 +8554,100 @@ const gsapTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePr
   testStagger,
   testTimeline
 }, Symbol.toStringTag, { value: "Module" }));
+const log = (msg, ...args) => console.log(`⌨️ [Typewriter] ${msg}`, ...args);
+const warn = (msg, ...args) => console.warn(`⚠️ [Typewriter] ${msg}`, ...args);
+const error = (msg, ...args) => console.error(`❌ [Typewriter] ${msg}`, ...args);
+const typewriterTest = {
+  available: !!(aiTextTest == null ? void 0 : aiTextTest.available),
+  /**
+   * Testa a integração de streaming de chunks da IA com efeito typewriter.
+   * Em vez de exibir os chunks inteiros de uma vez (como no onChunk padrão),
+   * este teste suaviza a exibição digitando caractere por caractere.
+   * 
+   * @param {HTMLElement} uiElement - Elemento DOM onde o texto será exibido
+   * @param {Object} options - Opções de configuração
+   * @param {number} options.charsPerSecond - Velocidade de digitação (padrão: 30)
+   * @param {string} options.prompt - Prompt para a IA
+   * @returns {Promise<Object>} Resultado do teste
+   */
+  async testTypewriterIntegration(uiElement, options = {}) {
+    log("Iniciando teste de integração typewriter + AI streaming...");
+    if (!this.available) {
+      return { success: false, error: "ai-text-plugin não disponível" };
+    }
+    const {
+      charsPerSecond = 30,
+      prompt = "Escreva uma frase curta sobre um aventureiro em uma floresta mágica."
+    } = options;
+    if (!uiElement) {
+      return { success: false, error: "Elemento UI não fornecido" };
+    }
+    uiElement.innerHTML = "";
+    uiElement.style.cssText += "font-family: monospace; white-space: pre-wrap; line-height: 1.6;";
+    const charQueue = [];
+    let isTyping = false;
+    let totalCharsReceived = 0;
+    let totalChunksReceived = 0;
+    const typeNextChar = () => {
+      if (charQueue.length === 0) {
+        isTyping = false;
+        return;
+      }
+      isTyping = true;
+      const char = charQueue.shift();
+      uiElement.textContent += char;
+      const delayMs = 1e3 / charsPerSecond;
+      setTimeout(typeNextChar, delayMs);
+    };
+    const onChunkHandler = (data) => {
+      if (data && data.textChunk) {
+        totalChunksReceived++;
+        const chars = data.textChunk.split("");
+        charQueue.push(...chars);
+        totalCharsReceived += chars.length;
+        if (!isTyping) {
+          typeNextChar();
+        }
+      }
+    };
+    try {
+      const result = await aiTextTest.testOnChunkStreaming(uiElement, {
+        customOnChunk: onChunkHandler
+      });
+      await new Promise((resolve) => {
+        const checkQueue = () => {
+          if (charQueue.length === 0 && !isTyping) {
+            resolve();
+          } else {
+            setTimeout(checkQueue, 100);
+          }
+        };
+        checkQueue();
+      });
+      log(`Teste concluído. Chunks: ${totalChunksReceived}, Caracteres: ${totalCharsReceived}`);
+      return {
+        success: true,
+        totalChunks: totalChunksReceived,
+        totalChars: totalCharsReceived,
+        finalText: uiElement.textContent,
+        charsPerSecond
+      };
+    } catch (err) {
+      error("Erro no teste de integração:", err);
+      return { success: false, error: err.message };
+    }
+  }
+};
+log("Módulo typewriter-test.js carregado.");
+if (typewriterTest.available) {
+  log("ai-text-plugin disponível para integração.");
+} else {
+  warn("ai-text-plugin NÃO disponível. Verifique se está importado no List Panel.");
+}
+const typewriterTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  typewriterTest
+}, Symbol.toStringTag, { value: "Module" }));
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 function injectStylesheet() {
   if (document.getElementById("ui-test-styles")) return;
@@ -8589,9 +8684,9 @@ async function runTest(btnId, testName, testFn) {
     const duration = Date.now() - startTime;
     console.log(`✅ [${testName}] Passed (${duration}ms)`);
     setButtonStatus(btnId, "success");
-  } catch (error) {
+  } catch (error2) {
     const duration = Date.now() - startTime;
-    console.error(`❌ [${testName}] Failed (${duration}ms):`, error.message);
+    console.error(`❌ [${testName}] Failed (${duration}ms):`, error2.message);
     setButtonStatus(btnId, "error");
   }
 }
@@ -8638,7 +8733,8 @@ function initUITest(rendererData, testModules) {
     particlesTest: particlesTest2,
     cellularAutomataTest: cellularAutomataTest2,
     indexeddbTest: indexeddbTest2,
-    gsapTest: gsapTest2
+    gsapTest: gsapTest2,
+    typewriterTest: typewriterTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -8692,7 +8788,8 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-gsap-from", name: "GSAP From", fn: () => gsapFromHandler() },
     { btnId: "btn-gsap-timeline", name: "GSAP Timeline", fn: () => gsapTimelineHandler() },
     { btnId: "btn-gsap-stagger", name: "GSAP Stagger", fn: () => gsapStaggerHandler() },
-    { btnId: "btn-gsap-easing", name: "GSAP Easing", fn: () => gsapEasingHandler() }
+    { btnId: "btn-gsap-easing", name: "GSAP Easing", fn: () => gsapEasingHandler() },
+    { btnId: "btn-typewriter", name: "Typewriter", fn: () => typewriterHandler() }
   ];
   const HOW_IT_WORKS_DATA = [
     { id: "dice", title: "🎲 Dice", what: "Tests Perchance native dice rolling syntax (1d4, 1d6, 1d20, etc.).", how: "Calls <code>root.dice()</code> for each standard RPG die, captures results, and renders a comparison table.", key: "Perchance <code>root.dice()</code>, RNG, string parsing." },
@@ -9779,6 +9876,48 @@ function initUITest(rendererData, testModules) {
     if (!gsapTest2) throw new Error("GSAP not available");
     gsapTest2.cleanup();
   }
+  async function typewriterHandler() {
+    console.log("⌨️ Testing Typewriter + AI streaming integration...");
+    if (!typewriterTest2 || !typewriterTest2.available) throw new Error("Typewriter test not available");
+    const { contentArea } = createTestContainer("⌨️ Typewriter + AI Streaming", { id: "test-typewriter", width: 600, height: 500 });
+    contentArea.innerHTML = `
+      <div style="padding: 15px;">
+        <div style="margin-bottom: 10px; color: #94a3b8; font-size: 12px;">
+          📡 Streaming IA com efeito typewriter (30 caracteres/segundo):
+        </div>
+        <div id="typewriter-display" style="
+          font-family: monospace; 
+          white-space: pre-wrap; 
+          background: #0f172a; 
+          color: #4ade80; 
+          padding: 15px; 
+          min-height: 120px; 
+          border-radius: 6px;
+          border: 1px solid #334155;
+          font-size: 14px;
+          line-height: 1.6;
+          max-height: 300px;
+          overflow-y: auto;
+        "></div>
+        <div id="typewriter-status" style="margin-top: 10px; color: #64748b; font-size: 11px; text-align: center;">
+          ⏳ Aguardando início...
+        </div>
+      </div>
+    `;
+    const typewriterDisplay = document.getElementById("typewriter-display");
+    const typewriterStatus = document.getElementById("typewriter-status");
+    typewriterStatus.textContent = "⏳ Gerando texto com IA e aplicando typewriter...";
+    const result = await typewriterTest2.testTypewriterIntegration(typewriterDisplay, {
+      charsPerSecond: 30,
+      prompt: "Escreva uma frase curta sobre um aventureiro em uma floresta mágica."
+    });
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha no teste"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Test failed");
+    }
+    typewriterStatus.innerHTML = `✅ <span style="color:#4ade80;">${result.totalChunks} chunks recebidos</span> | <span style="color:#94a3b8;">${result.totalChars} caracteres digitados</span> | <span style="color:#f59e0b;">${result.charsPerSecond} chars/s</span>`;
+    console.log("✅ Typewriter integration test completed!");
+  }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
   panel.innerHTML = `
@@ -9818,6 +9957,7 @@ function initUITest(rendererData, testModules) {
       <button id="btn-ai-json" class="ui-test-btn ui-test-btn--ai">📋 JSON</button>
       <button id="btn-ai-markdown" class="ui-test-btn ui-test-btn--ai">📝 Markdown</button>
       <button id="btn-ai-concurrency" class="ui-test-btn ui-test-btn--ai">⚡ Concurrency</button>
+      <button id="btn-typewriter" class="ui-test-btn ui-test-btn--ai">⌨️ Typewriter</button>
       <button id="btn-tts" class="ui-test-btn ui-test-btn--ai">🔊 TTS</button>
     </div>
     
@@ -10002,6 +10142,7 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-gsap-stagger").onclick = () => runTest("btn-gsap-stagger", "GSAP Stagger", gsapStaggerHandler);
   document.getElementById("btn-gsap-easing").onclick = () => runTest("btn-gsap-easing", "GSAP Easing", gsapEasingHandler);
   document.getElementById("btn-gsap-cleanup").onclick = () => runTest("btn-gsap-cleanup", "GSAP Cleanup", gsapCleanupHandler);
+  document.getElementById("btn-typewriter").onclick = () => runTest("btn-typewriter", "Typewriter", typewriterHandler);
   console.log(`✅ [UI-Test] Test panel ${VERSION} created with global controls.`);
 }
 const uiTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
