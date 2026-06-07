@@ -1,4 +1,4 @@
-// List Panel para Perchance - v1.28.7
+// List Panel para Perchance - v1.29.0
 // Cole este conteúdo no List Panel do seu gerador Perchance
 // ⚠️ IMPORTANTE: Use 2 espaços para indentação (não 4!)
 

@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.28.7";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.7`;
+const VERSION = "v1.29.0";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.29.0`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -8682,20 +8682,30 @@ function generateProceduralMap(seed, size = 10) {
   const rand = mulberry32(seed);
   const noise2D = createNoise2D(rand);
   const map = [];
+  const center = size / 2;
   for (let y = 0; y < size; y++) {
     map[y] = [];
     for (let x = 0; x < size; x++) {
-      const nx = x / size * 4;
-      const ny = y / size * 4;
+      const nx = x / size * 3;
+      const ny = y / size * 3;
       let value = noise2D(nx, ny);
-      value = (value + 1) / 2;
-      let level = Math.floor(value * 6) + 1;
-      map[y][x] = Math.max(1, Math.min(6, level));
+      const dx = (x - center) / center;
+      const dy = (y - center) / center;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const islandFactor = Math.max(0, 1 - dist * 0.6);
+      let heightValue = (value + 1) / 2;
+      heightValue = heightValue * islandFactor;
+      let level = Math.floor(heightValue * 6) + 1;
+      level = Math.max(1, Math.min(6, level));
+      if (x === 0 || x === size - 1 || y === 0 || y === size - 1) {
+        level = Math.min(level, 2);
+      }
+      map[y][x] = level;
     }
   }
-  return fixTransitions(map, 5);
+  return fixTransitions(map, 3);
 }
-function fixTransitions(map, iterations = 5) {
+function fixTransitions(map, iterations = 3) {
   const size = map.length;
   let currentMap = map.map((row) => [...row]);
   for (let iter = 0; iter < iterations; iter++) {
@@ -8719,15 +8729,17 @@ function fixTransitions(map, iterations = 5) {
             if (nVal > maxNeighbor) maxNeighbor = nVal;
           }
         }
+        let cellChanged = false;
         if (maxNeighbor - current > 1) {
           current = maxNeighbor - 1;
-          changed = true;
+          cellChanged = true;
         } else if (current - minNeighbor > 1) {
           current = minNeighbor + 1;
-          changed = true;
+          cellChanged = true;
         }
-        if (changed) {
+        if (cellChanged) {
           newMap[y][x] = current;
+          changed = true;
         }
       }
     }
@@ -8750,6 +8762,14 @@ const TERRAIN_PALETTE = {
   6: 8421504
   // Montanha (Gray)
 };
+const TERRAIN_NAMES = {
+  1: "Água Profunda",
+  2: "Água Rasa",
+  3: "Areia",
+  4: "Grama",
+  5: "Floresta",
+  6: "Montanha"
+};
 class Terrain3DTest {
   constructor() {
     this.available = true;
@@ -8759,7 +8779,6 @@ class Terrain3DTest {
     this.camera = null;
     this.renderer = null;
     this.animationId = null;
-    this.available = true;
   }
   async init(container2) {
     this.container = container2;
@@ -8793,6 +8812,16 @@ class Terrain3DTest {
     this.canvasContainer = document.createElement("div");
     this.canvasContainer.style.cssText = "width: 100%; height: 400px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; background: #111;";
     this.container.appendChild(this.canvasContainer);
+    const legend = document.createElement("div");
+    legend.style.cssText = "margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; justify-content: center; padding: 8px; background: #f9f9f9; border-radius: 4px; border: 1px solid #ddd;";
+    for (let level = 1; level <= 6; level++) {
+      const item = document.createElement("div");
+      item.style.cssText = "display: flex; align-items: center; gap: 5px;";
+      const colorHex = "#" + TERRAIN_PALETTE[level].toString(16).padStart(6, "0");
+      item.innerHTML = `<div style="width: 14px; height: 14px; background-color: ${colorHex}; border: 1px solid #333; border-radius: 2px;"></div><span>${TERRAIN_NAMES[level]}</span>`;
+      legend.appendChild(item);
+    }
+    this.container.appendChild(legend);
     generateBtn.onclick = async () => {
       info2.textContent = "⏳ Gerando terreno procedural...";
       generateBtn.disabled = true;
@@ -8814,7 +8843,6 @@ class Terrain3DTest {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
-      this.available = true;
     }
     if (this.renderer && this.canvasContainer && this.renderer.domElement.parentNode) {
       this.canvasContainer.removeChild(this.renderer.domElement);
@@ -8837,7 +8865,7 @@ class Terrain3DTest {
     this.scene = new THREE$1.Scene();
     this.scene.background = new THREE$1.Color(2236962);
     const aspect = this.canvasContainer.clientWidth / this.canvasContainer.clientHeight || 1;
-    const frustumSize = 15;
+    const frustumSize = 20;
     this.camera = new THREE$1.OrthographicCamera(
       frustumSize * aspect / -2,
       frustumSize * aspect / 2,
@@ -8862,7 +8890,7 @@ class Terrain3DTest {
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const level = map[y][x];
-        const height = level * 1.5;
+        const height = level * 0.5;
         const material2 = new THREE$1.MeshLambertMaterial({ color: TERRAIN_PALETTE[level] });
         const mesh = new THREE$1.Mesh(geometry2, material2);
         mesh.position.set(x * 1.5 - offset, height / 2, y * 1.5 - offset);
