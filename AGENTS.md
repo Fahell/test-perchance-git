@@ -19,10 +19,10 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - `for-perchance.html` — HTML Panel for copy/paste into Perchance
 - `for-perchance-list-panel.txt` — List Panel for copy/paste into Perchance
 - `test-local.html` — Local testing outside Perchance (open in browser)
-- `scripts/release.cjs` — Automated release script
 - `scripts/sync-version.cjs` — Version synchronization script
 - `scripts/snapshot.sh` — Environment snapshot system
 - `.husky/pre-commit` — Pre-commit hook that runs sync-version.cjs
+- `.release-config.json` — Configuration for global release command
 
 ## 📚 Context Modules For AI Agents
 
@@ -54,7 +54,7 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - Use feature branches: `feature/auth-refactor`
 - Never commit directly to `main`
 - **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
-- Use `npm run release X.Y.Z` for automated release (update, sync, build, commit, tag, push). See docs/release-guide.md.
+- Use `release X.Y.Z` for automated release (global command). See docs/release-guide.md.
 
 ## 🎯 Prompt Symbols Reference
 
@@ -158,6 +158,6 @@ The environment is optimized for AI agents with:
 ### Available Tools
 
 - **Snapshots**: `npm run snapshot:create` / `npm run snapshot:restore`
-- **Release automation**: `npm run release X.Y.Z`
+- **Release automation**: `release X.Y.Z` (global command)
 - **Version sync**: Automatic via pre-commit hook
 - **Agent session manager**: `ag-w` (for human observation), `agent-session list/attach`
