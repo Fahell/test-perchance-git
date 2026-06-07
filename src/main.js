@@ -47,7 +47,8 @@ const TEST_MODULES = {
   cellularAutomataTest: () => import('./modules/cellular-automata-test.js'),
   indexeddbTest: () => import('./modules/indexeddb-test.js'),
   gsapTest: () => import('./modules/gsap-test.js'),
-  typewriterTest: () => import('./modules/typewriter-test.js')
+  typewriterTest: () => import('./modules/typewriter-test.js'),
+  terrain3DTest: () => import('./modules/terrain-3d-test.js')
 };
 
 // Cache de módulos carregados
