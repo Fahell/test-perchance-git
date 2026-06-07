@@ -1457,7 +1457,9 @@ export function initUITest(rendererData, testModules) {
     if (!terrain3DTest || !terrain3DTest.available) throw new Error('3D Terrain test not available');
     const { contentArea } = createTestContainer('🏔️ 3D Layered Terrain', { id: 'test-terrain-3d', width: 800, height: 600 });
     
-    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Inicializando cena Three.js e gerando terreno...</div>';
+    // Clear contentArea completely before initializing Three.js
+    // so the canvas is the only child and doesn't get destroyed by innerHTML +=
+    contentArea.innerHTML = ''; 
     
     const result = await terrain3DTest.initializeTerrain(contentArea);
     
@@ -1466,11 +1468,15 @@ export function initUITest(rendererData, testModules) {
       throw new Error(result?.error || 'Terrain initialization failed');
     }
     
-    contentArea.innerHTML += `
-      <div style="padding:10px;margin-top:10px;">
-        <div style="color:#4ade80;font-size:12px;">✅ Terreno 10x10 renderizado com sucesso!</div>
-        <div style="color:#64748b;font-size:11px;margin-top:5px;">Câmera isométrica | 6 níveis de altura | Paleta de cores por camada</div>
-      </div>`;
+    // Append info below the canvas without destroying it
+    const infoDiv = document.createElement('div');
+    infoDiv.style.cssText = 'padding:10px;margin-top:10px;background:rgba(0,0,0,0.5);border-radius:4px;';
+    infoDiv.innerHTML = `
+      <div style="color:#4ade80;font-size:12px;">✅ Terreno 10x10 renderizado com sucesso!</div>
+      <div style="color:#64748b;font-size:11px;margin-top:5px;">Câmera isométrica | 6 níveis de altura | Paleta de cores por camada</div>
+    `;
+    contentArea.appendChild(infoDiv);
+    
     console.log('✅ 3D Terrain test completed!');
   }
 

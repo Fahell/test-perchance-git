@@ -72,7 +72,9 @@ export const terrain3DTest = {
   },
 
   _setupCamera(container) {
-    const aspect = container.clientWidth / container.clientHeight;
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 600;
+    const aspect = width / height;
     const d = 10; // Tamanho do frustum ortográfico
     this.camera = new this.THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
     
@@ -83,8 +85,12 @@ export const terrain3DTest = {
 
   _setupRenderer(container) {
     this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(container.clientWidth, container.clientHeight);
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 600;
+    this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.domElement.style.display = 'block';
+    this.renderer.domElement.style.borderRadius = '4px';
     container.appendChild(this.renderer.domElement);
   },
 
