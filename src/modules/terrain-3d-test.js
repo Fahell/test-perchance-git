@@ -3,6 +3,8 @@
  * Tests 3D layered terrain generation with Simplex Noise and Cellular Automata smoothing.
  */
 
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
 let createNoise2D = null;
 
 async function loadSimplexNoise() {
