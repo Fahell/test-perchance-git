@@ -104,7 +104,8 @@ export function initUITest(rendererData, testModules) {
     cellularAutomataTest,
     indexeddbTest,
     gsapTest,
-    typewriterTest
+    typewriterTest,
+    terrain3DTest
   } = testModules;
 
   // Test definitions for Run All
@@ -161,7 +162,8 @@ export function initUITest(rendererData, testModules) {
     { btnId: 'btn-gsap-timeline', name: 'GSAP Timeline', fn: () => gsapTimelineHandler() },
     { btnId: 'btn-gsap-stagger', name: 'GSAP Stagger', fn: () => gsapStaggerHandler() },
     { btnId: 'btn-gsap-easing', name: 'GSAP Easing', fn: () => gsapEasingHandler() },
-    { btnId: 'btn-typewriter', name: 'Typewriter', fn: () => typewriterHandler() }
+    { btnId: 'btn-typewriter', name: 'Typewriter', fn: () => typewriterHandler() },
+    { btnId: 'btn-terrain-3d', name: '3D Terrain', fn: () => terrain3DHandler() }
   ];
   const HOW_IT_WORKS_DATA = [
     { id: 'dice', title: '🎲 Dice', what: 'Tests Perchance native dice rolling syntax (1d4, 1d6, 1d20, etc.).', how: 'Calls <code>root.dice()</code> for each standard RPG die, captures results, and renders a comparison table.', key: 'Perchance <code>root.dice()</code>, RNG, string parsing.' },
@@ -900,6 +902,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   // ===== HANDLERS FASE 3 =====
   async function imageTagBlendingHandler() {
     console.log('🎨 Testing tag blending...');
@@ -936,6 +939,7 @@ export function initUITest(rendererData, testModules) {
     if (!result?.success) throw new Error(result?.error || 'Add/remove during generation test failed');
     console.log('✅ Add/remove during generation test completed!');
   }
+
 
 
 
@@ -1196,6 +1200,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   async function indexeddbPrimitivesHandler() {
     console.log('🗃️ Testing IndexedDB primitives...');
     if (!indexeddbTest || !indexeddbTest.available) throw new Error('IndexedDB not available');
@@ -1396,6 +1401,7 @@ export function initUITest(rendererData, testModules) {
 
 
 
+
   async function typewriterHandler() {
     console.log('⌨️ Testing Typewriter + AI streaming integration...');
     if (!typewriterTest || !typewriterTest.available) throw new Error('Typewriter test not available');
@@ -1444,6 +1450,28 @@ export function initUITest(rendererData, testModules) {
     
     typewriterStatus.innerHTML = `✅ <span style="color:#4ade80;">${result.totalChunks} chunks recebidos</span> | <span style="color:#94a3b8;">${result.totalChars} caracteres digitados</span> | <span style="color:#f59e0b;">${result.charsPerSecond} chars/s</span>`;
     console.log('✅ Typewriter integration test completed!');
+  }
+
+  async function terrain3DHandler() {
+    console.log('🏔️ Testing 3D Layered Terrain...');
+    if (!terrain3DTest || !terrain3DTest.available) throw new Error('3D Terrain test not available');
+    const { contentArea } = createTestContainer('🏔️ 3D Layered Terrain', { id: 'test-terrain-3d', width: 800, height: 600 });
+    
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Inicializando cena Three.js e gerando terreno...</div>';
+    
+    const result = await terrain3DTest.initializeTerrain(contentArea);
+    
+    if (!result?.success) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${result?.error || 'Falha na inicialização'}</div>`;
+      throw new Error(result?.error || 'Terrain initialization failed');
+    }
+    
+    contentArea.innerHTML += `
+      <div style="padding:10px;margin-top:10px;">
+        <div style="color:#4ade80;font-size:12px;">✅ Terreno 10x10 renderizado com sucesso!</div>
+        <div style="color:#64748b;font-size:11px;margin-top:5px;">Câmera isométrica | 6 níveis de altura | Paleta de cores por camada</div>
+      </div>`;
+    console.log('✅ 3D Terrain test completed!');
   }
 
   const panel = document.createElement('div');
@@ -1528,6 +1556,7 @@ export function initUITest(rendererData, testModules) {
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
       <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
       <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">\\ud83e\\uddec Cellular Automata</button>
+      <button id="btn-terrain-3d" class="ui-test-btn ui-test-btn--render">🏔️ 3D Terrain</button>
       <button id="btn-gsap-basic" class="ui-test-btn ui-test-btn--render">🎬 GSAP Tween</button>
       <button id="btn-gsap-from" class="ui-test-btn ui-test-btn--render">🎬 GSAP From</button>
       <button id="btn-gsap-timeline" class="ui-test-btn ui-test-btn--render">🎬 Timeline</button>
@@ -1675,6 +1704,7 @@ export function initUITest(rendererData, testModules) {
   document.getElementById('btn-cannon').onclick = () => runTest('btn-cannon', 'Cannon-es', cannonHandler);
   document.getElementById('btn-particles').onclick = () => runTest('btn-particles', 'Particles', particlesHandler);
   document.getElementById('btn-cellular-automata').onclick = () => runTest('btn-cellular-automata', 'Cellular Automata', cellularAutomataHandler);
+  document.getElementById('btn-terrain-3d').onclick = () => runTest('btn-terrain-3d', '3D Terrain', terrain3DHandler);
   document.getElementById('btn-gsap-basic').onclick = () => runTest('btn-gsap-basic', 'GSAP Tween', gsapBasicHandler);
   document.getElementById('btn-gsap-from').onclick = () => runTest('btn-gsap-from', 'GSAP From', gsapFromHandler);
   document.getElementById('btn-gsap-timeline').onclick = () => runTest('btn-gsap-timeline', 'GSAP Timeline', gsapTimelineHandler);
