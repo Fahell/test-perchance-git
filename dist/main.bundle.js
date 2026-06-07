@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.28.2";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.2`;
+const VERSION = "v1.29.0";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.29.0`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -8563,9 +8563,9 @@ const gsapTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePr
   testStagger,
   testTimeline
 }, Symbol.toStringTag, { value: "Module" }));
-const log$1 = (msg, ...args) => console.log(`⌨️ [Typewriter] ${msg}`, ...args);
+const log = (msg, ...args) => console.log(`⌨️ [Typewriter] ${msg}`, ...args);
 const warn = (msg, ...args) => console.warn(`⚠️ [Typewriter] ${msg}`, ...args);
-const error$1 = (msg, ...args) => console.error(`❌ [Typewriter] ${msg}`, ...args);
+const error = (msg, ...args) => console.error(`❌ [Typewriter] ${msg}`, ...args);
 const typewriterTest = {
   available: !!(aiTextTest == null ? void 0 : aiTextTest.available),
   /**
@@ -8580,7 +8580,7 @@ const typewriterTest = {
    * @returns {Promise<Object>} Resultado do teste
    */
   async testTypewriterIntegration(uiElement, options = {}) {
-    log$1("Iniciando teste de integração typewriter + AI streaming...");
+    log("Iniciando teste de integração typewriter + AI streaming...");
     if (!this.available) {
       return { success: false, error: "ai-text-plugin não disponível" };
     }
@@ -8633,7 +8633,7 @@ const typewriterTest = {
         };
         checkQueue();
       });
-      log$1(`Teste concluído. Chunks: ${totalChunksReceived}, Caracteres: ${totalCharsReceived}`);
+      log(`Teste concluído. Chunks: ${totalChunksReceived}, Caracteres: ${totalCharsReceived}`);
       return {
         success: true,
         totalChunks: totalChunksReceived,
@@ -8642,14 +8642,14 @@ const typewriterTest = {
         charsPerSecond
       };
     } catch (err) {
-      error$1("Erro no teste de integração:", err);
+      error("Erro no teste de integração:", err);
       return { success: false, error: err.message };
     }
   }
 };
-log$1("Módulo typewriter-test.js carregado.");
+log("Módulo typewriter-test.js carregado.");
 if (typewriterTest.available) {
-  log$1("ai-text-plugin disponível para integração.");
+  log("ai-text-plugin disponível para integração.");
 } else {
   warn("ai-text-plugin NÃO disponível. Verifique se está importado no List Panel.");
 }
@@ -8657,170 +8657,229 @@ const typewriterTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
   __proto__: null,
   typewriterTest
 }, Symbol.toStringTag, { value: "Module" }));
-const log = (msg, ...args) => console.log(`🏔️ [Terrain3D] ${msg}`, ...args);
-const error = (msg, ...args) => console.error(`❌ [Terrain3D] ${msg}`, ...args);
+let SimplexNoise = null;
+async function loadSimplexNoise() {
+  if (!SimplexNoise) {
+    try {
+      const module = await import("https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js");
+      SimplexNoise = module.SimplexNoise;
+    } catch (error2) {
+      console.error("❌ [Terrain3D] Failed to load SimplexNoise:", error2);
+      throw error2;
+    }
+  }
+  return SimplexNoise;
+}
+function mulberry32(a) {
+  return function() {
+    let t = a += 1831565813;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function generateProceduralMap(seed, size = 10) {
+  const rand = mulberry32(seed);
+  const simplex = new SimplexNoise(rand);
+  const map = [];
+  for (let y = 0; y < size; y++) {
+    map[y] = [];
+    for (let x = 0; x < size; x++) {
+      const nx = x / size * 4;
+      const ny = y / size * 4;
+      let value = simplex.noise2D(nx, ny);
+      value = (value + 1) / 2;
+      let level = Math.floor(value * 6) + 1;
+      map[y][x] = Math.max(1, Math.min(6, level));
+    }
+  }
+  return fixTransitions(map, 5);
+}
+function fixTransitions(map, iterations = 5) {
+  const size = map.length;
+  let currentMap = map.map((row) => [...row]);
+  for (let iter = 0; iter < iterations; iter++) {
+    const newMap = currentMap.map((row) => [...row]);
+    let changed = false;
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        let current = currentMap[y][x];
+        let minNeighbor = current;
+        let maxNeighbor = current;
+        const neighbors = [
+          { nx: x, ny: y - 1 },
+          { nx: x, ny: y + 1 },
+          { nx: x - 1, ny: y },
+          { nx: x + 1, ny: y }
+        ];
+        for (const { nx, ny } of neighbors) {
+          if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+            const nVal = currentMap[ny][nx];
+            if (nVal < minNeighbor) minNeighbor = nVal;
+            if (nVal > maxNeighbor) maxNeighbor = nVal;
+          }
+        }
+        if (maxNeighbor - current > 1) {
+          current = maxNeighbor - 1;
+          changed = true;
+        } else if (current - minNeighbor > 1) {
+          current = minNeighbor + 1;
+          changed = true;
+        }
+        if (changed) {
+          newMap[y][x] = current;
+        }
+      }
+    }
+    currentMap = newMap;
+    if (!changed) break;
+  }
+  return currentMap;
+}
 const TERRAIN_PALETTE = {
   1: 2003199,
-  // Água Profunda (DodgerBlue)
-  2: 8900346,
-  // Água Rasa (LightSkyBlue)
+  // Água Profunda (Dodger Blue)
+  2: 8900331,
+  // Água Rasa (Sky Blue)
   3: 16032864,
-  // Areia/Margem (SandyBrown)
+  // Areia/Margem (Sandy Brown)
   4: 3329330,
-  // Grama (LimeGreen)
+  // Grama (Lime Green)
   5: 2263842,
-  // Floresta (ForestGreen)
+  // Floresta (Forest Green)
   6: 8421504
   // Montanha (Gray)
 };
-const GRID_SIZE = 10;
-const CELL_SIZE = 1;
-const MAX_HEIGHT = 6;
-const terrain3DTest = {
-  available: true,
-  // Three.js é carregado dinamicamente
-  scene: null,
-  camera: null,
-  renderer: null,
-  terrainGroup: null,
-  animationId: null,
-  THREE: null,
-  /**
-   * Inicializa a cena 3D com um terreno em camadas.
-   * @param {HTMLElement} container - Elemento DOM onde o canvas será renderizado
-   * @param {Object} options - Opções de configuração
-   * @returns {Promise<Object>} Resultado da inicialização
-   */
-  async initializeTerrain(container2, options = {}) {
-    log("Iniciando teste de terreno 3D em camadas...");
-    if (!container2) {
-      return { success: false, error: "Container DOM não fornecido." };
-    }
-    try {
-      this.THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
-      this._setupScene(container2);
-      this._setupCamera(container2);
-      this._setupRenderer(container2);
-      this._setupLights();
-      this.terrainGroup = new this.THREE.Group();
-      this.scene.add(this.terrainGroup);
-      this.generateAndRenderTerrain();
-      this._animate();
-      log("Inicialização completa.");
-      return { success: true, message: "Terreno 3D inicializado com sucesso." };
-    } catch (err) {
-      error("Falha na inicialização:", err);
-      return { success: false, error: err.message };
-    }
-  },
-  _setupScene(container2) {
-    this.scene = new this.THREE.Scene();
-    this.scene.background = new this.THREE.Color(8900331);
-  },
-  _setupCamera(container2) {
-    const width = container2.clientWidth || 800;
-    const height = container2.clientHeight || 600;
-    const aspect = width / height;
-    const d = 10;
-    this.camera = new this.THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1e3);
-    this.camera.position.set(20, 20, 20);
-    this.camera.lookAt(0, 0, 0);
-  },
-  _setupRenderer(container2) {
-    this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
-    const width = container2.clientWidth || 800;
-    const height = container2.clientHeight || 600;
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.domElement.style.display = "block";
-    this.renderer.domElement.style.borderRadius = "4px";
-    container2.appendChild(this.renderer.domElement);
-  },
-  _setupLights() {
-    const ambientLight = new this.THREE.AmbientLight(16777215, 0.6);
-    this.scene.add(ambientLight);
-    const directionalLight = new this.THREE.DirectionalLight(16777215, 0.8);
-    directionalLight.position.set(10, 20, 10);
-    this.scene.add(directionalLight);
-  },
-  /**
-   * Gera um mapa 10x10 válido (água só toca margem, sem penhascos abruptos).
-   * @returns {Array<Array<number>>} Matriz 10x10 com alturas de 1 a 6
-   */
-  generateValidMap() {
-    const map = [];
-    const center = GRID_SIZE / 2;
-    for (let x = 0; x < GRID_SIZE; x++) {
-      map[x] = [];
-      for (let z = 0; z < GRID_SIZE; z++) {
-        const dx = Math.abs(x - center);
-        const dz = Math.abs(z - center);
-        const distance = Math.max(dx, dz);
-        let height = MAX_HEIGHT - distance;
-        height += Math.floor(Math.random() * 2) - 1;
-        height = Math.max(1, Math.min(MAX_HEIGHT, height));
-        map[x][z] = height;
-      }
-    }
-    return map;
-  },
-  /**
-   * Limpa o terreno atual e renderiza um novo baseado no mapa gerado.
-   */
-  generateAndRenderTerrain() {
-    if (!this.terrainGroup) return;
-    while (this.terrainGroup.children.length > 0) {
-      const child = this.terrainGroup.children[0];
-      if (child.geometry) child.geometry.dispose();
-      if (child.material) child.material.dispose();
-      this.terrainGroup.remove(child);
-    }
-    const map = this.generateValidMap();
-    const offset = GRID_SIZE * CELL_SIZE / 2;
-    for (let x = 0; x < GRID_SIZE; x++) {
-      for (let z = 0; z < GRID_SIZE; z++) {
-        const height = map[x][z];
-        const color = TERRAIN_PALETTE[height];
-        const geometry2 = new this.THREE.BoxGeometry(CELL_SIZE, height * CELL_SIZE, CELL_SIZE);
-        const material2 = new this.THREE.MeshLambertMaterial({ color });
-        const cube = new this.THREE.Mesh(geometry2, material2);
-        cube.position.set(
-          x * CELL_SIZE - offset + CELL_SIZE / 2,
-          height * CELL_SIZE / 2,
-          z * CELL_SIZE - offset + CELL_SIZE / 2
-        );
-        this.terrainGroup.add(cube);
-      }
-    }
-    log(`Terreno 10x10 gerado e renderizado.`);
-  },
-  _animate() {
-    this.animationId = requestAnimationFrame(() => this._animate());
-    if (this.renderer && this.scene && this.camera) {
-      this.renderer.render(this.scene, this.camera);
-    }
-  },
-  /**
-   * Limpa recursos do Three.js e remove o canvas do DOM.
-   */
-  dispose() {
-    log("Descartando recursos 3D...");
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-    }
-    if (this.renderer) {
-      this.renderer.dispose();
-      if (this.renderer.domElement.parentNode) {
-        this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
-      }
-    }
+class Terrain3DTest {
+  constructor() {
+    this.container = null;
+    this.canvasContainer = null;
     this.scene = null;
     this.camera = null;
     this.renderer = null;
-    this.terrainGroup = null;
+    this.animationId = null;
   }
-};
-log("Módulo terrain-3d-test.js carregado.");
+  async init(container2) {
+    this.container = container2;
+    this.container.innerHTML = "";
+    const controls = document.createElement("div");
+    controls.style.cssText = "margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;";
+    const label = document.createElement("label");
+    label.textContent = "Seed:";
+    label.style.fontSize = "14px";
+    const seedInput = document.createElement("input");
+    seedInput.type = "text";
+    seedInput.value = "12345";
+    seedInput.style.padding = "5px";
+    seedInput.style.borderRadius = "4px";
+    seedInput.style.border = "1px solid #ccc";
+    const generateBtn = document.createElement("button");
+    generateBtn.textContent = "🔄 Gerar Terreno";
+    generateBtn.style.padding = "6px 12px";
+    generateBtn.style.cursor = "pointer";
+    generateBtn.style.borderRadius = "4px";
+    generateBtn.style.border = "1px solid #007bff";
+    generateBtn.style.backgroundColor = "#007bff";
+    generateBtn.style.color = "white";
+    const info2 = document.createElement("div");
+    info2.style.cssText = "font-size: 12px; color: #666; margin-top: 5px; width: 100%;";
+    controls.appendChild(label);
+    controls.appendChild(seedInput);
+    controls.appendChild(generateBtn);
+    this.container.appendChild(controls);
+    this.container.appendChild(info2);
+    this.canvasContainer = document.createElement("div");
+    this.canvasContainer.style.cssText = "width: 100%; height: 400px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; background: #111;";
+    this.container.appendChild(this.canvasContainer);
+    generateBtn.onclick = async () => {
+      info2.textContent = "⏳ Gerando terreno procedural...";
+      generateBtn.disabled = true;
+      try {
+        const seed = parseInt(seedInput.value) || Math.floor(Math.random() * 1e5);
+        seedInput.value = seed;
+        await this.renderTerrain(seed, 10);
+        info2.textContent = `✅ Terreno gerado com sucesso! Seed: ${seed} | Regras de transição aplicadas.`;
+      } catch (error2) {
+        console.error("❌ [Terrain3D] Error generating terrain:", error2);
+        info2.textContent = `❌ Erro ao gerar terreno: ${error2.message}`;
+      } finally {
+        generateBtn.disabled = false;
+      }
+    };
+    generateBtn.click();
+  }
+  async renderTerrain(seed, size = 10) {
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+    if (this.renderer && this.canvasContainer && this.renderer.domElement.parentNode) {
+      this.canvasContainer.removeChild(this.renderer.domElement);
+      this.renderer.dispose();
+    }
+    if (this.scene) {
+      this.scene.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach((m) => m.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
+    }
+    await loadSimplexNoise();
+    const map = generateProceduralMap(seed, size);
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(2236962);
+    const aspect = this.canvasContainer.clientWidth / this.canvasContainer.clientHeight || 1;
+    const frustumSize = 15;
+    this.camera = new THREE.OrthographicCamera(
+      frustumSize * aspect / -2,
+      frustumSize * aspect / 2,
+      frustumSize / 2,
+      frustumSize / -2,
+      1,
+      1e3
+    );
+    this.camera.position.set(20, 20, 20);
+    this.camera.lookAt(0, 0, 0);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setSize(this.canvasContainer.clientWidth || 800, this.canvasContainer.clientHeight || 400);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.canvasContainer.appendChild(this.renderer.domElement);
+    const ambientLight = new THREE.AmbientLight(16777215, 0.6);
+    this.scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(16777215, 0.8);
+    dirLight.position.set(10, 20, 10);
+    this.scene.add(dirLight);
+    const offset = size * 1.5 / 2;
+    const geometry2 = new THREE.BoxGeometry(1.4, 1, 1.4);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const level = map[y][x];
+        const height = level * 1.5;
+        const material2 = new THREE.MeshLambertMaterial({ color: TERRAIN_PALETTE[level] });
+        const mesh = new THREE.Mesh(geometry2, material2);
+        mesh.position.set(x * 1.5 - offset, height / 2, y * 1.5 - offset);
+        mesh.scale.y = height;
+        this.scene.add(mesh);
+      }
+    }
+    const animate = () => {
+      this.animationId = requestAnimationFrame(animate);
+      this.scene.rotation.y += 2e-3;
+      this.renderer.render(this.scene, this.camera);
+    };
+    animate();
+  }
+  runTest() {
+    console.log("🏔️ [Terrain3D] Módulo carregado e pronto para inicialização via UI.");
+    return { passed: true, message: "Módulo carregado com sucesso" };
+  }
+}
+const terrain3DTest = new Terrain3DTest();
 const terrain3dTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   terrain3DTest
