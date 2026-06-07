@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.28.0";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.0`;
+const VERSION = "v1.28.1";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.1`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -179,7 +179,8 @@ const TEST_MODULES = {
   cellularAutomataTest: () => Promise.resolve().then(() => cellularAutomataTest$1),
   indexeddbTest: () => Promise.resolve().then(() => indexeddbTest$1),
   gsapTest: () => Promise.resolve().then(() => gsapTest$1),
-  typewriterTest: () => Promise.resolve().then(() => typewriterTest$1)
+  typewriterTest: () => Promise.resolve().then(() => typewriterTest$1),
+  terrain3DTest: () => Promise.resolve().then(() => terrain3dTest)
 };
 const loadedModules = {};
 async function loadTestModule(moduleName) {
@@ -8562,9 +8563,9 @@ const gsapTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePr
   testStagger,
   testTimeline
 }, Symbol.toStringTag, { value: "Module" }));
-const log = (msg, ...args) => console.log(`⌨️ [Typewriter] ${msg}`, ...args);
+const log$1 = (msg, ...args) => console.log(`⌨️ [Typewriter] ${msg}`, ...args);
 const warn = (msg, ...args) => console.warn(`⚠️ [Typewriter] ${msg}`, ...args);
-const error = (msg, ...args) => console.error(`❌ [Typewriter] ${msg}`, ...args);
+const error$1 = (msg, ...args) => console.error(`❌ [Typewriter] ${msg}`, ...args);
 const typewriterTest = {
   available: !!(aiTextTest == null ? void 0 : aiTextTest.available),
   /**
@@ -8579,7 +8580,7 @@ const typewriterTest = {
    * @returns {Promise<Object>} Resultado do teste
    */
   async testTypewriterIntegration(uiElement, options = {}) {
-    log("Iniciando teste de integração typewriter + AI streaming...");
+    log$1("Iniciando teste de integração typewriter + AI streaming...");
     if (!this.available) {
       return { success: false, error: "ai-text-plugin não disponível" };
     }
@@ -8632,7 +8633,7 @@ const typewriterTest = {
         };
         checkQueue();
       });
-      log(`Teste concluído. Chunks: ${totalChunksReceived}, Caracteres: ${totalCharsReceived}`);
+      log$1(`Teste concluído. Chunks: ${totalChunksReceived}, Caracteres: ${totalCharsReceived}`);
       return {
         success: true,
         totalChunks: totalChunksReceived,
@@ -8641,20 +8642,182 @@ const typewriterTest = {
         charsPerSecond
       };
     } catch (err) {
-      error("Erro no teste de integração:", err);
+      error$1("Erro no teste de integração:", err);
       return { success: false, error: err.message };
     }
   }
 };
-log("Módulo typewriter-test.js carregado.");
+log$1("Módulo typewriter-test.js carregado.");
 if (typewriterTest.available) {
-  log("ai-text-plugin disponível para integração.");
+  log$1("ai-text-plugin disponível para integração.");
 } else {
   warn("ai-text-plugin NÃO disponível. Verifique se está importado no List Panel.");
 }
 const typewriterTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   typewriterTest
+}, Symbol.toStringTag, { value: "Module" }));
+const log = (msg, ...args) => console.log(`🏔️ [Terrain3D] ${msg}`, ...args);
+const error = (msg, ...args) => console.error(`❌ [Terrain3D] ${msg}`, ...args);
+const TERRAIN_PALETTE = {
+  1: 2003199,
+  // Água Profunda (DodgerBlue)
+  2: 8900346,
+  // Água Rasa (LightSkyBlue)
+  3: 16032864,
+  // Areia/Margem (SandyBrown)
+  4: 3329330,
+  // Grama (LimeGreen)
+  5: 2263842,
+  // Floresta (ForestGreen)
+  6: 8421504
+  // Montanha (Gray)
+};
+const GRID_SIZE = 10;
+const CELL_SIZE = 1;
+const MAX_HEIGHT = 6;
+const terrain3DTest = {
+  available: true,
+  // Three.js é carregado dinamicamente
+  scene: null,
+  camera: null,
+  renderer: null,
+  terrainGroup: null,
+  animationId: null,
+  THREE: null,
+  /**
+   * Inicializa a cena 3D com um terreno em camadas.
+   * @param {HTMLElement} container - Elemento DOM onde o canvas será renderizado
+   * @param {Object} options - Opções de configuração
+   * @returns {Promise<Object>} Resultado da inicialização
+   */
+  async initializeTerrain(container2, options = {}) {
+    log("Iniciando teste de terreno 3D em camadas...");
+    if (!container2) {
+      return { success: false, error: "Container DOM não fornecido." };
+    }
+    try {
+      this.THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
+      this._setupScene(container2);
+      this._setupCamera(container2);
+      this._setupRenderer(container2);
+      this._setupLights();
+      this.terrainGroup = new this.THREE.Group();
+      this.scene.add(this.terrainGroup);
+      this.generateAndRenderTerrain();
+      this._animate();
+      log("Inicialização completa.");
+      return { success: true, message: "Terreno 3D inicializado com sucesso." };
+    } catch (err) {
+      error("Falha na inicialização:", err);
+      return { success: false, error: err.message };
+    }
+  },
+  _setupScene(container2) {
+    this.scene = new this.THREE.Scene();
+    this.scene.background = new this.THREE.Color(8900331);
+  },
+  _setupCamera(container2) {
+    const aspect = container2.clientWidth / container2.clientHeight;
+    const d = 10;
+    this.camera = new this.THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1e3);
+    this.camera.position.set(20, 20, 20);
+    this.camera.lookAt(0, 0, 0);
+  },
+  _setupRenderer(container2) {
+    this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setSize(container2.clientWidth, container2.clientHeight);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    container2.appendChild(this.renderer.domElement);
+  },
+  _setupLights() {
+    const ambientLight = new this.THREE.AmbientLight(16777215, 0.6);
+    this.scene.add(ambientLight);
+    const directionalLight = new this.THREE.DirectionalLight(16777215, 0.8);
+    directionalLight.position.set(10, 20, 10);
+    this.scene.add(directionalLight);
+  },
+  /**
+   * Gera um mapa 10x10 válido (água só toca margem, sem penhascos abruptos).
+   * @returns {Array<Array<number>>} Matriz 10x10 com alturas de 1 a 6
+   */
+  generateValidMap() {
+    const map = [];
+    const center = GRID_SIZE / 2;
+    for (let x = 0; x < GRID_SIZE; x++) {
+      map[x] = [];
+      for (let z = 0; z < GRID_SIZE; z++) {
+        const dx = Math.abs(x - center);
+        const dz = Math.abs(z - center);
+        const distance = Math.max(dx, dz);
+        let height = MAX_HEIGHT - distance;
+        height += Math.floor(Math.random() * 2) - 1;
+        height = Math.max(1, Math.min(MAX_HEIGHT, height));
+        map[x][z] = height;
+      }
+    }
+    return map;
+  },
+  /**
+   * Limpa o terreno atual e renderiza um novo baseado no mapa gerado.
+   */
+  generateAndRenderTerrain() {
+    if (!this.terrainGroup) return;
+    while (this.terrainGroup.children.length > 0) {
+      const child = this.terrainGroup.children[0];
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+      this.terrainGroup.remove(child);
+    }
+    const map = this.generateValidMap();
+    const offset = GRID_SIZE * CELL_SIZE / 2;
+    for (let x = 0; x < GRID_SIZE; x++) {
+      for (let z = 0; z < GRID_SIZE; z++) {
+        const height = map[x][z];
+        const color = TERRAIN_PALETTE[height];
+        const geometry2 = new this.THREE.BoxGeometry(CELL_SIZE, height * CELL_SIZE, CELL_SIZE);
+        const material2 = new this.THREE.MeshLambertMaterial({ color });
+        const cube = new this.THREE.Mesh(geometry2, material2);
+        cube.position.set(
+          x * CELL_SIZE - offset + CELL_SIZE / 2,
+          height * CELL_SIZE / 2,
+          z * CELL_SIZE - offset + CELL_SIZE / 2
+        );
+        this.terrainGroup.add(cube);
+      }
+    }
+    log(`Terreno 10x10 gerado e renderizado.`);
+  },
+  _animate() {
+    this.animationId = requestAnimationFrame(() => this._animate());
+    if (this.renderer && this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
+  },
+  /**
+   * Limpa recursos do Three.js e remove o canvas do DOM.
+   */
+  dispose() {
+    log("Descartando recursos 3D...");
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+    }
+    if (this.renderer) {
+      this.renderer.dispose();
+      if (this.renderer.domElement.parentNode) {
+        this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+      }
+    }
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
+    this.terrainGroup = null;
+  }
+};
+log("Módulo terrain-3d-test.js carregado.");
+const terrain3dTest = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  terrain3DTest
 }, Symbol.toStringTag, { value: "Module" }));
 const CSS_URL = `${CDN_BASE}/src/styles/ui-test.css`;
 function injectStylesheet() {
@@ -8742,7 +8905,8 @@ function initUITest(rendererData, testModules) {
     cellularAutomataTest: cellularAutomataTest2,
     indexeddbTest: indexeddbTest2,
     gsapTest: gsapTest2,
-    typewriterTest: typewriterTest2
+    typewriterTest: typewriterTest2,
+    terrain3DTest: terrain3DTest2
   } = testModules;
   const testDefs = [
     { btnId: "btn-dice", name: "Dice", fn: () => diceHandler() },
@@ -8797,7 +8961,8 @@ function initUITest(rendererData, testModules) {
     { btnId: "btn-gsap-timeline", name: "GSAP Timeline", fn: () => gsapTimelineHandler() },
     { btnId: "btn-gsap-stagger", name: "GSAP Stagger", fn: () => gsapStaggerHandler() },
     { btnId: "btn-gsap-easing", name: "GSAP Easing", fn: () => gsapEasingHandler() },
-    { btnId: "btn-typewriter", name: "Typewriter", fn: () => typewriterHandler() }
+    { btnId: "btn-typewriter", name: "Typewriter", fn: () => typewriterHandler() },
+    { btnId: "btn-terrain-3d", name: "3D Terrain", fn: () => terrain3DHandler() }
   ];
   const HOW_IT_WORKS_DATA = [
     { id: "dice", title: "🎲 Dice", what: "Tests Perchance native dice rolling syntax (1d4, 1d6, 1d20, etc.).", how: "Calls <code>root.dice()</code> for each standard RPG die, captures results, and renders a comparison table.", key: "Perchance <code>root.dice()</code>, RNG, string parsing." },
@@ -9926,6 +10091,23 @@ function initUITest(rendererData, testModules) {
     typewriterStatus.innerHTML = `✅ <span style="color:#4ade80;">${result.totalChunks} chunks recebidos</span> | <span style="color:#94a3b8;">${result.totalChars} caracteres digitados</span> | <span style="color:#f59e0b;">${result.charsPerSecond} chars/s</span>`;
     console.log("✅ Typewriter integration test completed!");
   }
+  async function terrain3DHandler() {
+    console.log("🏔️ Testing 3D Layered Terrain...");
+    if (!terrain3DTest2 || !terrain3DTest2.available) throw new Error("3D Terrain test not available");
+    const { contentArea } = createTestContainer("🏔️ 3D Layered Terrain", { id: "test-terrain-3d", width: 800, height: 600 });
+    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Inicializando cena Three.js e gerando terreno...</div>';
+    const result = await terrain3DTest2.initializeTerrain(contentArea);
+    if (!(result == null ? void 0 : result.success)) {
+      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha na inicialização"}</div>`;
+      throw new Error((result == null ? void 0 : result.error) || "Terrain initialization failed");
+    }
+    contentArea.innerHTML += `
+      <div style="padding:10px;margin-top:10px;">
+        <div style="color:#4ade80;font-size:12px;">✅ Terreno 10x10 renderizado com sucesso!</div>
+        <div style="color:#64748b;font-size:11px;margin-top:5px;">Câmera isométrica | 6 níveis de altura | Paleta de cores por camada</div>
+      </div>`;
+    console.log("✅ 3D Terrain test completed!");
+  }
   const panel = document.createElement("div");
   panel.id = "ui-test-panel";
   panel.innerHTML = `
@@ -10007,6 +10189,7 @@ function initUITest(rendererData, testModules) {
       <button id="btn-rpg-icon" class="ui-test-btn ui-test-btn--render">⚔️ RPG Icons</button>
       <button id="btn-particles" class="ui-test-btn ui-test-btn--render">✨ Particles</button>
       <button id="btn-cellular-automata" class="ui-test-btn ui-test-btn--render">\\ud83e\\uddec Cellular Automata</button>
+      <button id="btn-terrain-3d" class="ui-test-btn ui-test-btn--render">🏔️ 3D Terrain</button>
       <button id="btn-gsap-basic" class="ui-test-btn ui-test-btn--render">🎬 GSAP Tween</button>
       <button id="btn-gsap-from" class="ui-test-btn ui-test-btn--render">🎬 GSAP From</button>
       <button id="btn-gsap-timeline" class="ui-test-btn ui-test-btn--render">🎬 Timeline</button>
@@ -10144,6 +10327,7 @@ function initUITest(rendererData, testModules) {
   document.getElementById("btn-cannon").onclick = () => runTest("btn-cannon", "Cannon-es", cannonHandler);
   document.getElementById("btn-particles").onclick = () => runTest("btn-particles", "Particles", particlesHandler);
   document.getElementById("btn-cellular-automata").onclick = () => runTest("btn-cellular-automata", "Cellular Automata", cellularAutomataHandler);
+  document.getElementById("btn-terrain-3d").onclick = () => runTest("btn-terrain-3d", "3D Terrain", terrain3DHandler);
   document.getElementById("btn-gsap-basic").onclick = () => runTest("btn-gsap-basic", "GSAP Tween", gsapBasicHandler);
   document.getElementById("btn-gsap-from").onclick = () => runTest("btn-gsap-from", "GSAP From", gsapFromHandler);
   document.getElementById("btn-gsap-timeline").onclick = () => runTest("btn-gsap-timeline", "GSAP Timeline", gsapTimelineHandler);
