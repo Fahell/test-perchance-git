@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.29.0";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.29.0`;
+const VERSION = "v1.28.3";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.3`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -8752,12 +8752,14 @@ const TERRAIN_PALETTE = {
 };
 class Terrain3DTest {
   constructor() {
+    this.available = true;
     this.container = null;
     this.canvasContainer = null;
     this.scene = null;
     this.camera = null;
     this.renderer = null;
     this.animationId = null;
+    this.available = true;
   }
   async init(container2) {
     this.container = container2;
@@ -8812,6 +8814,7 @@ class Terrain3DTest {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
+      this.available = true;
     }
     if (this.renderer && this.canvasContainer && this.renderer.domElement.parentNode) {
       this.canvasContainer.removeChild(this.renderer.domElement);
@@ -10161,18 +10164,7 @@ function initUITest(rendererData, testModules) {
     if (!terrain3DTest2 || !terrain3DTest2.available) throw new Error("3D Terrain test not available");
     const { contentArea } = createTestContainer("🏔️ 3D Layered Terrain", { id: "test-terrain-3d", width: 800, height: 600 });
     contentArea.innerHTML = "";
-    const result = await terrain3DTest2.initializeTerrain(contentArea);
-    if (!(result == null ? void 0 : result.success)) {
-      contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha na inicialização"}</div>`;
-      throw new Error((result == null ? void 0 : result.error) || "Terrain initialization failed");
-    }
-    const infoDiv = document.createElement("div");
-    infoDiv.style.cssText = "padding:10px;margin-top:10px;background:rgba(0,0,0,0.5);border-radius:4px;";
-    infoDiv.innerHTML = `
-      <div style="color:#4ade80;font-size:12px;">✅ Terreno 10x10 renderizado com sucesso!</div>
-      <div style="color:#64748b;font-size:11px;margin-top:5px;">Câmera isométrica | 6 níveis de altura | Paleta de cores por camada</div>
-    `;
-    contentArea.appendChild(infoDiv);
+    await terrain3DTest2.init(contentArea);
     console.log("✅ 3D Terrain test completed!");
   }
   const panel = document.createElement("div");
