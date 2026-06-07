@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.28.6";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.6`;
+const VERSION = "v1.28.7";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.7`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -8834,11 +8834,11 @@ class Terrain3DTest {
     }
     await loadSimplexNoise();
     const map = generateProceduralMap(seed, size);
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(2236962);
+    this.scene = new THREE$1.Scene();
+    this.scene.background = new THREE$1.Color(2236962);
     const aspect = this.canvasContainer.clientWidth / this.canvasContainer.clientHeight || 1;
     const frustumSize = 15;
-    this.camera = new THREE.OrthographicCamera(
+    this.camera = new THREE$1.OrthographicCamera(
       frustumSize * aspect / -2,
       frustumSize * aspect / 2,
       frustumSize / 2,
@@ -8848,23 +8848,23 @@ class Terrain3DTest {
     );
     this.camera.position.set(20, 20, 20);
     this.camera.lookAt(0, 0, 0);
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE$1.WebGLRenderer({ antialias: true });
     this.renderer.setSize(this.canvasContainer.clientWidth || 800, this.canvasContainer.clientHeight || 400);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.canvasContainer.appendChild(this.renderer.domElement);
-    const ambientLight = new THREE.AmbientLight(16777215, 0.6);
+    const ambientLight = new THREE$1.AmbientLight(16777215, 0.6);
     this.scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(16777215, 0.8);
+    const dirLight = new THREE$1.DirectionalLight(16777215, 0.8);
     dirLight.position.set(10, 20, 10);
     this.scene.add(dirLight);
     const offset = size * 1.5 / 2;
-    const geometry2 = new THREE.BoxGeometry(1.4, 1, 1.4);
+    const geometry2 = new THREE$1.BoxGeometry(1.4, 1, 1.4);
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const level = map[y][x];
         const height = level * 1.5;
-        const material2 = new THREE.MeshLambertMaterial({ color: TERRAIN_PALETTE[level] });
-        const mesh = new THREE.Mesh(geometry2, material2);
+        const material2 = new THREE$1.MeshLambertMaterial({ color: TERRAIN_PALETTE[level] });
+        const mesh = new THREE$1.Mesh(geometry2, material2);
         mesh.position.set(x * 1.5 - offset, height / 2, y * 1.5 - offset);
         mesh.scale.y = height;
         this.scene.add(mesh);
