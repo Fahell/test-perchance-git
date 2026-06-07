@@ -1,6 +1,6 @@
 {
   "name": "test-perchance-git",
-  "version": "1.27.3",
+  "version": "1.28.0",
   "description": "Projeto de teste para explorar as capacidades do Perchance com arquitetura modular usando ES6 Modules + GitHub + jsDelivr CDN. Agora com Vite bundling para performance otimizada.",
   "type": "module",
   "scripts": {
