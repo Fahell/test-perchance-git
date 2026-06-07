@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.28.3";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.3`;
+const VERSION = "v1.28.4";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.4`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -8662,7 +8662,7 @@ async function loadSimplexNoise() {
   if (!SimplexNoise) {
     try {
       const module = await import("https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js");
-      SimplexNoise = module.SimplexNoise;
+      SimplexNoise = module.default;
     } catch (error2) {
       console.error("❌ [Terrain3D] Failed to load SimplexNoise:", error2);
       throw error2;
