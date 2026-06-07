@@ -111,12 +111,14 @@ const TERRAIN_PALETTE = {
 
 class Terrain3DTest {
     constructor() {
+        this.available = true;
         this.container = null;
         this.canvasContainer = null;
         this.scene = null;
         this.camera = null;
         this.renderer = null;
         this.animationId = null;
+        this.available = true;
     }
 
     async init(container) {
@@ -187,6 +189,7 @@ class Terrain3DTest {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
+        this.available = true;
         }
         if (this.renderer && this.canvasContainer && this.renderer.domElement.parentNode) {
             this.canvasContainer.removeChild(this.renderer.domElement);
