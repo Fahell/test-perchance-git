@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.28.1";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.1`;
+const VERSION = "v1.28.2";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.2`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -8718,7 +8718,9 @@ const terrain3DTest = {
     this.scene.background = new this.THREE.Color(8900331);
   },
   _setupCamera(container2) {
-    const aspect = container2.clientWidth / container2.clientHeight;
+    const width = container2.clientWidth || 800;
+    const height = container2.clientHeight || 600;
+    const aspect = width / height;
     const d = 10;
     this.camera = new this.THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1e3);
     this.camera.position.set(20, 20, 20);
@@ -8726,8 +8728,12 @@ const terrain3DTest = {
   },
   _setupRenderer(container2) {
     this.renderer = new this.THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(container2.clientWidth, container2.clientHeight);
+    const width = container2.clientWidth || 800;
+    const height = container2.clientHeight || 600;
+    this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.domElement.style.display = "block";
+    this.renderer.domElement.style.borderRadius = "4px";
     container2.appendChild(this.renderer.domElement);
   },
   _setupLights() {
@@ -10095,17 +10101,19 @@ function initUITest(rendererData, testModules) {
     console.log("🏔️ Testing 3D Layered Terrain...");
     if (!terrain3DTest2 || !terrain3DTest2.available) throw new Error("3D Terrain test not available");
     const { contentArea } = createTestContainer("🏔️ 3D Layered Terrain", { id: "test-terrain-3d", width: 800, height: 600 });
-    contentArea.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">⏳ Inicializando cena Three.js e gerando terreno...</div>';
+    contentArea.innerHTML = "";
     const result = await terrain3DTest2.initializeTerrain(contentArea);
     if (!(result == null ? void 0 : result.success)) {
       contentArea.innerHTML = `<div style="color:#ff6b6b;padding:10px;">❌ Erro: ${(result == null ? void 0 : result.error) || "Falha na inicialização"}</div>`;
       throw new Error((result == null ? void 0 : result.error) || "Terrain initialization failed");
     }
-    contentArea.innerHTML += `
-      <div style="padding:10px;margin-top:10px;">
-        <div style="color:#4ade80;font-size:12px;">✅ Terreno 10x10 renderizado com sucesso!</div>
-        <div style="color:#64748b;font-size:11px;margin-top:5px;">Câmera isométrica | 6 níveis de altura | Paleta de cores por camada</div>
-      </div>`;
+    const infoDiv = document.createElement("div");
+    infoDiv.style.cssText = "padding:10px;margin-top:10px;background:rgba(0,0,0,0.5);border-radius:4px;";
+    infoDiv.innerHTML = `
+      <div style="color:#4ade80;font-size:12px;">✅ Terreno 10x10 renderizado com sucesso!</div>
+      <div style="color:#64748b;font-size:11px;margin-top:5px;">Câmera isométrica | 6 níveis de altura | Paleta de cores por camada</div>
+    `;
+    contentArea.appendChild(infoDiv);
     console.log("✅ 3D Terrain test completed!");
   }
   const panel = document.createElement("div");
