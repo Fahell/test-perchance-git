@@ -9,7 +9,7 @@ async function loadSimplexNoise() {
     if (!SimplexNoise) {
         try {
             const module = await import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js');
-            SimplexNoise = module.SimplexNoise;
+            SimplexNoise = module.default;
         } catch (error) {
             console.error('❌ [Terrain3D] Failed to load SimplexNoise:', error);
             throw error;
