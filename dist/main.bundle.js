@@ -34,8 +34,8 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.28.5";
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.5`;
+const VERSION = "v1.28.6";
+const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.28.6`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
   const existingCanvas = document.querySelector('canvas[data-threejs="true"]');
@@ -8657,18 +8657,18 @@ const typewriterTest$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.de
   __proto__: null,
   typewriterTest
 }, Symbol.toStringTag, { value: "Module" }));
-let SimplexNoise = null;
+let createNoise2D = null;
 async function loadSimplexNoise() {
-  if (!SimplexNoise) {
+  if (!createNoise2D) {
     try {
       const module = await import("https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js");
-      SimplexNoise = module.default;
+      createNoise2D = module.createNoise2D;
     } catch (error2) {
       console.error("❌ [Terrain3D] Failed to load SimplexNoise:", error2);
       throw error2;
     }
   }
-  return SimplexNoise;
+  return createNoise2D;
 }
 function mulberry32(a) {
   return function() {
@@ -8680,14 +8680,14 @@ function mulberry32(a) {
 }
 function generateProceduralMap(seed, size = 10) {
   const rand = mulberry32(seed);
-  const simplex = new SimplexNoise(rand);
+  const noise2D = createNoise2D(rand);
   const map = [];
   for (let y = 0; y < size; y++) {
     map[y] = [];
     for (let x = 0; x < size; x++) {
       const nx = x / size * 4;
       const ny = y / size * 4;
-      let value = simplex.noise2D(nx, ny);
+      let value = noise2D(nx, ny);
       value = (value + 1) / 2;
       let level = Math.floor(value * 6) + 1;
       map[y][x] = Math.max(1, Math.min(6, level));
