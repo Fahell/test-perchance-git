@@ -3,19 +3,19 @@
  * Tests 3D layered terrain generation with Simplex Noise and Cellular Automata smoothing.
  */
 
-let SimplexNoise = null;
+let createNoise2D = null;
 
 async function loadSimplexNoise() {
-    if (!SimplexNoise) {
+    if (!createNoise2D) {
         try {
             const module = await import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js');
-            SimplexNoise = module.default;
+            createNoise2D = module.createNoise2D;
         } catch (error) {
             console.error('❌ [Terrain3D] Failed to load SimplexNoise:', error);
             throw error;
         }
     }
-    return SimplexNoise;
+    return createNoise2D;
 }
 
 // Seeded PRNG (Mulberry32) for reproducibility
@@ -30,7 +30,7 @@ function mulberry32(a) {
 
 function generateProceduralMap(seed, size = 10) {
     const rand = mulberry32(seed);
-    const simplex = new SimplexNoise(rand);
+    const noise2D = createNoise2D(rand);
     const map = [];
 
     // 1. Generate base noise
@@ -39,7 +39,7 @@ function generateProceduralMap(seed, size = 10) {
         for (let x = 0; x < size; x++) {
             const nx = x / size * 4; // Frequency
             const ny = y / size * 4;
-            let value = simplex.noise2D(nx, ny); // -1 to 1
+            let value = noise2D(nx, ny); // -1 to 1
             value = (value + 1) / 2; // Normalize to 0 - 1
 
             // Discretize into 6 bands (1 to 6)
