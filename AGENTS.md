@@ -31,7 +31,6 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 | Situation | File to Read |
 |-----------|--------------|
 | Before major refactoring or risky change | `docs/snapshot-guide.md` |
-| How to make a new release (patch/minor/major) | `docs/release-guide.md` |
 | Before accessing Perchance via openbrowser | `docs/iframe-access-perchance-guide.md` |
 
 ## Coding Rules
@@ -54,7 +53,7 @@ This project modularizes JavaScript ES6 for use in Perchance (https://perchance.
 - Use feature branches: `feature/auth-refactor`
 - Never commit directly to `main`
 - **Use snapshots** — create snapshots before complex refactors/implementations. `git stash` for minor changes.
-- Use `npm run release X.Y.Z` for automated release (update, sync, build, commit, tag, push). See docs/release-guide.md.
+- Use `release X.Y.Z` for automated release (update, sync, build, commit, tag, push).
 
 ## 🎯 Prompt Symbols Reference
 
@@ -85,79 +84,3 @@ The shell prompt provides structured context to avoid unnecessary commands. Each
 #### System
 - `!N` — Last command exit code (shown only when ≠ 0, indicates error)
 - `$` — Normal user prompt
-- `#` — Root user prompt
-
-### Examples
-
-**Working tree clean:**
-```
-[test-perchance-git@1.29.1] main git:main $
-```
-→ No changes, branch up-to-date, can start work immediately.
-
-**Changes pending:**
-```
-[test-perchance-git@1.29.1] src git:feat-bridge +2 ~1 ?1 $
-```
-→ 2 files staged (ready to commit), 1 modified (needs staging), 1 untracked (new file).
-
-**Branch behind remote:**
-```
-[test-perchance-git@1.29.1] main git:main ↓5 $
-```
-→ Branch is 5 commits behind remote. Run `git pull --rebase` before working.
-
-**Ready to push:**
-```
-[test-perchance-git@1.29.1] main git:main ↑3 $
-```
-→ 3 commits ahead of remote. Run `git push` to publish.
-
-**Merge conflict:**
-```
-[test-perchance-git@1.29.1] src git:main MERGE +2 ~3 !1 $
-```
-→ Merge in progress, last command failed (exit code 1). Resolve conflicts and commit.
-
-**With stashes:**
-```
-[test-perchance-git@1.29.1] main git:dev *2 $
-```
-→ 2 stashes saved. Be careful when switching branches.
-
-**Outside project:**
-```
-projects git:main $
-```
-→ No project detected (not in a Node/Python/Rust/etc project directory).
-
-### Actions Based on Prompt
-
-When you see:
-- `+N` → Can commit: `git commit -m "message"`
-- `~N` → Stage first: `git add .` then commit
-- `?N` → Decide if files should be tracked or added to .gitignore
-- `↑N` → Push changes: `git push`
-- `↓N` → Pull first: `git pull --rebase`
-- `*N` → Check stashes: `git stash list`
-- `MERGE/REBASE/CHERRY` → Resolve conflicts and complete operation
-- `!N` → Previous command failed, check what went wrong
-
-## 🛠️ Environment Features
-
-### Optimized Shell Configuration
-
-The environment is optimized for AI agents with:
-
-- **Clean outputs**: No colors, no pagers, single column for lists
-- **Context injection**: Prompt provides cwd, git branch, and project context
-- **Smart aliases**: `git`, `eza`, `bat`, `grep` configured for non-interactive use
-- **No hang protection**: `less` aliased to `cat`, pagers disabled
-- **Modular config**: Loaded from `~/.zshrc.d/*.zsh`
-
-### Available Tools
-
-- **Snapshots**: `npm run snapshot:create` / `npm run snapshot:restore`
-- **Release automation**: `npm run release X.Y.Z`
-- **Version sync**: Automatic via pre-commit hook
-- **Agent session manager**: `ag-w` (for human observation), `agent-session list/attach`

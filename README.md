@@ -37,17 +37,12 @@ O bundle será gerado em `dist/main.bundle.js`.
 ```bash
 npm run preview
 ```
-
-## 📤 Release (Deploy)
-
-O projeto utiliza **Husky** com pre-commit hook + script automatizado para gerenciar releases.
-
 ### Fluxo Automatizado (Obrigatório)
 
-Use o script de release que automatiza TUDO:
+Use o release que automatiza TUDO:
 
 ```bash
-npm run release 1.22.0
+release 1.22.0
 ```
 
 ⚠️ **Importante:** O script de release **deve ser executado exclusivamente na branch `main`**. Isso evita a criação de tags desvinculadas do histórico principal.
@@ -61,48 +56,12 @@ O script executa automaticamente:
 6. ✅ Cria commit e tag
 7. ✅ Pull --rebase e push para o GitHub
 
-### Fluxo Manual (Alternativo)
-
-Se preferir fazer manualmente:
-
-1. **Atualize `src/constants.js`** com a nova versão:
-   ```javascript
-   export const VERSION = 'v1.22.0';
-   ```
-
-2. **Faça commit** - o pre-commit hook detectará a mudança e atualizará automaticamente:
-   - `package.json`
-   - `for-perchance.html`
-   - `README.md`
-   - `AGENTS.md`
-   - Outros arquivos com referências à versão
-   
-   ```bash
-   git add src/constants.js
-   git commit -m "chore: release v1.22.0"
-   ```
-
-3. **Gere o bundle**:
-   ```bash
-   npm run build
-   git add dist/
-   git commit --amend --no-edit
-   ```
-
-4. **Crie a tag e faça push**:
-   ```bash
-   git tag -a v1.22.0 -m "Release v1.22.0"
-   git push origin main --tags
-   ```
-
-⏱️ **Aguarde ~10 minutos** para o CDN jsDelivr processar a nova versão.
-
 ### ⚠️ Importante
 
 - **Nunca** crie uma tag sem antes atualizar `constants.js`
 - O pre-commit hook **sempre roda** em qualquer commit (idempotente, ~50ms)
 - Se tudo já estiver sincronizado, o hook não faz mudanças
-- Sempre use `npm run release X.Y.Z` para evitar esquecimentos
+- Sempre use `release X.Y.Z` para evitar esquecimentos
 - Não edite manualmente `package.json`, `for-perchance.html`, `README.md` ou `AGENTS.md` para atualizar versões
 
 ## 🎮 Uso no Perchance
@@ -157,7 +116,6 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 
 - `docs/iframe-access-perchance-guide.md` — Como acessar iframes cross-origin do Perchance via CDP
 - `docs/snapshot-guide.md` — Guia de gerenciamento de snapshots do projeto
-- `docs/release-guide.md` — Guia detalhado do processo de release
 - `AGENTS.md` — Instruções para AI agents e contexto do projeto
 
 ## 🔧 Scripts Disponíveis
@@ -167,10 +125,9 @@ Cole o conteúdo de `for-perchance.html` no HTML Panel do seu gerador Perchance.
 | `npm run dev` | Servidor de desenvolvimento com HMR | Desenvolvimento local |
 | `npm run build` | Gera bundle de produção | Antes de deploy |
 | `npm run preview` | Preview do build de produção | Testar build localmente |
-| `npm run release X.Y.Z` | Release automatizado completo | Deploy de nova versão |
+| `release X.Y.Z` | Release automatizado completo | Deploy de nova versão |
 | `npm run snapshot:create <name>` | Cria snapshot do estado atual | Antes de refactors |
 | `npm run snapshot:list` | Lista todos os snapshots | Verificar estado |
-| `node scripts/sync-version.cjs` | Sincroniza versão manualmente | Quando necessário |
 
 ## 🧪 Módulos de Teste
 
@@ -214,7 +171,7 @@ Testes avançados para o plugin `text-to-image` do Perchance, organizados em uma
 
 ## 🛡️ Boas Práticas
 
-1. **Sempre use `npm run release X.Y.Z`** para releases (na branch `main`)
+1. **Sempre use `release X.Y.Z`** para releases
 2. **Nunca edite manualmente** arquivos de versão (use `constants.js`)
 3. **Commit atômico**: uma mudança por vez
 4. **Teste localmente** com `npm run dev` antes de fazer release

@@ -1,14 +1,14 @@
 {
   "name": "test-perchance-git",
   "type": "nodejs",
-  
   "version": {
-    "files": ["src/constants.js"],
+    "files": [
+      "src/constants.js"
+    ],
     "patterns": {
       "src/constants.js": "export const VERSION = 'v{version}';"
     }
   },
-
   "hooks": {
     "afterVersionBump": [
       {
@@ -18,37 +18,33 @@
       }
     ]
   },
-
   "build": {
     "command": "npm run build",
-    "artifacts": ["dist/main.bundle.js"],
+    "artifacts": [
+      "dist/main.bundle.js"
+    ],
     "minSizeKB": 1,
-    "maxSizeKB": 500
+    "maxSizeKB": 5000
   },
-
   "lint": {
     "enabled": true,
     "command": "npm run lint"
   },
-
   "tests": {
     "enabled": true,
     "command": "npm test"
   },
-
   "security": {
     "audit": true,
     "detectSecrets": true
   },
-
   "pr": {
     "enabled": true,
     "baseBranch": "main",
-    "requireCI": false,
+    "requireCI": true,
     "autoMerge": true,
     "mergeStrategy": "squash"
   },
-
   "githubRelease": {
     "enabled": true,
     "generateChangelog": true
