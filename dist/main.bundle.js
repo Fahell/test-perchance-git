@@ -34,7 +34,7 @@ const bridgeMod = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePro
   image,
   root
 }, Symbol.toStringTag, { value: "Module" }));
-const VERSION = "v1.29.1";
+const VERSION = "v1.29.2";
 const CDN_BASE = `https://cdn.jsdelivr.net/gh/Fahell/test-perchance-git@v1.29.1`;
 function initRenderer(container2) {
   console.log("🎨 [Renderer] Inicializando Three.js...");
@@ -1632,7 +1632,7 @@ const aiTextTest = {
     }
     try {
       const instruction = "Escreva uma frase curta usando **negrito** e *itálico* para destacar palavras importantes.";
-      let renderedChunks = [];
+      const renderedChunks = [];
       const result = await _generateAIText(instruction, {
         render: (data) => {
           let html = data.text;
@@ -8688,7 +8688,7 @@ function generateProceduralMap(seed, size = 10) {
     for (let x = 0; x < size; x++) {
       const nx = x / size * 3;
       const ny = y / size * 3;
-      let value = noise2D(nx, ny);
+      const value = noise2D(nx, ny);
       const dx = (x - center) / center;
       const dy = (y - center) / center;
       const dist = Math.sqrt(dx * dx + dy * dy);
