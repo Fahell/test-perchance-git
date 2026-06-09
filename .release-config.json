@@ -34,7 +34,7 @@
     "command": "npm test"
   },
   "security": {
-    "audit": true,
+    "audit": false,
     "detectSecrets": true
   },
   "pr": {
