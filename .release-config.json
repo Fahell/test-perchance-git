@@ -19,7 +19,6 @@
     ]
   },
   "build": {
-    "command": "npm run build",
     "artifacts": [
       "dist/main.bundle.js"
     ],
