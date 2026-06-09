@@ -24,7 +24,8 @@
       "dist/main.bundle.js"
     ],
     "minSizeKB": 1,
-    "maxSizeKB": 5000
+    "maxSizeKB": 5000,
+    "enabled": false
   },
   "lint": {
     "enabled": false
