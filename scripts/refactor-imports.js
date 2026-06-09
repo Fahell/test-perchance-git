@@ -16,7 +16,7 @@ const MODULES_DIR = path.join(SRC_DIR, 'modules');
 const CDN_BRIDGE_PATTERN = /import\s+{([^}]+)}\s+from\s+['"]https:\/\/cdn\.jsdelivr\.net\/[^'"]*perchance-bridge\.js['"]/g;
 
 function refactorFile(filePath) {
-  let content = fs.readFileSync(filePath, 'utf-8');
+  const content = fs.readFileSync(filePath, 'utf-8');
   let modified = false;
   
   // Substitui imports CDN do perchance-bridge por imports relativos

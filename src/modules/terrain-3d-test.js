@@ -42,7 +42,7 @@ function generateProceduralMap(seed, size = 10) {
         for (let x = 0; x < size; x++) {
             const nx = x / size * 3; // Frequency
             const ny = y / size * 3;
-            let value = noise2D(nx, ny); // -1 to 1
+            const value = noise2D(nx, ny); // -1 to 1
             
             // Island bias: lower the edges to guarantee water
             const dx = (x - center) / center;

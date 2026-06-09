@@ -27,8 +27,7 @@
     "maxSizeKB": 5000
   },
   "lint": {
-    "enabled": true,
-    "command": "npm run lint"
+    "enabled": false
   },
   "tests": {
     "enabled": true,

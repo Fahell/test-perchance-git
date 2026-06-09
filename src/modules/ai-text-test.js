@@ -425,7 +425,7 @@ export const aiTextTest = {
     
     try {
       const instruction = 'Escreva uma frase curta usando **negrito** e *itálico* para destacar palavras importantes.';
-      let renderedChunks = [];
+      const renderedChunks = [];
       
       const result = await _generateAIText(instruction, {
         render: (data) => {
